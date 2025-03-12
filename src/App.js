@@ -32,31 +32,33 @@ function App() {
           />
           <h1 className="text-xl font-bold">Pizzaria da Bia</h1>
         </div>
-        <button
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="md:hidden focus:outline-none"
-        >
-          <svg
-            className="h-6 w-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="md:hidden focus:outline-none"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d={isMenuOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'}
-            />
-          </svg>
-        </button>
-        <button
-          onClick={() => setIsCartOpen(true)}
-          className="hidden md:block bg-green-500 px-4 py-2 rounded-full hover:bg-green-600 transition text-lg font-semibold relative"
-        >
-          Sacola {cart.length > 0 && `(${cart.length})`}
-        </button>
+            <svg
+              className="h-6 w-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d={isMenuOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'}
+              />
+            </svg>
+          </button>
+          <button
+            onClick={() => setIsCartOpen(true)}
+            className="bg-green-500 px-4 py-2 rounded-full hover:bg-green-600 transition text-lg font-semibold relative"
+          >
+            Sacola {cart.length > 0 && `(${cart.length})`}
+          </button>
+        </div>
       </header>
 
       <div
