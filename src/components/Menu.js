@@ -4,8 +4,6 @@ import axios from 'axios';
 const Menu = ({ isMenuOpen, setIsMenuOpen, addToCart, cart }) => {
   const [products, setProducts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [activeCategory, setActiveCategory] = useState('Pizzas'); // Default category
 
   useEffect(() => {
     axios.get("https://pizzaria-backend-e254.onrender.com/api/products")
@@ -14,20 +12,11 @@ const Menu = ({ isMenuOpen, setIsMenuOpen, addToCart, cart }) => {
   }, []);
 
   const categories = [...new Set(products.map(p => p.category))];
-  const filteredProducts = selectedCategory
-    ? products.filter(p => p.category === selectedCategory)
-    : products;
-
-  const handleAddToCart = (product) => {
-    addToCart(product);
-    setSelectedProduct(null);
-  };
 
   const scrollToCategory = (category) => {
     setSelectedCategory(category);
-    setActiveCategory(category);
     setIsMenuOpen(false);
-    const element = document.getElementById(category);
+    const element = document.getElementById(category || 'all-products');
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
@@ -59,23 +48,18 @@ const Menu = ({ isMenuOpen, setIsMenuOpen, addToCart, cart }) => {
       </div>
 
       {/* Cardápio */}
-      <div className="space-y-4">
+      <div id="all-products" className="space-y-4">
         {categories.map(category => (
           <div key={category} id={category} className="scroll-mt-16">
             <h2 className="text-xl md:text-2xl font-bold text-[#e63946] mb-3 md:mb-4">{category}</h2>
-            <div className="grid grid-cols-1 gap-3 md:gap-4">
-              {filteredProducts
-                .filter(product => product.category === category || !selectedCategory)
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+              {products
+                .filter(product => product.category === category)
                 .map(product => (
                   <div
                     key={product._id}
                     className="bg-white p-2 rounded-lg shadow-md hover:shadow-lg transition-all"
                   >
-                    <img
-                      src={product.image || 'https://via.placeholder.com/100'}
-                      alt={product.name}
-                      className="w-full h-20 object-cover rounded-t-lg mb-2"
-                    />
                     <h3 className="text-sm md:text-base font-semibold text-gray-800 mb-1">{product.name}</h3>
                     <p className="text-gray-600 text-xs md:text-sm mb-1">{product.description}</p>
                     <p className="text-green-600 font-bold text-sm md:text-base mb-2">
@@ -98,15 +82,15 @@ const Menu = ({ isMenuOpen, setIsMenuOpen, addToCart, cart }) => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
           <div className="bg-white p-4 rounded-lg w-11/12 md:w-1/3">
             <h2 className="text-xl font-bold text-[#e63946] mb-3">{selectedProduct.name}</h2>
-            <img
-              src={selectedProduct.image || 'https://via.placeholder.com/150'}
-              alt={selectedProduct.name}
-              className="w-full h-32 object-cover rounded-lg mb-3"
-            />
             <p className="text-gray-600 mb-3">{selectedProduct.description}</p>
             <p className="text-green-600 font-bold text-base mb-3">R$ {selectedProduct.price.toFixed(2)}</p>
             <button
-              onClick={() => handleAddToCart(selectedProduct)}
+              onClick={() => {
+                addToCart(selectedProduct);
+                setSelectedProduct(null);
+                // Simulação de notificação
+                alert(`${selectedProduct.name} adicionado à sacola!`);
+              }}
               className="w-full bg-[#e63946] text-white py-2 px-4 rounded-full hover:bg-red-700 transition"
             >
               Adicionar ao Pedido
@@ -120,6 +104,27 @@ const Menu = ({ isMenuOpen, setIsMenuOpen, addToCart, cart }) => {
           </div>
         </div>
       )}
+
+      {/* Botão Voltar ao Topo */}
+      <button
+        onClick={() => scrollToCategory(null)}
+        className="fixed bottom-16 right-4 bg-[#e63946] text-white p-2 rounded-full shadow-lg hover:bg-red-700 transition z-10 md:bottom-4"
+      >
+        <svg
+          className="h-5 w-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M5 15l7-7 7 7"
+          />
+        </svg>
+      </button>
     </div>
   );
 };
