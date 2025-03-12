@@ -23,22 +23,22 @@ function App() {
 
   return (
     <div className="bg-gray-100 min-h-screen">
-      <header className="bg-[#e63946] text-white p-4 flex justify-between items-center shadow-md fixed w-full top-0 z-20">
+      <header className="bg-[#e63946] text-white p-3 flex justify-between items-center shadow-md fixed w-full top-0 z-20">
         <div className="flex items-center">
           <img
-            src="https://via.placeholder.com/40"
+            src="https://via.placeholder.com/30"
             alt="Logo Pizzaria"
-            className="h-10 rounded-full mr-2"
+            className="h-8 rounded-full mr-2"
           />
-          <h1 className="text-xl font-bold">Pizzaria da Bia</h1>
+          <h1 className="text-lg font-bold">Pizzaria da Bia</h1>
         </div>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2">
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="md:hidden focus:outline-none"
           >
             <svg
-              className="h-6 w-6"
+              className="h-5 w-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -54,7 +54,7 @@ function App() {
           </button>
           <button
             onClick={() => setIsCartOpen(true)}
-            className="bg-green-500 px-4 py-2 rounded-full hover:bg-green-600 transition text-lg font-semibold relative"
+            className="bg-green-500 px-3 py-1 rounded-full hover:bg-green-600 transition text-sm font-semibold"
           >
             Sacola {cart.length > 0 && `(${cart.length})`}
           </button>
@@ -62,7 +62,7 @@ function App() {
       </header>
 
       <div
-        className="w-full h-48 md:h-72 bg-cover bg-center mt-16 md:mt-0"
+        className="w-full h-32 md:h-48 bg-cover bg-center mt-12 md:mt-0"
         style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1513104890138-7c749659a680?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80)' }}
       ></div>
 
@@ -75,27 +75,27 @@ function App() {
 
       {isCartOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
-          <div className="bg-white p-6 rounded-lg w-11/12 md:w-1/3 max-h-[80vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold text-[#e63946] mb-4">Sacola</h2>
+          <div className="bg-white p-4 rounded-lg w-11/12 md:w-1/3 max-h-[80vh] overflow-y-auto">
+            <h2 className="text-xl font-bold text-[#e63946] mb-3">Sacola</h2>
             {cart.length === 0 ? (
               <p className="text-gray-600">Sua sacola está vazia.</p>
             ) : (
               <>
                 {cart.map((item, index) => (
-                  <div key={index} className="flex justify-between items-center mb-3">
+                  <div key={index} className="flex justify-between items-center mb-2">
                     <div>
-                      <p className="font-semibold">{item.name}</p>
-                      <p className="text-gray-600 text-sm">R$ {item.price.toFixed(2)}</p>
+                      <p className="font-semibold text-sm">{item.name}</p>
+                      <p className="text-gray-600 text-xs">R$ {item.price.toFixed(2)}</p>
                     </div>
-                    <p className="font-semibold">{item.quantity}x</p>
+                    <p className="font-semibold text-sm">{item.quantity}x</p>
                   </div>
                 ))}
-                <p className="text-lg font-bold mt-4">
+                <p className="text-base font-bold mt-3">
                   Total: R$ {cart.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2)}
                 </p>
                 <button
                   onClick={handleCheckout}
-                  className="mt-4 w-full bg-[#e63946] text-white py-2 px-4 rounded-full hover:bg-red-700 transition"
+                  className="mt-3 w-full bg-[#e63946] text-white py-2 px-4 rounded-full hover:bg-red-700 transition text-sm"
                 >
                   Concluir Pedido
                 </button>
@@ -103,7 +103,7 @@ function App() {
             )}
             <button
               onClick={() => setIsCartOpen(false)}
-              className="mt-4 w-full bg-gray-300 text-gray-800 py-2 px-4 rounded-full hover:bg-gray-400 transition"
+              className="mt-2 w-full bg-gray-300 text-gray-800 py-2 px-4 rounded-full hover:bg-gray-400 transition text-sm"
             >
               Fechar
             </button>
@@ -118,11 +118,11 @@ function App() {
       <a
         href="https://wa.me/5511940705013"
         target="_blank"
-        className="fixed bottom-4 right-4 bg-green-500 text-white p-3 rounded-full shadow-lg hover:bg-green-600 transition z-10 md:hidden"
+        className="fixed bottom-4 right-4 bg-green-500 text-white p-2 rounded-full shadow-lg hover:bg-green-600 transition z-10 md:hidden"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6"
+          className="h-5 w-5"
           fill="currentColor"
           viewBox="0 0 24 24"
         >
