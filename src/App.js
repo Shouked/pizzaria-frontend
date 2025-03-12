@@ -3,6 +3,12 @@ import Menu from './components/Menu';
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [cart, setCart] = useState([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+
+  const addToCart = (product) => {
+    setCart([...cart, { ...product, quantity: 1 }]);
+  };
 
   return (
     <div className="bg-gray-100 min-h-screen">
@@ -35,13 +41,12 @@ function App() {
             />
           </svg>
         </button>
-        <a
-          href="https://wa.me/5511999999999"
-          target="_blank"
-          className="hidden md:block bg-green-500 px-4 py-2 rounded-full hover:bg-green-600 transition text-lg font-semibold"
+        <button
+          onClick={() => setIsCartOpen(true)}
+          className="hidden md:block bg-green-500 px-4 py-2 rounded-full hover:bg-green-600 transition text-lg font-semibold relative"
         >
-          Pedir no WhatsApp
-        </a>
+          Sacola {cart.length > 0 && `(${cart.length})`}
+        </button>
       </header>
 
       {/* Banner */}
@@ -51,11 +56,55 @@ function App() {
       ></div>
 
       {/* Conteúdo */}
-      <Menu isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
+      <Menu
+        isMenuOpen={isMenuOpen}
+        setIsMenuOpen={setIsMenuOpen}
+        addToCart={addToCart}
+        cart={cart}
+      />
+
+      {/* Modal da Sacola */}
+      {isCartOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
+          <div className="bg-white p-6 rounded-lg w-11/12 md:w-1/3 max-h-[80vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold text-[#e63946] mb-4">Sacola</h2>
+            {cart.length === 0 ? (
+              <p className="text-gray-600">Sua sacola está vazia.</p>
+            ) : (
+              <>
+                {cart.map((item, index) => (
+                  <div key={index} className="flex justify-between items-center mb-3">
+                    <div>
+                      <p className="font-semibold">{item.name}</p>
+                      <p className="text-gray-600 text-sm">R$ {item.price.toFixed(2)}</p>
+                    </div>
+                    <p className="font-semibold">{item.quantity}x</p>
+                  </div>
+                ))}
+                <p className="text-lg font-bold mt-4">
+                  Total: R$ {cart.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2)}
+                </p>
+                <button
+                  onClick={() => alert('Verificação de login aqui!')}
+                  className="mt-4 w-full bg-[#e63946] text-white py-2 px-4 rounded-full hover:bg-red-700 transition"
+                >
+                  Concluir Pedido
+                </button>
+              </>
+            )}
+            <button
+              onClick={() => setIsCartOpen(false)}
+              className="mt-4 w-full bg-gray-300 text-gray-800 py-2 px-4 rounded-full hover:bg-gray-400 transition"
+            >
+              Fechar
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Botão WhatsApp Fixo (Mobile) */}
       <a
-        href="https://wa.me/5511999999999"
+        href="https://wa.me/5511940705013"
         target="_blank"
         className="fixed bottom-4 right-4 bg-green-500 text-white p-3 rounded-full shadow-lg hover:bg-green-600 transition z-10 md:hidden"
       >
