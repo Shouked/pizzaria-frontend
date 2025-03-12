@@ -62,7 +62,7 @@ const Menu = () => {
                       <p className="text-gray-600 mt-2">{product.description}</p>
                       <p className="text-green-600 font-bold mt-2">R$ {product.price.toFixed(2)}</p>
                       <a
-                        href={`https://wa.me/5511999999999?text=Quero pedir: ${product.name}`}
+                        href={`https://wa.me/5511940705013?text=Quero pedir: ${product.name}`}
                         target="_blank"
                         className="mt-4 bg-[#e63946] text-white py-2 px-4 rounded hover:bg-red-700 inline-block"
                       >
