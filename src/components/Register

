@@ -16,7 +16,6 @@ const Register = ({ setIsRegisterOpen, setIsLoggedIn }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Simulação de registro (salvaria no backend em um caso real)
     console.log('Usuário registrado:', form);
     setIsLoggedIn(true);
     setIsRegisterOpen(false);
