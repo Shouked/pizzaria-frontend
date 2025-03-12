@@ -24,7 +24,6 @@ const Menu = ({ isMenuOpen, setIsMenuOpen, addToCart, cart }) => {
 
   return (
     <div className="container mx-auto p-4 md:p-6 bg-[#f1faee] flex flex-col md:flex-row min-h-screen">
-      {/* Menu Lateral */}
       <div
         className={`${
           isMenuOpen ? 'block' : 'hidden'
@@ -63,7 +62,6 @@ const Menu = ({ isMenuOpen, setIsMenuOpen, addToCart, cart }) => {
         </ul>
       </div>
 
-      {/* Cardápio */}
       <div className="w-full md:w-4/5 md:ml-[20%] mt-4 md:mt-0">
         {categories.map(category => (
           (!selectedCategory || selectedCategory === category) && (
@@ -101,7 +99,6 @@ const Menu = ({ isMenuOpen, setIsMenuOpen, addToCart, cart }) => {
         ))}
       </div>
 
-      {/* Modal do Produto */}
       {selectedProduct && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
           <div className="bg-white p-6 rounded-lg w-11/12 md:w-1/3">
