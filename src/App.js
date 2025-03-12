@@ -1,35 +1,63 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Menu from './components/Menu';
 
 function App() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   return (
     <div className="bg-gray-100 min-h-screen">
-      <header className="bg-[#e63946] text-white p-4 flex justify-between items-center shadow-md">
+      {/* Cabeçalho */}
+      <header className="bg-[#e63946] text-white p-4 flex justify-between items-center shadow-md fixed w-full top-0 z-20">
         <div className="flex items-center">
           <img
-            src="https://via.placeholder.com/50"
+            src="https://via.placeholder.com/40"
             alt="Logo Pizzaria"
-            className="h-12 rounded-full mr-3"
+            className="h-10 rounded-full mr-2"
           />
-          <h1 className="text-2xl font-bold font-sans">Pizzaria da Bia</h1>
+          <h1 className="text-xl font-bold">Pizzaria da Bia</h1>
         </div>
+        <button
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className="md:hidden focus:outline-none"
+        >
+          <svg
+            className="h-6 w-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d={isMenuOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'}
+            />
+          </svg>
+        </button>
         <a
           href="https://wa.me/5511999999999"
           target="_blank"
-          className="bg-green-500 px-5 py-2 rounded-full hover:bg-green-600 transition text-lg font-semibold"
+          className="hidden md:block bg-green-500 px-4 py-2 rounded-full hover:bg-green-600 transition text-lg font-semibold"
         >
           Pedir no WhatsApp
         </a>
       </header>
+
+      {/* Banner */}
       <div
-        className="w-full h-72 bg-cover bg-center"
+        className="w-full h-48 md:h-72 bg-cover bg-center mt-16 md:mt-0"
         style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1513104890138-7c749659a680?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80)' }}
       ></div>
-      <Menu />
+
+      {/* Conteúdo */}
+      <Menu isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
+
+      {/* Botão WhatsApp Fixo (Mobile) */}
       <a
         href="https://wa.me/5511999999999"
         target="_blank"
-        className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition"
+        className="fixed bottom-4 right-4 bg-green-500 text-white p-3 rounded-full shadow-lg hover:bg-green-600 transition z-10 md:hidden"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
