@@ -1,18 +1,28 @@
 import React, { useState } from 'react';
 import Menu from './components/Menu';
+import Register from './components/Register';
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
 
   const addToCart = (product) => {
     setCart([...cart, { ...product, quantity: 1 }]);
   };
 
+  const handleCheckout = () => {
+    if (!isLoggedIn) {
+      setIsRegisterOpen(true);
+    } else {
+      alert('Pedido concluído! (Simulação)');
+    }
+  };
+
   return (
     <div className="bg-gray-100 min-h-screen">
-      {/* Cabeçalho */}
       <header className="bg-[#e63946] text-white p-4 flex justify-between items-center shadow-md fixed w-full top-0 z-20">
         <div className="flex items-center">
           <img
@@ -49,13 +59,11 @@ function App() {
         </button>
       </header>
 
-      {/* Banner */}
       <div
         className="w-full h-48 md:h-72 bg-cover bg-center mt-16 md:mt-0"
         style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1513104890138-7c749659a680?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80)' }}
       ></div>
 
-      {/* Conteúdo */}
       <Menu
         isMenuOpen={isMenuOpen}
         setIsMenuOpen={setIsMenuOpen}
@@ -63,7 +71,6 @@ function App() {
         cart={cart}
       />
 
-      {/* Modal da Sacola */}
       {isCartOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
           <div className="bg-white p-6 rounded-lg w-11/12 md:w-1/3 max-h-[80vh] overflow-y-auto">
@@ -85,7 +92,7 @@ function App() {
                   Total: R$ {cart.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2)}
                 </p>
                 <button
-                  onClick={() => alert('Verificação de login aqui!')}
+                  onClick={handleCheckout}
                   className="mt-4 w-full bg-[#e63946] text-white py-2 px-4 rounded-full hover:bg-red-700 transition"
                 >
                   Concluir Pedido
@@ -102,7 +109,10 @@ function App() {
         </div>
       )}
 
-      {/* Botão WhatsApp Fixo (Mobile) */}
+      {isRegisterOpen && (
+        <Register setIsRegisterOpen={setIsRegisterOpen} setIsLoggedIn={setIsLoggedIn} />
+      )}
+
       <a
         href="https://wa.me/5511940705013"
         target="_blank"
