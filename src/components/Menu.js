@@ -5,7 +5,7 @@ const Menu = () => {
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    axios.get('https://pizzaria-backend.onrender.com/api/products')
+    axios.get(https://pizzaria-backend-e254.onrender.com/api/products')
       .then(response => setProducts(response.data))
       .catch(error => console.log(error));
   }, []);
