@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom'; // Substituí Switch por Routes
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import Menu from './components/Menu';
 import Register from './components/Register';
 import OrderSummary from './components/OrderSummary';
@@ -19,7 +19,6 @@ function App() {
     if (!isLoggedIn) {
       setIsRegisterOpen(true);
     } else {
-      // Redirecionar para a página de resumo do pedido
       window.location.href = '/order-summary';
     }
   };
@@ -34,7 +33,7 @@ function App() {
         <header className="bg-[#e63946] text-white p-3 flex justify-between items-center shadow-md fixed w-full top-0 z-20">
           <div className="flex items-center">
             <img
-              src="https://i.ibb.co/KrWqZ4W/pizzaria-da-bia-logo.png"
+              src="/favicon.ico" // Substituí o link pelo favicon local
               alt="Logo Pizzaria da Bia"
               className="h-8 rounded-full mr-2"
             />
@@ -113,12 +112,12 @@ function App() {
                   </button>
                 </>
               )}
-              <button
-                onClick={() => setIsCartOpen(false)}
-                className="mt-2 w-full bg-gray-300 text-gray-800 py-2 px-4 rounded-full hover:bg-gray-400 transition text-sm"
+              <Link
+                to="/"
+                className="mt-2 w-full bg-gray-300 text-gray-800 py-2 px-4 rounded-full hover:bg-gray-400 transition text-sm block text-center"
               >
-                Fechar
-              </button>
+                Adicionar mais itens
+              </Link>
             </div>
           </div>
         )}
