@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link, useNavigate } from 'react-router-dom';
 import Menu from './components/Menu';
 import Register from './components/Register';
+import Login from './components/Login';
 import OrderSummary from './components/OrderSummary';
 
 function App() {
@@ -10,12 +11,15 @@ function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false); // Novo estado para o modal de perfil
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [user, setUser] = useState({
     name: '',
     phone: '',
     address: '',
-  }); // Estado para armazenar os dados do usuário
+    complement: '',
+  });
+  const [credentials, setCredentials] = useState(null); // Armazena email e senha
 
   const navigate = useNavigate();
 
@@ -25,7 +29,8 @@ function App() {
 
   const handleCheckout = () => {
     if (!isLoggedIn) {
-      setIsRegisterOpen(true);
+      setIsCartOpen(false);
+      setIsLoginOpen(true);
     } else {
       setIsCartOpen(false);
       navigate('/order-summary');
@@ -38,7 +43,15 @@ function App() {
 
   const handleSaveProfile = (updatedUser) => {
     setUser(updatedUser);
-    setIsProfileOpen(false); // Fecha o modal após salvar
+    setIsProfileOpen(false);
+  };
+
+  const handleProfileClick = () => {
+    if (!isLoggedIn) {
+      setIsLoginOpen(true);
+    } else {
+      setIsProfileOpen(true);
+    }
   };
 
   return (
@@ -88,7 +101,7 @@ function App() {
 
       <Routes>
         <Route path="/" element={<Menu isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} addToCart={addToCart} cart={cart} />} />
-        <Route path="/order-summary" element={<OrderSummary cart={cart} clearCart={clearCart} />} />
+        <Route path="/order-summary" element={<OrderSummary cart={cart} clearCart={clearCart} user={user} />} />
       </Routes>
 
       {isCartOpen && (
@@ -146,7 +159,21 @@ function App() {
       )}
 
       {isRegisterOpen && (
-        <Register setIsRegisterOpen={setIsRegisterOpen} setIsLoggedIn={setIsLoggedIn} setUser={setUser} /> // Passa setUser para Register
+        <Register
+          setIsRegisterOpen={setIsRegisterOpen}
+          setIsLoggedIn={setIsLoggedIn}
+          setUser={setUser}
+          setCredentials={setCredentials}
+        />
+      )}
+
+      {isLoginOpen && (
+        <Login
+          setIsLoginOpen={setIsLoginOpen}
+          setIsLoggedIn={setIsLoggedIn}
+          credentials={credentials}
+          setIsRegisterOpen={setIsRegisterOpen}
+        />
       )}
 
       {isProfileOpen && (
@@ -160,6 +187,7 @@ function App() {
                   name: e.target.name.value,
                   phone: e.target.phone.value,
                   address: e.target.address.value,
+                  complement: e.target.complement.value,
                 });
               }}
             >
@@ -190,6 +218,16 @@ function App() {
                   name="address"
                   value={user.address}
                   onChange={(e) => setUser({ ...user, address: e.target.value })}
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Complemento</label>
+                <input
+                  type="text"
+                  name="complement"
+                  value={user.complement}
+                  onChange={(e) => setUser({ ...user, complement: e.target.value })}
                   className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
                 />
               </div>
@@ -261,7 +299,7 @@ function App() {
           </svg>
           <span className="text-xs">Pedidos</span>
         </Link>
-        <button onClick={() => setIsProfileOpen(true)} className="flex flex-col items-center text-gray-600">
+        <button onClick={handleProfileClick} className="flex flex-col items-center text-gray-600">
           <svg
             className="h-5 w-5"
             fill="none"
