@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const OrderSummary = ({ cart, clearCart, user }) => {
   const navigate = useNavigate();
@@ -8,17 +9,36 @@ const OrderSummary = ({ cart, clearCart, user }) => {
     ? cart.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 1), 0).toFixed(2) 
     : 0;
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!cart || cart.length === 0) {
       alert('Seu pedido está vazio!');
       navigate('/');
       return;
     }
-    alert('Pedido confirmado! Em breve entraremos em contato.');
-    if (clearCart) {
-      clearCart();
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(
+        'https://pizzaria-backend-e254.onrender.com/api/orders',
+        {
+          items: cart.map(item => ({
+            product: item._id,
+            quantity: item.quantity || 1,
+          })),
+          total: parseFloat(total),
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      alert('Pedido confirmado! Em breve entraremos em contato.');
+      if (clearCart) {
+        clearCart();
+      }
+      navigate('/');
+    } catch (err) {
+      alert('Erro ao confirmar o pedido: ' + (err.response?.data?.message || err.message));
     }
-    navigate('/');
   };
 
   return (
