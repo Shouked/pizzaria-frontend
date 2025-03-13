@@ -4,8 +4,12 @@ import { useNavigate } from 'react-router-dom';
 
 const OrderSummary = ({ cart, clearCart, user }) => {
   const navigate = useNavigate();
+
+  // Criar o mapa de produtos, garantindo que os IDs sejam válidos
   const productsMap = cart.reduce((map, item) => {
-    map[item.name] = item._id;
+    if (item._id) { // Verificar se o item tem um _id válido
+      map[item.name] = item._id;
+    }
     return map;
   }, {});
 
@@ -21,12 +25,26 @@ const OrderSummary = ({ cart, clearCart, user }) => {
         return;
       }
 
+      if (!user || !user._id) {
+        alert('Usuário não autenticado. Por favor, faça login novamente.');
+        return;
+      }
+
+      // Validar se todos os itens têm IDs válidos
+      const items = cart.map(item => ({
+        product: productsMap[item.name],
+        quantity: item.quantity || 1,
+      }));
+
+      const invalidItems = items.filter(item => !item.product);
+      if (invalidItems.length > 0) {
+        alert('Alguns itens no carrinho não têm IDs válidos. Por favor, adicione os produtos novamente.');
+        return;
+      }
+
       const orderData = {
         user: user._id,
-        items: cart.map(item => ({
-          product: productsMap[item.name],
-          quantity: item.quantity || 1,
-        })),
+        items,
         total: calculateTotal(),
       };
 
