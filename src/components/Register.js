@@ -4,11 +4,22 @@ import axios from 'axios';
 const Register = ({ setIsRegisterOpen, setIsLoggedIn, setUser, setCredentials }) => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [address, setAddress] = useState('');
-  const [complement, setComplement] = useState('');
+  const [address, setAddress] = useState({
+    cep: '',
+    street: '',
+    number: '',
+    neighborhood: '',
+    city: '',
+    complement: '',
+  });
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+
+  const handleAddressChange = (e) => {
+    const { name, value } = e.target;
+    setAddress({ ...address, [name]: value });
+  };
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -17,17 +28,16 @@ const Register = ({ setIsRegisterOpen, setIsLoggedIn, setUser, setCredentials })
         name,
         phone,
         address,
-        complement,
         email,
         password,
       });
       localStorage.setItem('token', response.data.token);
-      setUser({ name, phone, address, complement });
+      setUser({ name, phone, address });
       setCredentials({ email, password });
       setIsLoggedIn(true);
       setIsRegisterOpen(false);
     } catch (err) {
-      console.error('Erro de registro:', err.response?.data || err.message); // Depuração
+      console.error('Erro de registro:', err.response?.data || err.message);
       setError(err.response?.data?.message || 'Erro ao cadastrar. Verifique os dados e tente novamente.');
     }
   };
@@ -59,11 +69,56 @@ const Register = ({ setIsRegisterOpen, setIsLoggedIn, setUser, setCredentials })
             />
           </div>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Endereço</label>
+            <label className="block text-sm font-medium text-gray-700">CEP</label>
             <input
               type="text"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              name="cep"
+              value={address.cep}
+              onChange={handleAddressChange}
+              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">Rua</label>
+            <input
+              type="text"
+              name="street"
+              value={address.street}
+              onChange={handleAddressChange}
+              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">Número</label>
+            <input
+              type="text"
+              name="number"
+              value={address.number}
+              onChange={handleAddressChange}
+              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">Bairro</label>
+            <input
+              type="text"
+              name="neighborhood"
+              value={address.neighborhood}
+              onChange={handleAddressChange}
+              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">Cidade</label>
+            <input
+              type="text"
+              name="city"
+              value={address.city}
+              onChange={handleAddressChange}
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
               required
             />
@@ -72,8 +127,9 @@ const Register = ({ setIsRegisterOpen, setIsLoggedIn, setUser, setCredentials })
             <label className="block text-sm font-medium text-gray-700">Complemento (ex.: Apto 03)</label>
             <input
               type="text"
-              value={complement}
-              onChange={(e) => setComplement(e.target.value)}
+              name="complement"
+              value={address.complement}
+              onChange={handleAddressChange}
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
             />
           </div>
