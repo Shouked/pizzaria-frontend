@@ -13,12 +13,14 @@ const Login = ({ setIsLoginOpen, setIsLoggedIn, setIsRegisterOpen, setUser }) =>
         email,
         password,
       });
+      console.log('Resposta do login:', response.data); // Depuração
       localStorage.setItem('token', response.data.token);
       setUser(response.data.user);
       setIsLoggedIn(true);
       setIsLoginOpen(false);
     } catch (err) {
-      setError(err.response?.data?.message || 'Erro ao fazer login');
+      console.error('Erro no login:', err.response?.data || err.message); // Depuração
+      setError(err.response?.data?.message || 'Erro ao fazer login. Verifique suas credenciais.');
     }
   };
 
