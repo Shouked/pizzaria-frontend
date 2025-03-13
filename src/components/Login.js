@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const Login = ({ setIsLoginOpen, setIsLoggedIn, setIsRegisterOpen, setUser }) => {
+const Login = ({ setIsLoginOpen, setIsLoggedIn, setIsRegisterOpen, setUser, cart, navigate }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -24,6 +24,11 @@ const Login = ({ setIsLoginOpen, setIsLoggedIn, setIsRegisterOpen, setUser }) =>
       setUser(userResponse.data);
       setIsLoggedIn(true);
       setIsLoginOpen(false);
+
+      // Redirecionar para o resumo do pedido se o carrinho tiver itens
+      if (cart.length > 0) {
+        navigate('/order-summary');
+      }
     } catch (err) {
       console.error('Erro no login:', err.response?.data || err.message);
       setError(err.response?.data?.message || 'Erro ao fazer login. Verifique suas credenciais.');
