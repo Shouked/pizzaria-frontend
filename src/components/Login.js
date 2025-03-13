@@ -1,22 +1,24 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
-const Login = ({ setIsLoginOpen, setIsLoggedIn, credentials, setIsRegisterOpen }) => {
+const Login = ({ setIsLoginOpen, setIsLoggedIn, setIsRegisterOpen, setUser }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (!credentials) {
-      setError('Nenhum usuário registrado. Por favor, cadastre-se.');
-      return;
-    }
-    if (email === credentials.email && password === credentials.password) {
+    try {
+      const response = await axios.post('https://pizzaria-backend-e254.onrender.com/api/auth/login', {
+        email,
+        password,
+      });
+      localStorage.setItem('token', response.data.token);
+      setUser(response.data.user);
       setIsLoggedIn(true);
       setIsLoginOpen(false);
-      setError('');
-    } else {
-      setError('Email ou senha incorretos.');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Erro ao fazer login');
     }
   };
 
