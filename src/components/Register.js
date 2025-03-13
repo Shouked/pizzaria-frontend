@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
 
-const Register = ({ setIsRegisterOpen, setIsLoggedIn, setUser }) => {
+const Register = ({ setIsRegisterOpen, setIsLoggedIn, setUser, setCredentials }) => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
+  const [complement, setComplement] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   const handleRegister = (e) => {
     e.preventDefault();
-    setUser({ name, phone, address });
+    const userData = { name, phone, address, complement };
+    setUser(userData);
+    setCredentials({ email, password }); // Salva as credenciais para login
     setIsLoggedIn(true);
     setIsRegisterOpen(false);
   };
@@ -43,6 +48,35 @@ const Register = ({ setIsRegisterOpen, setIsLoggedIn, setUser }) => {
               type="text"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
+              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">Complemento (ex.: Apto 03)</label>
+            <input
+              type="text"
+              value={complement}
+              onChange={(e) => setComplement(e.target.value)}
+              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">Senha</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
               required
             />
