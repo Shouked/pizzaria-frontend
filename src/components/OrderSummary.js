@@ -1,12 +1,11 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom'; // Adicionei useNavigate para redirecionamento
+import { Link, useNavigate } from 'react-router-dom';
 
-const OrderSummary = ({ cart, clearCart }) => {
-  const navigate = useNavigate(); // Hook para redirecionamento
+const OrderSummary = ({ cart, clearCart, user }) => {
+  const navigate = useNavigate();
 
-  // Verifica se cart está definido e calcula o total
   const total = cart && cart.length > 0 
-    ? cart.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2) 
+    ? cart.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 1), 0).toFixed(2) 
     : 0;
 
   const handleConfirm = () => {
@@ -16,7 +15,9 @@ const OrderSummary = ({ cart, clearCart }) => {
       return;
     }
     alert('Pedido confirmado! Em breve entraremos em contato.');
-    clearCart();
+    if (clearCart) {
+      clearCart();
+    }
     navigate('/');
   };
 
@@ -30,20 +31,23 @@ const OrderSummary = ({ cart, clearCart }) => {
           {cart.map((item, index) => (
             <div key={index} className="flex justify-between items-center mb-2 bg-white p-2 rounded-lg">
               <div>
-                <p className="font-semibold text-sm">{item.name}</p>
-                <p className="text-gray-600 text-xs">R$ {item.price.toFixed(2)} x {item.quantity}</p>
+                <p className="font-semibold text-sm">{item.name || 'Item sem nome'}</p>
+                <p className="text-gray-600 text-xs">
+                  R$ {(item.price || 0).toFixed(2)} x {(item.quantity || 1)}
+                </p>
               </div>
               <p className="font-semibold text-sm">
-                R$ {(item.price * item.quantity).toFixed(2)}
+                R$ {((item.price || 0) * (item.quantity || 1)).toFixed(2)}
               </p>
             </div>
           ))}
           <p className="text-base font-bold mt-3">Total: R$ {total}</p>
           <div className="mt-4">
             <h3 className="text-lg font-semibold text-[#e63946] mb-2">Dados do Cliente</h3>
-            <p>Cliente: [Nome do cliente]</p>
-            <p>Telefone: [Telefone]</p>
-            <p>Endereço: [Endereço]</p>
+            <p>Cliente: {user.name || 'Não informado'}</p>
+            <p>Telefone: {user.phone || 'Não informado'}</p>
+            <p>Endereço: {user.address || 'Não informado'}</p>
+            {user.complement && <p>Complemento: {user.complement}</p>}
             <p>Status: Em preparo</p>
           </div>
           <button
