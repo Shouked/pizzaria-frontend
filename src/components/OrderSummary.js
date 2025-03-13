@@ -13,7 +13,7 @@ const OrderSummary = ({ cart, clearCart, user }) => {
         const response = await axios.get('https://pizzaria-backend-e254.onrender.com/api/products');
         const map = {};
         response.data.forEach(product => {
-          map[product.name] = product._id;
+          map[product.name] = product._id; // Mapeia nome para _id
         });
         setProductsMap(map);
       } catch (err) {
@@ -24,7 +24,7 @@ const OrderSummary = ({ cart, clearCart, user }) => {
   }, []);
 
   const handleOrderSubmit = async () => {
-    if (!user) {
+    if (!user || !user._id) {
       setError('Você precisa estar logado para concluir o pedido.');
       return;
     }
@@ -37,18 +37,12 @@ const OrderSummary = ({ cart, clearCart, user }) => {
       const response = await axios.post(
         'https://pizzaria-backend-e254.onrender.com/api/orders',
         {
+          user: user._id, // Envia o _id do usuário
           items: cart.map(item => ({
-            product: productsMap[item.name],
+            product: productsMap[item.name], // Usa o _id do produto
             quantity: item.quantity || 1,
           })),
           total: cart.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 1), 0),
-          user: {
-            name: user?.name || 'Usuário não identificado',
-            phone: user?.phone || 'Não informado',
-            address: user?.address
-              ? `${user.address.street}, ${user.address.number}, ${user.address.neighborhood}, ${user.address.city}, CEP: ${user.address.cep}${user.address.complement ? `, ${user.address.complement}` : ''}`
-              : 'Endereço não informado',
-          },
         },
         {
           headers: { Authorization: `Bearer ${token}` },
