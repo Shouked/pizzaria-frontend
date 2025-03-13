@@ -5,6 +5,7 @@ const Menu = ({ isMenuOpen, setIsMenuOpen, addToCart, cart }) => {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [category, setCategory] = useState('TODAS');
+  const [error, setError] = useState(''); // Adicionar estado para erro
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -13,8 +14,10 @@ const Menu = ({ isMenuOpen, setIsMenuOpen, addToCart, cart }) => {
         console.log('Produtos recebidos:', response.data);
         setProducts(response.data);
         setFilteredProducts(response.data);
+        setError(''); // Limpar erro em caso de sucesso
       } catch (err) {
-        console.error('Erro ao buscar produtos:', err);
+        console.error('Erro ao buscar produtos:', err.response?.data || err.message);
+        setError('Não foi possível carregar os produtos. Tente novamente mais tarde.');
       }
     };
     fetchProducts();
@@ -43,6 +46,7 @@ const Menu = ({ isMenuOpen, setIsMenuOpen, addToCart, cart }) => {
           </button>
         ))}
       </div>
+      {error && <p className="text-red-500 text-center mb-4">{error}</p>}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredProducts.length > 0 ? (
           filteredProducts.map(product => (
