@@ -5,6 +5,7 @@ import Register from './components/Register';
 import Login from './components/Login';
 import OrderSummary from './components/OrderSummary';
 import Profile from './components/Profile';
+import axios from 'axios';
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -21,7 +22,21 @@ function App() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      setIsLoggedIn(true);
+      const fetchUser = async () => {
+        try {
+          const response = await axios.get('https://pizzaria-backend-e254.onrender.com/api/auth/me', {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setUser(response.data);
+          setIsLoggedIn(true);
+        } catch (err) {
+          console.error('Erro ao buscar usuário:', err.response?.data || err.message);
+          localStorage.removeItem('token');
+          setIsLoggedIn(false);
+          setUser(null);
+        }
+      };
+      fetchUser();
     }
   }, []);
 
@@ -30,7 +45,7 @@ function App() {
   };
 
   const handleCheckout = () => {
-    if (!isLoggedIn) {
+    if (!isLoggedIn || !user) {
       setIsCartOpen(false);
       setIsLoginOpen(true);
     } else {
@@ -44,7 +59,7 @@ function App() {
   };
 
   const handleProfileClick = () => {
-    if (!isLoggedIn) {
+    if (!isLoggedIn || !user) {
       setIsLoginOpen(true);
     } else {
       navigate('/profile');
