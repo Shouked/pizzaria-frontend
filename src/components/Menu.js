@@ -10,7 +10,7 @@ const Menu = ({ isMenuOpen, setIsMenuOpen, addToCart, cart }) => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get('https://pizzaria-backend-e254.onrender.com/api/products');
-        console.log('Produtos recebidos:', response.data); // Para depuração
+        console.log('Produtos recebidos:', response.data);
         setProducts(response.data);
         setFilteredProducts(response.data);
       } catch (err) {
@@ -30,7 +30,6 @@ const Menu = ({ isMenuOpen, setIsMenuOpen, addToCart, cart }) => {
 
   return (
     <div className="container mx-auto p-4 bg-[#f1faee] min-h-screen">
-      {/* Carrossel de Categorias */}
       <div className="flex overflow-x-auto space-x-2 mb-4 pb-2 scrollbar-hide">
         {['TODAS', 'PIZZA', 'SOBREMESA', 'BEBIDAS'].map(cat => (
           <button
@@ -44,17 +43,21 @@ const Menu = ({ isMenuOpen, setIsMenuOpen, addToCart, cart }) => {
           </button>
         ))}
       </div>
-      {/* Grid de Produtos */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredProducts.length > 0 ? (
           filteredProducts.map(product => (
             <div key={product._id} className="bg-white p-4 rounded-lg shadow-md">
-              {product.image && (
+              {product.image && product.image !== '' ? (
                 <img
                   src={product.image}
                   alt={product.name}
                   className="w-full h-40 object-cover rounded-lg mb-2"
+                  onError={(e) => (e.target.style.display = 'none')} // Esconde a imagem se houver erro
                 />
+              ) : (
+                <div className="w-full h-40 bg-gray-200 rounded-lg mb-2 flex items-center justify-center">
+                  <span className="text-gray-500">Sem imagem</span>
+                </div>
               )}
               <h3 className="text-lg font-semibold text-[#e63946]">{product.name}</h3>
               <p className="text-gray-600 text-sm">{product.description}</p>
