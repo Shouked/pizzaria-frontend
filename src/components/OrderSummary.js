@@ -1,10 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
 const OrderSummary = ({ cart, clearCart, user }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [productsMap, setProductsMap] = useState({});
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.get('https://pizzaria-backend-e254.onrender.com/api/products');
+        const map = {};
+        response.data.forEach(product => {
+          map[product.name] = product._id; // Mapeia nome para _id
+        });
+        setProductsMap(map);
+      } catch (err) {
+        console.error('Erro ao buscar produtos:', err);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   const handleOrderSubmit = async () => {
     if (!user) {
@@ -21,8 +38,7 @@ const OrderSummary = ({ cart, clearCart, user }) => {
         'https://pizzaria-backend-e254.onrender.com/api/orders',
         {
           items: cart.map(item => ({
-            name: item.name,
-            price: item.price,
+            product: productsMap[item.name], // Usa o _id do produto
             quantity: item.quantity || 1,
           })),
           total: cart.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 1), 0),
