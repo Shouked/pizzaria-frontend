@@ -4,6 +4,7 @@ import Menu from './components/Menu';
 import Register from './components/Register';
 import Login from './components/Login';
 import OrderSummary from './components/OrderSummary';
+import Profile from './components/Profile';
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -11,15 +12,9 @@ function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const [user, setUser] = useState({
-    name: '',
-    phone: '',
-    address: '',
-    complement: '',
-  });
-  const [credentials, setCredentials] = useState(null); // Armazena email e senha
+  const [user, setUser] = useState(null);
+  const [credentials, setCredentials] = useState(null);
 
   const navigate = useNavigate();
 
@@ -41,16 +36,11 @@ function App() {
     setCart([]);
   };
 
-  const handleSaveProfile = (updatedUser) => {
-    setUser(updatedUser);
-    setIsProfileOpen(false);
-  };
-
   const handleProfileClick = () => {
     if (!isLoggedIn) {
       setIsLoginOpen(true);
     } else {
-      setIsProfileOpen(true);
+      navigate('/profile');
     }
   };
 
@@ -102,6 +92,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Menu isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} addToCart={addToCart} cart={cart} />} />
         <Route path="/order-summary" element={<OrderSummary cart={cart} clearCart={clearCart} user={user} />} />
+        <Route path="/profile" element={<Profile user={user} setUser={setUser} setIsLoggedIn={setIsLoggedIn} />} />
       </Routes>
 
       {isCartOpen && (
@@ -171,82 +162,9 @@ function App() {
         <Login
           setIsLoginOpen={setIsLoginOpen}
           setIsLoggedIn={setIsLoggedIn}
-          credentials={credentials}
           setIsRegisterOpen={setIsRegisterOpen}
+          setUser={setUser}
         />
-      )}
-
-      {isProfileOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
-          <div className="bg-white p-4 rounded-lg w-11/12 md:w-1/3 max-h-[80vh] overflow-y-auto">
-            <h2 className="text-xl font-bold text-[#e63946] mb-3">Perfil</h2>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSaveProfile({
-                  name: e.target.name.value,
-                  phone: e.target.phone.value,
-                  address: e.target.address.value,
-                  complement: e.target.complement.value,
-                });
-              }}
-            >
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Nome</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={user.name}
-                  onChange={(e) => setUser({ ...user, name: e.target.value })}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Telefone</label>
-                <input
-                  type="text"
-                  name="phone"
-                  value={user.phone}
-                  onChange={(e) => setUser({ ...user, phone: e.target.value })}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Endereço</label>
-                <input
-                  type="text"
-                  name="address"
-                  value={user.address}
-                  onChange={(e) => setUser({ ...user, address: e.target.value })}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Complemento</label>
-                <input
-                  type="text"
-                  name="complement"
-                  value={user.complement}
-                  onChange={(e) => setUser({ ...user, complement: e.target.value })}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full bg-[#e63946] text-white py-2 px-4 rounded-full hover:bg-red-700 transition text-sm"
-              >
-                Salvar
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsProfileOpen(false)}
-                className="mt-2 w-full bg-gray-300 text-gray-800 py-2 px-4 rounded-full hover:bg-gray-400 transition text-sm"
-              >
-                Fechar
-              </button>
-            </form>
-          </div>
-        </div>
       )}
 
       <a
