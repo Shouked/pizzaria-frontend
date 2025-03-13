@@ -26,7 +26,7 @@ function App() {
       <header className="bg-[#e63946] text-white p-3 flex justify-between items-center shadow-md fixed w-full top-0 z-20">
         <div className="flex items-center">
           <img
-            src="https://i.ibb.co/2hR3qYx/pizzaria-da-bia-logo.png"
+            src="https://via.placeholder.com/30"
             alt="Logo Pizzaria da Bia"
             className="h-8 rounded-full mr-2"
           />
