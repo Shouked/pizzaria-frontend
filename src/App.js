@@ -68,7 +68,7 @@ function App() {
 
   return (
     <div className="bg-gray-100 min-h-screen">
-      <header className="bg-[#e63946] text-white p-3 flex justify-between items-center shadow-md fixed w-full top-0 z-20">
+      <header className="bg-[#e63946] text-white p-3 flex justify-center items-center shadow-md fixed w-full top-0 z-20">
         <div className="flex items-center">
           <img
             src="/favicon.ico"
@@ -76,33 +76,6 @@ function App() {
             className="h-8 rounded-full mr-2"
           />
           <h1 className="text-lg font-bold">Pizzaria da Bia</h1>
-        </div>
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden focus:outline-none"
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d={isMenuOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'}
-              />
-            </svg>
-          </button>
-          <button
-            onClick={() => setIsCartOpen(true)}
-            className="bg-green-500 px-3 py-1 rounded-full hover:bg-green-600 transition text-sm font-semibold"
-          >
-            Sacola {cart.length > 0 && `(${cart.length})`}
-          </button>
         </div>
       </header>
 
@@ -119,10 +92,18 @@ function App() {
 
       {isCartOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
-          <div className="bg-white p-4 rounded-lg w-11/12 md:w-1/3 max-h-[80vh] overflow-y-auto">
-            <h2 className="text-xl font-bold text-[#e63946] mb-3">Sacola</h2>
+          <div className="bg-white p-4 rounded-lg w-11/12 md:w-1/3 max-h-[80vh] overflow-y-auto relative">
+            <button
+              onClick={() => setIsCartOpen(false)}
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <h2 className="text-xl font-bold text-[#e63946] mb-3">Carrinho</h2>
             {cart.length === 0 ? (
-              <p className="text-gray-600">Sua sacola está vazia.</p>
+              <p className="text-gray-600">Seu carrinho está vazio.</p>
             ) : (
               <>
                 {cart.map((item, index) => (
@@ -147,7 +128,7 @@ function App() {
                   onClick={clearCart}
                   className="mt-2 w-full bg-red-500 text-white py-2 px-4 rounded-full hover:bg-red-700 transition text-sm"
                 >
-                  Esvaziar Sacola
+                  Esvaziar Carrinho
                 </button>
               </>
             )}
