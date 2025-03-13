@@ -4,6 +4,7 @@ import axios from 'axios';
 const Menu = ({ isMenuOpen, setIsMenuOpen, addToCart, cart }) => {
   const [products, setProducts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null); // Garantir que o estado esteja definido aqui
 
   useEffect(() => {
     axios.get("https://pizzaria-backend-e254.onrender.com/api/products")
@@ -20,6 +21,13 @@ const Menu = ({ isMenuOpen, setIsMenuOpen, addToCart, cart }) => {
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
+  };
+
+  const handleAddToCart = (product) => {
+    addToCart(product);
+    setSelectedProduct(null);
+    // Simulação de notificação
+    alert(`${product.name} adicionado à sacola!`);
   };
 
   return (
@@ -85,12 +93,7 @@ const Menu = ({ isMenuOpen, setIsMenuOpen, addToCart, cart }) => {
             <p className="text-gray-600 mb-3">{selectedProduct.description}</p>
             <p className="text-green-600 font-bold text-base mb-3">R$ {selectedProduct.price.toFixed(2)}</p>
             <button
-              onClick={() => {
-                addToCart(selectedProduct);
-                setSelectedProduct(null);
-                // Simulação de notificação
-                alert(`${selectedProduct.name} adicionado à sacola!`);
-              }}
+              onClick={() => handleAddToCart(selectedProduct)}
               className="w-full bg-[#e63946] text-white py-2 px-4 rounded-full hover:bg-red-700 transition"
             >
               Adicionar ao Pedido
