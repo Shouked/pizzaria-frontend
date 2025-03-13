@@ -13,13 +13,19 @@ const Login = ({ setIsLoginOpen, setIsLoggedIn, setIsRegisterOpen, setUser }) =>
         email,
         password,
       });
-      console.log('Resposta do login:', response.data); // Depuração
+      console.log('Resposta do login:', response.data);
       localStorage.setItem('token', response.data.token);
-      setUser(response.data.user);
+
+      // Buscar os dados completos do usuário usando a rota /api/auth/me
+      const userResponse = await axios.get('https://pizzaria-backend-e254.onrender.com/api/auth/me', {
+        headers: { Authorization: `Bearer ${response.data.token}` },
+      });
+      console.log('Dados completos do usuário:', userResponse.data);
+      setUser(userResponse.data);
       setIsLoggedIn(true);
       setIsLoginOpen(false);
     } catch (err) {
-      console.error('Erro no login:', err.response?.data || err.message); // Depuração
+      console.error('Erro no login:', err.response?.data || err.message);
       setError(err.response?.data?.message || 'Erro ao fazer login. Verifique suas credenciais.');
     }
   };
