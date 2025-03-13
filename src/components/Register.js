@@ -13,7 +13,7 @@ const Register = ({ setIsRegisterOpen, setIsLoggedIn, setUser, setCredentials })
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('https://pizzaria-backend-e254.onrender.com', {
+      const response = await axios.post('https://pizzaria-backend-e254.onrender.com/api/auth/register', {
         name,
         phone,
         address,
@@ -27,7 +27,8 @@ const Register = ({ setIsRegisterOpen, setIsLoggedIn, setUser, setCredentials })
       setIsLoggedIn(true);
       setIsRegisterOpen(false);
     } catch (err) {
-      setError(err.response?.data?.message || 'Erro ao cadastrar');
+      console.error('Erro de registro:', err.response?.data || err.message); // Depuração
+      setError(err.response?.data?.message || 'Erro ao cadastrar. Verifique os dados e tente novamente.');
     }
   };
 
@@ -94,6 +95,7 @@ const Register = ({ setIsRegisterOpen, setIsLoggedIn, setUser, setCredentials })
               onChange={(e) => setPassword(e.target.value)}
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
               required
+              minLength="6"
             />
           </div>
           <button
