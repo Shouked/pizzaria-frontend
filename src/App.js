@@ -10,8 +10,14 @@ function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false); // Novo estado para o modal de perfil
+  const [user, setUser] = useState({
+    name: '',
+    phone: '',
+    address: '',
+  }); // Estado para armazenar os dados do usuário
 
-  const navigate = useNavigate(); // Hook para navegação
+  const navigate = useNavigate();
 
   const addToCart = (product) => {
     setCart([...cart, { ...product, quantity: 1 }]);
@@ -21,13 +27,18 @@ function App() {
     if (!isLoggedIn) {
       setIsRegisterOpen(true);
     } else {
-      setIsCartOpen(false); // Fecha a sacola antes de redirecionar
-      navigate('/order-summary'); // Navega para a página de resumo
+      setIsCartOpen(false);
+      navigate('/order-summary');
     }
   };
 
   const clearCart = () => {
     setCart([]);
+  };
+
+  const handleSaveProfile = (updatedUser) => {
+    setUser(updatedUser);
+    setIsProfileOpen(false); // Fecha o modal após salvar
   };
 
   return (
@@ -72,7 +83,7 @@ function App() {
 
       <div
         className="w-full h-32 md:h-48 bg-cover bg-center mt-12 md:mt-0"
-        style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1603565816030-6b767eebda77?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80)' }}
+        style={{ backgroundImage: `url(/pizza.png)` }}
       ></div>
 
       <Routes>
@@ -124,7 +135,7 @@ function App() {
             ) : (
               <Link
                 to="/"
-                onClick={() => setIsCartOpen(false)} // Fecha a sacola ao clicar
+                onClick={() => setIsCartOpen(false)}
                 className="mt-2 w-full bg-gray-300 text-gray-800 py-2 px-4 rounded-full hover:bg-gray-400 transition text-sm block text-center"
               >
                 Adicionar mais itens
@@ -135,7 +146,69 @@ function App() {
       )}
 
       {isRegisterOpen && (
-        <Register setIsRegisterOpen={setIsRegisterOpen} setIsLoggedIn={setIsLoggedIn} />
+        <Register setIsRegisterOpen={setIsRegisterOpen} setIsLoggedIn={setIsLoggedIn} setUser={setUser} /> // Passa setUser para Register
+      )}
+
+      {isProfileOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
+          <div className="bg-white p-4 rounded-lg w-11/12 md:w-1/3 max-h-[80vh] overflow-y-auto">
+            <h2 className="text-xl font-bold text-[#e63946] mb-3">Perfil</h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSaveProfile({
+                  name: e.target.name.value,
+                  phone: e.target.phone.value,
+                  address: e.target.address.value,
+                });
+              }}
+            >
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Nome</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={user.name}
+                  onChange={(e) => setUser({ ...user, name: e.target.value })}
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Telefone</label>
+                <input
+                  type="text"
+                  name="phone"
+                  value={user.phone}
+                  onChange={(e) => setUser({ ...user, phone: e.target.value })}
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Endereço</label>
+                <input
+                  type="text"
+                  name="address"
+                  value={user.address}
+                  onChange={(e) => setUser({ ...user, address: e.target.value })}
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full bg-[#e63946] text-white py-2 px-4 rounded-full hover:bg-red-700 transition text-sm"
+              >
+                Salvar
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsProfileOpen(false)}
+                className="mt-2 w-full bg-gray-300 text-gray-800 py-2 px-4 rounded-full hover:bg-gray-400 transition text-sm"
+              >
+                Fechar
+              </button>
+            </form>
+          </div>
+        </div>
       )}
 
       <a
@@ -188,7 +261,7 @@ function App() {
           </svg>
           <span className="text-xs">Pedidos</span>
         </Link>
-        <button className="flex flex-col items-center text-gray-600">
+        <button onClick={() => setIsProfileOpen(true)} className="flex flex-col items-center text-gray-600">
           <svg
             className="h-5 w-5"
             fill="none"
@@ -210,7 +283,6 @@ function App() {
   );
 }
 
-// Envolva o componente App com Router para usar useNavigate
 export default function AppWrapper() {
   return (
     <Router>
