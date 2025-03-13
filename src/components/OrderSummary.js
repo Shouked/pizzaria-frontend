@@ -1,19 +1,29 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom'; // Adicionei useNavigate para redirecionamento
 
 const OrderSummary = ({ cart, clearCart }) => {
-  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2);
+  const navigate = useNavigate(); // Hook para redirecionamento
+
+  // Verifica se cart está definido e calcula o total
+  const total = cart && cart.length > 0 
+    ? cart.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2) 
+    : 0;
 
   const handleConfirm = () => {
+    if (!cart || cart.length === 0) {
+      alert('Seu pedido está vazio!');
+      navigate('/');
+      return;
+    }
     alert('Pedido confirmado! Em breve entraremos em contato.');
     clearCart();
-    window.location.href = '/';
+    navigate('/');
   };
 
   return (
     <div className="container mx-auto p-4 bg-[#f1faee] min-h-screen">
       <h2 className="text-2xl font-bold text-[#e63946] mb-4">Resumo do Pedido</h2>
-      {cart.length === 0 ? (
+      {!cart || cart.length === 0 ? (
         <p className="text-gray-600">Nenhum item no pedido.</p>
       ) : (
         <>
@@ -42,7 +52,10 @@ const OrderSummary = ({ cart, clearCart }) => {
           >
             Confirmar Pedido
           </button>
-          <Link to="/" className="mt-2 w-full bg-gray-300 text-gray-800 py-2 px-4 rounded-full hover:bg-gray-400 transition block text-center">
+          <Link
+            to="/"
+            className="mt-2 w-full bg-gray-300 text-gray-800 py-2 px-4 rounded-full hover:bg-gray-400 transition block text-center"
+          >
             Voltar para Home
           </Link>
         </>
