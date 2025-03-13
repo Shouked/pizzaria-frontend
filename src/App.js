@@ -3,13 +3,14 @@ import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-route
 import axios from 'axios';
 import Menu from './components/Menu';
 import OrderSummary from './components/OrderSummary';
-import Login from './components/Login'; // Certifique-se de que o Login.js existe
+import Login from './components/Login';
 
 function App() {
   const [cart, setCart] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
   const [user, setUser] = useState(null);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const navigate = useNavigate();
 
   // Carregar usuário ao iniciar, se houver token
@@ -39,25 +40,6 @@ function App() {
     setUser(null);
     setCart([]); // Esvaziar o carrinho
     navigate('/'); // Redirecionar para a home
-  };
-
-  const handleLogin = async (email, password) => {
-    try {
-      const response = await axios.post('https://pizzaria-backend-e254.onrender.com/api/auth/login', {
-        email,
-        password,
-      });
-      localStorage.setItem('token', response.data.token);
-      setUser(response.data.user);
-      setIsLoggedIn(true);
-      setIsLoginOpen(false);
-      if (cart.length > 0) {
-        navigate('/order-summary'); // Redirecionar para o resumo se o carrinho tiver itens
-      }
-    } catch (err) {
-      console.error('Erro ao fazer login:', err.response?.data || err.message);
-      alert('Erro ao fazer login. Verifique suas credenciais.');
-    }
   };
 
   return (
@@ -132,13 +114,15 @@ function App() {
         <Login
           setIsLoginOpen={setIsLoginOpen}
           setIsLoggedIn={setIsLoggedIn}
+          setIsRegisterOpen={setIsRegisterOpen}
           setUser={setUser}
-          handleLogin={handleLogin}
+          cart={cart} // Passar o carrinho para redirecionamento
+          navigate={navigate} // Passar o navigate para redirecionamento
         />
       )}
 
       {/* Conteúdo Principal */}
-      <div className="pt-16"> {/* Ajuste para evitar sobreposição com o header fixo */}
+      <div className="pt-16">
         <Routes>
           <Route
             path="/"
@@ -153,60 +137,6 @@ function App() {
     </div>
   );
 }
-
-// Componente Login embutido (se não houver Login.js separado)
-const Login = ({ setIsLoginOpen, setIsLoggedIn, setUser, handleLogin }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-4 rounded-lg w-11/12 md:w-1/3">
-        <h2 className="text-xl font-bold text-[#e63946] mb-3">Login</h2>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleLogin(email, password);
-          }}
-        >
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Senha</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-[#e63946] text-white py-2 px-4 rounded-full hover:bg-red-700 transition text-sm"
-          >
-            Entrar
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsLoginOpen(false)}
-            className="mt-2 w-full bg-gray-300 text-gray-800 py-2 px-4 rounded-full hover:bg-gray-400 transition text-sm"
-          >
-            Fechar
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-};
 
 export default function AppWrapper() {
   return (
