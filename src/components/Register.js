@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 const Register = ({ setIsRegisterOpen, setIsLoggedIn, setUser, setCredentials }) => {
   const [name, setName] = useState('');
@@ -7,20 +8,34 @@ const Register = ({ setIsRegisterOpen, setIsLoggedIn, setUser, setCredentials })
   const [complement, setComplement] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-    const userData = { name, phone, address, complement };
-    setUser(userData);
-    setCredentials({ email, password }); // Salva as credenciais para login
-    setIsLoggedIn(true);
-    setIsRegisterOpen(false);
+    try {
+      const response = await axios.post('https://pizzaria-backend-e254.onrender.com', {
+        name,
+        phone,
+        address,
+        complement,
+        email,
+        password,
+      });
+      localStorage.setItem('token', response.data.token);
+      setUser({ name, phone, address, complement });
+      setCredentials({ email, password });
+      setIsLoggedIn(true);
+      setIsRegisterOpen(false);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Erro ao cadastrar');
+    }
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
       <div className="bg-white p-4 rounded-lg w-11/12 md:w-1/3 max-h-[80vh] overflow-y-auto">
         <h2 className="text-xl font-bold text-[#e63946] mb-3">Cadastro</h2>
+        {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
         <form onSubmit={handleRegister}>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">Nome</label>
