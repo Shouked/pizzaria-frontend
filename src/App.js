@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Switch, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom'; // Substituí Switch por Routes
 import Menu from './components/Menu';
 import Register from './components/Register';
 import OrderSummary from './components/OrderSummary';
@@ -74,19 +74,10 @@ function App() {
           style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1603565816030-6b767eebda77?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80)' }}
         ></div>
 
-        <Switch>
-          <Route path="/" exact>
-            <Menu
-              isMenuOpen={isMenuOpen}
-              setIsMenuOpen={setIsMenuOpen}
-              addToCart={addToCart}
-              cart={cart}
-            />
-          </Route>
-          <Route path="/order-summary">
-            <OrderSummary cart={cart} clearCart={clearCart} />
-          </Route>
-        </Switch>
+        <Routes>
+          <Route path="/" element={<Menu isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} addToCart={addToCart} cart={cart} />} />
+          <Route path="/order-summary" element={<OrderSummary cart={cart} clearCart={clearCart} />} />
+        </Routes>
 
         {isCartOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
