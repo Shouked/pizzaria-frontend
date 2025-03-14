@@ -16,7 +16,6 @@ const Login = ({ setIsLoginOpen, setIsLoggedIn, setIsRegisterOpen, setUser, cart
       console.log('Resposta do login:', response.data);
       localStorage.setItem('token', response.data.token);
 
-      // Buscar os dados completos do usuário usando a rota /api/auth/me
       const userResponse = await axios.get('https://pizzaria-backend-e254.onrender.com/api/auth/me', {
         headers: { Authorization: `Bearer ${response.data.token}` },
       });
@@ -25,7 +24,6 @@ const Login = ({ setIsLoginOpen, setIsLoggedIn, setIsRegisterOpen, setUser, cart
       setIsLoggedIn(true);
       setIsLoginOpen(false);
 
-      // Redirecionar para o resumo do pedido se o carrinho tiver itens
       if (cart.length > 0) {
         navigate('/order-summary');
       }
