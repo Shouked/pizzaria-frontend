@@ -1,59 +1,70 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const Register = ({ setIsRegisterOpen, setIsLoggedIn, setUser, setCredentials }) => {
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [address, setAddress] = useState({
+const Register = ({ setIsRegisterOpen, setIsLoginOpen, setIsLoggedIn, setUser }) => {
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
     cep: '',
     street: '',
     number: '',
     neighborhood: '',
     city: '',
-    complement: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
   });
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleAddressChange = (e) => {
-    const { name, value } = e.target;
-    setAddress({ ...address, [name]: value });
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleRegister = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formData.password !== formData.confirmPassword) {
+      setError('As senhas não coincidem.');
+      return;
+    }
+
     try {
       const response = await axios.post('https://pizzaria-backend-e254.onrender.com/api/auth/register', {
-        name,
-        phone,
-        address,
-        email,
-        password,
+        name: formData.name,
+        phone: formData.phone,
+        address: {
+          cep: formData.cep,
+          street: formData.street,
+          number: formData.number,
+          neighborhood: formData.neighborhood,
+          city: formData.city,
+        },
+        email: formData.email,
+        password: formData.password,
       });
       localStorage.setItem('token', response.data.token);
-      setUser({ name, phone, address });
-      setCredentials({ email, password });
+      setUser(response.data.user);
       setIsLoggedIn(true);
       setIsRegisterOpen(false);
+      alert('Cadastro realizado com sucesso!');
     } catch (err) {
-      console.error('Erro de registro:', err.response?.data || err.message);
-      setError(err.response?.data?.message || 'Erro ao cadastrar. Verifique os dados e tente novamente.');
+      console.error('Erro ao cadastrar:', err.response?.data || err.message);
+      setError(err.response?.data?.message || 'Erro ao cadastrar. Tente novamente.');
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30">
-      <div className="bg-white p-4 rounded-lg w-11/12 md:w-1/3 max-h-[80vh] overflow-y-auto">
-        <h2 className="text-xl font-bold text-[#e63946] mb-3">Cadastro</h2>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-4 rounded-lg w-11/12 md:w-1/2 max-h-[80vh] overflow-y-auto">
+        <h2 className="text-xl font-bold text-[#e63946] mb-3">Cadastrar</h2>
         {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
-        <form onSubmit={handleRegister}>
+        <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">Nome</label>
             <input
               type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
               required
             />
@@ -62,8 +73,9 @@ const Register = ({ setIsRegisterOpen, setIsLoggedIn, setUser, setCredentials })
             <label className="block text-sm font-medium text-gray-700">Telefone</label>
             <input
               type="text"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
               required
             />
@@ -73,8 +85,8 @@ const Register = ({ setIsRegisterOpen, setIsLoggedIn, setUser, setCredentials })
             <input
               type="text"
               name="cep"
-              value={address.cep}
-              onChange={handleAddressChange}
+              value={formData.cep}
+              onChange={handleChange}
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
               required
             />
@@ -84,8 +96,8 @@ const Register = ({ setIsRegisterOpen, setIsLoggedIn, setUser, setCredentials })
             <input
               type="text"
               name="street"
-              value={address.street}
-              onChange={handleAddressChange}
+              value={formData.street}
+              onChange={handleChange}
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
               required
             />
@@ -95,8 +107,8 @@ const Register = ({ setIsRegisterOpen, setIsLoggedIn, setUser, setCredentials })
             <input
               type="text"
               name="number"
-              value={address.number}
-              onChange={handleAddressChange}
+              value={formData.number}
+              onChange={handleChange}
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
               required
             />
@@ -106,8 +118,8 @@ const Register = ({ setIsRegisterOpen, setIsLoggedIn, setUser, setCredentials })
             <input
               type="text"
               name="neighborhood"
-              value={address.neighborhood}
-              onChange={handleAddressChange}
+              value={formData.neighborhood}
+              onChange={handleChange}
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
               required
             />
@@ -117,28 +129,19 @@ const Register = ({ setIsRegisterOpen, setIsLoggedIn, setUser, setCredentials })
             <input
               type="text"
               name="city"
-              value={address.city}
-              onChange={handleAddressChange}
+              value={formData.city}
+              onChange={handleChange}
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
               required
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Complemento (ex.: Apto 03)</label>
-            <input
-              type="text"
-              name="complement"
-              value={address.complement}
-              onChange={handleAddressChange}
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
             />
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">Email</label>
             <input
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
               required
             />
@@ -147,26 +150,42 @@ const Register = ({ setIsRegisterOpen, setIsLoggedIn, setUser, setCredentials })
             <label className="block text-sm font-medium text-gray-700">Senha</label>
             <input
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
               required
-              minLength="6"
             />
           </div>
-          <button
-            type="submit"
-            className="w-full bg-[#e63946] text-white py-2 px-4 rounded-full hover:bg-red-700 transition text-sm"
-          >
-            Cadastrar
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsRegisterOpen(false)}
-            className="mt-2 w-full bg-gray-300 text-gray-800 py-2 px-4 rounded-full hover:bg-gray-400 transition text-sm"
-          >
-            Fechar
-          </button>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">Confirmar Senha</label>
+            <input
+              type="password"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+              required
+            />
+          </div>
+          <div className="flex justify-between">
+            <button
+              type="submit"
+              className="bg-[#e63946] text-white py-2 px-4 rounded-full hover:bg-red-700 transition text-sm"
+            >
+              Cadastrar
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsRegisterOpen(false);
+                setIsLoginOpen(true);
+              }}
+              className="bg-gray-300 text-gray-800 py-2 px-4 rounded-full hover:bg-gray-400 transition text-sm"
+            >
+              Voltar para Login
+            </button>
+          </div>
         </form>
       </div>
     </div>
