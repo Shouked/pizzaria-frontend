@@ -5,9 +5,8 @@ import { useNavigate } from 'react-router-dom';
 const OrderSummary = ({ cart, clearCart, user }) => {
   const navigate = useNavigate();
 
-  // Criar o mapa de produtos, garantindo que os IDs sejam válidos
   const productsMap = cart.reduce((map, item) => {
-    if (item._id) { // Verificar se o item tem um _id válido
+    if (item._id) {
       map[item.name] = item._id;
     }
     return map;
@@ -30,7 +29,6 @@ const OrderSummary = ({ cart, clearCart, user }) => {
         return;
       }
 
-      // Validar se todos os itens têm IDs válidos
       const items = cart.map(item => ({
         product: productsMap[item.name],
         quantity: item.quantity || 1,
