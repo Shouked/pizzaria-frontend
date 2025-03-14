@@ -39,7 +39,12 @@ const Menu = ({ cart, setCart }) => {
     setTimeout(() => {
       const section = document.getElementById(sectionId);
       if (section) {
-        section.scrollIntoView({ behavior: "smooth" });
+        const bannerHeight = document.querySelector('#banner')?.offsetHeight || 100; // Altura do banner (ajuste se necessário)
+        const sectionTop = section.getBoundingClientRect().top + window.pageYOffset;
+        window.scrollTo({
+          top: sectionTop - bannerHeight,
+          behavior: 'smooth',
+        });
       } else {
         console.log(`Seção ${sectionId} não encontrada`);
       }
