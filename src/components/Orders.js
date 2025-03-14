@@ -47,12 +47,14 @@ const Orders = ({ user, setIsLoginOpen }) => {
         <ul className="space-y-4">
           {orders.map(order => (
             <li key={order._id} className="bg-white p-4 rounded-lg shadow-md">
-              <p>Data: {new Date(order.createdAt).toLocaleDateString()}</p>
-              <p>Total: R$ {order.total.toFixed(2)}</p>
+              <p><strong>Data:</strong> {new Date(order.createdAt).toLocaleDateString()}</p>
+              <p><strong>Total:</strong> R$ {order.total.toFixed(2)}</p>
+              <p><strong>Endereço de Entrega:</strong> {user.address?.street}, {user.address?.number}, {user.address?.neighborhood}, {user.address?.city}, CEP: {user.address?.cep} {user.address?.complement ? `, Complemento: ${user.address.complement}` : ''}</p>
+              <p><strong>Status:</strong> {order.status || 'Em processamento'}</p>
               <ul className="mt-2">
                 {order.items.map((item, index) => (
                   <li key={index} className="text-gray-600">
-                    {item.quantity}x {item.product.name || 'Produto desconhecido'}
+                    {item.quantity}x {item.product.name || 'Produto desconhecido'} - R$ {(item.product.price * item.quantity).toFixed(2)}
                   </li>
                 ))}
               </ul>
