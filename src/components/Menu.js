@@ -12,8 +12,9 @@ const Menu = ({ cart, setCart }) => {
         const response = await axios.get('https://pizzaria-backend-e254.onrender.com/api/products');
         const sortedProducts = response.data.sort((a, b) => {
           const categoryOrder = { PIZZAS: 1, BEBIDAS: 2, SOBREMESAS: 3 };
-          return (categoryOrder[a.category] || 4) - (categoryOrder[b.category] || 4);
+          return (categoryOrder[a.category.toUpperCase()] || 4) - (categoryOrder[b.category.toUpperCase()] || 4);
         });
+        console.log('Produtos carregados:', sortedProducts); // Debug
         setProducts(sortedProducts);
       } catch (err) {
         console.error('Erro ao carregar produtos:', err);
@@ -84,7 +85,7 @@ const Menu = ({ cart, setCart }) => {
           <section id="pizzas" className="mb-8">
             <h2 className="text-2xl font-bold mb-4">Pizzas</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {products.filter(p => p.category === 'PIZZAS').map(product => (
+              {products.filter(p => p.category.toUpperCase() === 'PIZZAS').map(product => (
                 <div key={product._id} className="bg-white p-4 rounded-lg shadow-md">
                   <h2 className="text-xl font-bold text-[#e63946]">{product.name}</h2>
                   <p className="text-gray-600">{product.description}</p>
@@ -102,7 +103,7 @@ const Menu = ({ cart, setCart }) => {
           <section id="bebidas" className="mb-8">
             <h2 className="text-2xl font-bold mb-4">Bebidas</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {products.filter(p => p.category === 'BEBIDAS').map(product => (
+              {products.filter(p => p.category.toUpperCase() === 'BEBIDAS').map(product => (
                 <div key={product._id} className="bg-white p-4 rounded-lg shadow-md">
                   <h2 className="text-xl font-bold text-[#e63946]">{product.name}</h2>
                   <p className="text-gray-600">{product.description}</p>
@@ -120,7 +121,7 @@ const Menu = ({ cart, setCart }) => {
           <section id="sobremesas" className="mb-8">
             <h2 className="text-2xl font-bold mb-4">Sobremesas</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {products.filter(p => p.category === 'SOBREMESAS').map(product => (
+              {products.filter(p => p.category.toUpperCase() === 'SOBREMESAS').map(product => (
                 <div key={product._id} className="bg-white p-4 rounded-lg shadow-md">
                   <h2 className="text-xl font-bold text-[#e63946]">{product.name}</h2>
                   <p className="text-gray-600">{product.description}</p>
