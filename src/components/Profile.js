@@ -1,325 +1,84 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
 import axios from 'axios';
 
-const Profile = ({ user, setUser, setIsLoggedIn }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    address: {
-      cep: '',
-      street: '',
-      number: '',
-      neighborhood: '',
-      city: '',
-      complement: '',
-    },
-  });
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+const Profile = ({ user, setIsProfileOpen, handleLogout, navigate }) => {
+  const [editedUser, setEditedUser] = useState({ ...user });
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        setLoading(true);
-        const token = localStorage.getItem('token');
-        if (!token) {
-          throw new Error('Nenhum token encontrado. Faça login novamente.');
-        }
-        const response = await axios.get('https://pizzaria-backend-e254.onrender.com/api/auth/me', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        console.log('Dados do usuário recebidos:', response.data);
-        setUser(response.data);
-        setFormData({
-          name: response.data.name || '',
-          phone: response.data.phone || '',
-          address: {
-            cep: response.data.address?.cep || '',
-            street: response.data.address?.street || '',
-            number: response.data.address?.number || '',
-            neighborhood: response.data.address?.neighborhood || '',
-            city: response.data.address?.city || '',
-            complement: response.data.address?.complement || '',
-          },
-        });
-        setLoading(false);
-      } catch (err) {
-        console.error('Erro ao buscar usuário:', err.response?.data || err.message);
-        setError(err.response?.data?.message || 'Erro ao carregar os dados do usuário.');
-        setIsLoggedIn(false);
-        localStorage.removeItem('token');
-        setLoading(false);
-      }
-    };
-    fetchUser();
-  }, [setUser, setIsLoggedIn]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (name in formData.address) {
-      setFormData({
-        ...formData,
-        address: { ...formData.address, [name]: value },
-      });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setShowConfirmation(true);
-  };
-
-  const confirmChanges = async () => {
+  const handleSave = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.put(
-        'https://pizzaria-backend-e254.onrender.com/api/auth/me',
-        formData,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setUser(response.data);
-      setIsEditing(false);
-      setShowConfirmation(false);
+      await axios.put('https://pizzaria-backend-e254.onrender.com/api/auth/me', editedUser, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUser(editedUser); // Atualizar o estado global (se possível no App.js)
+      setIsProfileOpen(false);
+      alert('Perfil atualizado com sucesso!');
     } catch (err) {
-      console.error('Erro ao atualizar usuário:', err);
-      setError('Erro ao salvar as alterações.');
+      console.error('Erro ao salvar perfil:', err);
+      setError('Erro ao salvar perfil. Tente novamente.');
     }
   };
 
-  const cancelChanges = () => {
-    setFormData({
-      name: user?.name || '',
-      phone: user?.phone || '',
-      address: {
-        cep: user?.address?.cep || '',
-        street: user?.address?.street || '',
-        number: user?.address?.number || '',
-        neighborhood: user?.address?.neighborhood || '',
-        city: user?.address?.city || '',
-        complement: user?.address?.complement || '',
-      },
-    });
-    setIsEditing(false);
-    setShowConfirmation(false);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    setIsLoggedIn(false);
-    setUser(null);
-  };
-
-  if (loading) {
-    return (
-      <div className="container mx-auto p-4 bg-[#f1faee] min-h-screen relative">
-        <div className="fixed top-0 left-0 w-full bg-[#f1faee] z-10 pt-16">
-          <h2 className="text-2xl font-bold text-[#e63946] mb-4">Perfil</h2>
-          <p className="text-gray-600">Carregando...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="container mx-auto p-4 bg-[#f1faee] min-h-screen relative">
-        <div className="fixed top-0 left-0 w-full bg-[#f1faee] z-10 pt-16">
-          <h2 className="text-2xl font-bold text-[#e63946] mb-4">Perfil</h2>
-          <p className="text-red-500">{error}</p>
-          <Link
-            to="/"
-            className="mt-2 w-full bg-gray-300 text-gray-800 py-2 px-4 rounded-full hover:bg-gray-400 transition block text-center text-sm"
-          >
-            Voltar para Home
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="container mx-auto p-4 bg-[#f1faee] min-h-screen relative">
-        <div className="fixed top-0 left-0 w-full bg-[#f1faee] z-10 pt-16">
-          <h2 className="text-2xl font-bold text-[#e63946] mb-4">Perfil</h2>
-          <p className="text-gray-600">Usuário não encontrado. Faça login novamente.</p>
-          <Link
-            to="/"
-            className="mt-2 w-full bg-gray-300 text-gray-800 py-2 px-4 rounded-full hover:bg-gray-400 transition block text-center text-sm"
-          >
-            Voltar para Home
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="container mx-auto p-4 bg-[#f1faee] min-h-screen relative">
-      <div className="fixed top-0 left-0 w-full bg-[#f1faee] z-10 pt-16">
-        <h2 className="text-2xl font-bold text-[#e63946] mb-4">Perfil</h2>
-        <div className="bg-white p-4 rounded-lg shadow-md">
-          {isEditing ? (
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Nome</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Telefone</label>
-                <input
-                  type="text"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">CEP</label>
-                <input
-                  type="text"
-                  name="cep"
-                  value={formData.address.cep}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Rua</label>
-                <input
-                  type="text"
-                  name="street"
-                  value={formData.address.street}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Número</label>
-                <input
-                  type="text"
-                  name="number"
-                  value={formData.address.number}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Bairro</label>
-                <input
-                  type="text"
-                  name="neighborhood"
-                  value={formData.address.neighborhood}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Cidade</label>
-                <input
-                  type="text"
-                  name="city"
-                  value={formData.address.city}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">Complemento</label>
-                <input
-                  type="text"
-                  name="complement"
-                  value={formData.address.complement}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full bg-[#e63946] text-white py-2 px-4 rounded-full hover:bg-red-700 transition text-sm"
-              >
-                Salvar Alterações
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsEditing(false)}
-                className="mt-2 w-full bg-gray-300 text-gray-800 py-2 px-4 rounded-full hover:bg-gray-400 transition text-sm"
-              >
-                Cancelar
-              </button>
-            </form>
-          ) : (
-            <div>
-              <p><strong>Nome:</strong> {user.name}</p>
-              <p><strong>Telefone:</strong> {user.phone}</p>
-              <p><strong>Email:</strong> {user.email}</p>
-              <p><strong>CEP:</strong> {user.address?.cep || 'Não informado'}</p>
-              <p><strong>Rua:</strong> {user.address?.street || 'Não informado'}</p>
-              <p><strong>Número:</strong> {user.address?.number || 'Não informado'}</p>
-              <p><strong>Bairro:</strong> {user.address?.neighborhood || 'Não informado'}</p>
-              <p><strong>Cidade:</strong> {user.address?.city || 'Não informado'}</p>
-              {user.address?.complement && <p><strong>Complemento:</strong> {user.address.complement}</p>}
-              <button
-                onClick={() => setIsEditing(true)}
-                className="mt-4 w-full bg-[#e63946] text-white py-2 px-4 rounded-full hover:bg-red-700 transition text-sm"
-              >
-                Editar
-              </button>
-              <button
-                onClick={handleLogout}
-                className="mt-2 w-full bg-red-500 text-white py-2 px-4 rounded-full hover:bg-red-700 transition text-sm"
-              >
-                Sair
-              </button>
-              <Link
-                to="/"
-                className="mt-2 w-full bg-gray-300 text-gray-800 py-2 px-4 rounded-full hover:bg-gray-400 transition block text-center text-sm"
-              >
-                Voltar para Home
-              </Link>
-            </div>
-          )}
-          {showConfirmation && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40">
-              <div className="bg-white p-4 rounded-lg w-11/12 md:w-1/3">
-                <p className="text-gray-800 mb-4">Confirma as alterações?</p>
-                <button
-                  onClick={confirmChanges}
-                  className="w-full bg-[#e63946] text-white py-2 px-4 rounded-full hover:bg-red-700 transition text-sm mb-2"
-                >
-                  Salvar
-                </button>
-                <button
-                  onClick={cancelChanges}
-                  className="w-full bg-gray-300 text-gray-800 py-2 px-4 rounded-full hover:bg-gray-400 transition text-sm"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-4 rounded-lg w-11/12 md:w-1/2 max-h-[80vh] overflow-y-auto">
+        <h2 className="text-xl font-bold text-[#e63946] mb-3">Perfil</h2>
+        {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
+        <form>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">Nome</label>
+            <input
+              type="text"
+              value={editedUser.name || ''}
+              onChange={(e) => setEditedUser({ ...editedUser, name: e.target.value })}
+              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">Email</label>
+            <input
+              type="email"
+              value={editedUser.email || ''}
+              onChange={(e) => setEditedUser({ ...editedUser, email: e.target.value })}
+              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+              disabled
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">Senha</label>
+            <input
+              type="password"
+              value={editedUser.password || ''}
+              onChange={(e) => setEditedUser({ ...editedUser, password: e.target.value })}
+              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+              placeholder="Deixe em branco para não alterar"
+            />
+          </div>
+          <div className="flex justify-between">
+            <button
+              type="button"
+              onClick={() => setIsProfileOpen(false)}
+              className="bg-gray-300 text-gray-800 py-2 px-4 rounded-full hover:bg-gray-400 transition text-sm"
+            >
+              Voltar
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              className="bg-[#e63946] text-white py-2 px-4 rounded-full hover:bg-red-700 transition text-sm"
+            >
+              Salvar
+            </button>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="bg-red-500 text-white py-2 px-4 rounded-full hover:bg-red-600 transition text-sm"
+            >
+              Sair
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
