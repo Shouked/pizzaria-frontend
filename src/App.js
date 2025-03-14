@@ -3,15 +3,17 @@ import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-route
 import axios from 'axios';
 import Menu from './components/Menu';
 import OrderSummary from './components/OrderSummary';
-import Orders from './components/Orders'; // Novo componente para histórico de pedidos
+import Orders from './components/Orders';
 import Login from './components/Login';
-import Profile from './components/Profile'; // Novo componente para perfil
+import Register from './components/Register'; // Novo componente para cadastro
+import Profile from './components/Profile';
 
 function App() {
   const [cart, setCart] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
   const [user, setUser] = useState(null);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -40,25 +42,23 @@ function App() {
     localStorage.removeItem('token');
     setIsLoggedIn(false);
     setUser(null);
-    setCart([]); // Esvaziar o carrinho
+    setCart([]);
     setIsProfileOpen(false);
     navigate('/');
   };
 
   return (
     <div className="min-h-screen bg-[#f1faee] flex flex-col relative">
-      {/* Barra Superior com Nome e Botão do Carrinho */}
+      {/* Barra Superior com Nome */}
       <header className="bg-white p-2 shadow-md fixed top-0 left-0 w-full z-50">
-        <div className="container mx-auto flex justify-center items-center">
-          <span className="text-[#e63946] text-2xl font-bold">Pizza da Bia</span>
-        </div>
-        <div className="container mx-auto flex justify-end p-2">
+        <div className="container mx-auto flex justify-between items-center h-10">
+          <span className="text-[#e63946] text-xl font-bold">Pizza da Bia</span>
           <button
             onClick={() => navigate('/order-summary')}
             className="relative text-[#e63946] hover:text-red-700"
           >
             <svg
-              className="h-6 w-6"
+              className="h-5 w-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -73,15 +73,15 @@ function App() {
             </svg>
             {cart.length > 0 && (
               <span className="absolute -top-1 -right-1 bg-[#e63946] text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                {cart.length}
+                {cart.reduce((sum, item) => sum + (item.quantity || 1), 0)}
               </span>
             )}
           </button>
         </div>
-        {/* Banner abaixo do nome */}
-        <div className="mt-12">
+        {/* Banner Fixo */}
+        <div className="w-full">
           <img
-            src="/pizza.png" // Substitua pelo caminho real do banner no repositório
+            src="/pizza.png"
             alt="Banner da Pizzaria"
             className="w-full h-24 object-cover"
           />
@@ -100,6 +100,16 @@ function App() {
         />
       )}
 
+      {/* Modal de Cadastro */}
+      {isRegisterOpen && (
+        <Register
+          setIsRegisterOpen={setIsRegisterOpen}
+          setIsLoginOpen={setIsLoginOpen}
+          setIsLoggedIn={setIsLoggedIn}
+          setUser={setUser}
+        />
+      )}
+
       {/* Modal de Perfil */}
       {isProfileOpen && isLoggedIn && (
         <Profile
@@ -111,7 +121,7 @@ function App() {
       )}
 
       {/* Conteúdo Principal */}
-      <div className="pt-48 flex-1"> {/* Ajuste para o banner e header */}
+      <div className="pt-36 pb-16 flex-1">
         <Routes>
           <Route
             path="/"
@@ -123,7 +133,7 @@ function App() {
           />
           <Route
             path="/orders"
-            element={<Orders user={user} />}
+            element={<Orders user={user} setIsLoginOpen={setIsLoginOpen} />}
           />
         </Routes>
       </div>
@@ -150,7 +160,13 @@ function App() {
             Pedidos
           </button>
           <button
-            onClick={() => isLoggedIn && setIsProfileOpen(true)}
+            onClick={() => {
+              if (isLoggedIn) {
+                setIsProfileOpen(true);
+              } else {
+                setIsLoginOpen(true);
+              }
+            }}
             className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs"
           >
             <svg className="h-5 w-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -163,7 +179,7 @@ function App() {
 
       {/* Botão do WhatsApp */}
       <a
-        href="https://wa.me/1234567890" // Substitua pelo número real do WhatsApp
+        href="https://wa.me/1234567890"
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-16 right-4 bg-green-500 text-white p-3 rounded-full shadow-lg hover:bg-green-600 transition z-50"
