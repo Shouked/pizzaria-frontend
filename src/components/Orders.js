@@ -23,13 +23,16 @@ const Orders = () => {
       } catch (err) {
         console.error("Erro ao carregar pedidos:", err);
         if (err.response && err.response.status === 404) {
-          setOrders([]); // Nenhum pedido encontrado
+          setOrders([]); // Nenhum FAB pedido encontrado
         } else {
           setError("Erro ao carregar pedidos. Tente novamente mais tarde.");
         }
       }
     };
     fetchOrders();
+
+    // Rola pro topo ao carregar a página
+    window.scrollTo(0, 0);
   }, []);
 
   return (
