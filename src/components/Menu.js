@@ -10,7 +10,11 @@ const Menu = ({ cart, setCart }) => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get('https://pizzaria-backend-e254.onrender.com/api/products');
-        setProducts(response.data);
+        const sortedProducts = response.data.sort((a, b) => {
+          const categoryOrder = { PIZZAS: 1, BEBIDAS: 2, SOBREMESAS: 3 };
+          return (categoryOrder[a.category] || 4) - (categoryOrder[b.category] || 4);
+        });
+        setProducts(sortedProducts);
       } catch (err) {
         console.error('Erro ao carregar produtos:', err);
         setError('Erro ao carregar produtos. Tente novamente.');
@@ -36,7 +40,6 @@ const Menu = ({ cart, setCart }) => {
 
   return (
     <div className="container mx-auto p-4">
-      {/* Barra Horizontal Deslizável de Categorias */}
       <div className="flex overflow-x-auto space-x-4 pb-4 whitespace-nowrap">
         {['TODAS', 'PIZZAS', 'BEBIDAS', 'SOBREMESAS'].map(category => (
           <button
