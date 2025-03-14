@@ -11,10 +11,10 @@ const Menu = ({ cart, setCart }) => {
       try {
         const response = await axios.get('https://pizzaria-backend-e254.onrender.com/api/products');
         const sortedProducts = response.data.sort((a, b) => {
-          const categoryOrder = { PIZZAS: 1, BEBIDAS: 2, SOBREMESAS: 3 };
-          return (categoryOrder[a.category.toUpperCase()] || 4) - (categoryOrder[b.category.toUpperCase()] || 4);
+          const categoryOrder = { PIZZA: 1, BEBIDAS: 2, SOBREMESA: 3 };
+          return (categoryOrder[a.category] || 4) - (categoryOrder[b.category] || 4);
         });
-        console.log('Produtos carregados:', sortedProducts); // Debug
+        console.log('Produtos carregados:', sortedProducts);
         setProducts(sortedProducts);
       } catch (err) {
         console.error('Erro ao carregar produtos:', err);
@@ -36,16 +36,20 @@ const Menu = ({ cart, setCart }) => {
   };
 
   const scrollToSection = (sectionId) => {
-    const section = document.getElementById(sectionId);
-    if (section) {
-      section.scrollIntoView({ behavior: "smooth" });
-    }
+    setTimeout(() => {
+      const section = document.getElementById(sectionId);
+      if (section) {
+        section.scrollIntoView({ behavior: "smooth" });
+      } else {
+        console.log(`Seção ${sectionId} não encontrada`);
+      }
+    }, 100);
   };
 
   return (
     <div className="container mx-auto p-4">
       <div className="flex overflow-x-auto space-x-4 pb-4 whitespace-nowrap">
-        {['TODAS', 'PIZZAS', 'BEBIDAS', 'SOBREMESAS'].map(category => (
+        {['TODAS', 'PIZZA', 'BEBIDAS', 'SOBREMESA'].map(category => (
           <button
             key={category}
             onClick={() => {
@@ -82,10 +86,10 @@ const Menu = ({ cart, setCart }) => {
               ))}
             </div>
           </section>
-          <section id="pizzas" className="mb-8">
-            <h2 className="text-2xl font-bold mb-4">Pizzas</h2>
+          <section id="pizza" className="mb-8">
+            <h2 className="text-2xl font-bold mb-4">Pizza</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {products.filter(p => p.category.toUpperCase() === 'PIZZAS').map(product => (
+              {products.filter(p => p.category === 'PIZZA').map(product => (
                 <div key={product._id} className="bg-white p-4 rounded-lg shadow-md">
                   <h2 className="text-xl font-bold text-[#e63946]">{product.name}</h2>
                   <p className="text-gray-600">{product.description}</p>
@@ -103,7 +107,7 @@ const Menu = ({ cart, setCart }) => {
           <section id="bebidas" className="mb-8">
             <h2 className="text-2xl font-bold mb-4">Bebidas</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {products.filter(p => p.category.toUpperCase() === 'BEBIDAS').map(product => (
+              {products.filter(p => p.category === 'BEBIDAS').map(product => (
                 <div key={product._id} className="bg-white p-4 rounded-lg shadow-md">
                   <h2 className="text-xl font-bold text-[#e63946]">{product.name}</h2>
                   <p className="text-gray-600">{product.description}</p>
@@ -118,10 +122,10 @@ const Menu = ({ cart, setCart }) => {
               ))}
             </div>
           </section>
-          <section id="sobremesas" className="mb-8">
-            <h2 className="text-2xl font-bold mb-4">Sobremesas</h2>
+          <section id="sobremesa" className="mb-8">
+            <h2 className="text-2xl font-bold mb-4">Sobremesa</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {products.filter(p => p.category.toUpperCase() === 'SOBREMESAS').map(product => (
+              {products.filter(p => p.category === 'SOBREMESA').map(product => (
                 <div key={product._id} className="bg-white p-4 rounded-lg shadow-md">
                   <h2 className="text-xl font-bold text-[#e63946]">{product.name}</h2>
                   <p className="text-gray-600">{product.description}</p>
