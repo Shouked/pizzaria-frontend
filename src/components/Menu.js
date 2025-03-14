@@ -28,7 +28,6 @@ const Menu = ({ cart, setCart }) => {
     } else {
       setCart([...cart, { ...product, quantity: 1 }]);
     }
-    console.log('Carrinho atualizado:', cart); // Log para depuração
   };
 
   const filteredProducts = selectedCategory === 'TODAS'
