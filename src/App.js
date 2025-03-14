@@ -5,7 +5,7 @@ import Menu from './components/Menu';
 import OrderSummary from './components/OrderSummary';
 import Orders from './components/Orders';
 import Login from './components/Login';
-import Register from './components/Register'; // Novo componente para cadastro
+import Register from './components/Register';
 import Profile from './components/Profile';
 
 function App() {
@@ -17,7 +17,6 @@ function App() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const navigate = useNavigate();
 
-  // Carregar usuário ao iniciar, se houver token
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token && !user) {
@@ -49,7 +48,6 @@ function App() {
 
   return (
     <div className="min-h-screen bg-[#f1faee] flex flex-col relative">
-      {/* Barra Superior com Nome */}
       <header className="bg-white p-2 shadow-md fixed top-0 left-0 w-full z-50">
         <div className="container mx-auto flex justify-between items-center h-10">
           <span className="text-[#e63946] text-xl font-bold">Pizza da Bia</span>
@@ -78,50 +76,60 @@ function App() {
             )}
           </button>
         </div>
-        {/* Banner Fixo */}
-        <div className="w-full">
+        <div className="w-screen left-0">
           <img
             src="/pizza.png"
             alt="Banner da Pizzaria"
-            className="w-full h-24 object-cover"
+            className="w-screen h-32 object-cover fixed top-10"
           />
         </div>
       </header>
 
       {/* Modal de Login */}
       {isLoginOpen && (
-        <Login
-          setIsLoginOpen={setIsLoginOpen}
-          setIsLoggedIn={setIsLoggedIn}
-          setIsRegisterOpen={setIsRegisterOpen}
-          setUser={setUser}
-          cart={cart}
-          navigate={navigate}
-        />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setIsLoginOpen(false)}>
+          <div className="bg-white p-4 rounded-lg w-11/12 md:w-1/3 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <Login
+              setIsLoginOpen={setIsLoginOpen}
+              setIsLoggedIn={setIsLoggedIn}
+              setIsRegisterOpen={setIsRegisterOpen}
+              setUser={setUser}
+              cart={cart}
+              navigate={navigate}
+            />
+          </div>
+        </div>
       )}
 
       {/* Modal de Cadastro */}
       {isRegisterOpen && (
-        <Register
-          setIsRegisterOpen={setIsRegisterOpen}
-          setIsLoginOpen={setIsLoginOpen}
-          setIsLoggedIn={setIsLoggedIn}
-          setUser={setUser}
-        />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setIsRegisterOpen(false)}>
+          <div className="bg-white p-4 rounded-lg w-11/12 md:w-2/3 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <Register
+              setIsRegisterOpen={setIsRegisterOpen}
+              setIsLoginOpen={setIsLoginOpen}
+              setIsLoggedIn={setIsLoggedIn}
+              setUser={setUser}
+            />
+          </div>
+        </div>
       )}
 
       {/* Modal de Perfil */}
       {isProfileOpen && isLoggedIn && (
-        <Profile
-          user={user}
-          setIsProfileOpen={setIsProfileOpen}
-          handleLogout={handleLogout}
-          navigate={navigate}
-        />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setIsProfileOpen(false)}>
+          <div className="bg-white p-4 rounded-lg w-11/12 md:w-2/3 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <Profile
+              user={user}
+              setIsProfileOpen={setIsProfileOpen}
+              handleLogout={handleLogout}
+              navigate={navigate}
+            />
+          </div>
+        </div>
       )}
 
-      {/* Conteúdo Principal */}
-      <div className="pt-36 pb-16 flex-1">
+      <div className="pt-48 pb-16 flex-1">
         <Routes>
           <Route
             path="/"
@@ -138,7 +146,6 @@ function App() {
         </Routes>
       </div>
 
-      {/* Barra de Navegação Inferior */}
       <nav className="bg-white p-2 shadow-md fixed bottom-0 left-0 w-full z-50 border-t border-gray-200">
         <div className="container mx-auto flex justify-around">
           <button
@@ -177,7 +184,6 @@ function App() {
         </div>
       </nav>
 
-      {/* Botão do WhatsApp */}
       <a
         href="https://wa.me/1234567890"
         target="_blank"
