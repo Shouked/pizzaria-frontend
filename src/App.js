@@ -81,7 +81,7 @@ function App() {
         {/* Banner abaixo do nome */}
         <div className="mt-12">
           <img
-            src="/banner.jpg" // Substitua pelo caminho real do banner no repositório
+            src="/pizza.png" // Substitua pelo caminho real do banner no repositório
             alt="Banner da Pizzaria"
             className="w-full h-24 object-cover"
           />
