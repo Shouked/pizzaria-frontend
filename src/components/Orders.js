@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const Orders = ({ user }) => {
+const Orders = ({ user, setIsLoginOpen }) => {
   const [orders, setOrders] = useState([]);
   const [error, setError] = useState('');
 
@@ -28,7 +28,19 @@ const Orders = ({ user }) => {
   return (
     <div className="container mx-auto p-4 bg-[#f1faee] min-h-screen">
       <h1 className="text-3xl font-bold text-[#e63946] mb-4 text-center">Meus Pedidos</h1>
-      {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+      {error && (
+        <div className="text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          {!user && (
+            <button
+              onClick={() => setIsLoginOpen(true)}
+              className="bg-[#e63946] text-white py-2 px-4 rounded-full hover:bg-red-700 transition"
+            >
+              Fazer Login
+            </button>
+          )}
+        </div>
+      )}
       {orders.length === 0 && !error ? (
         <p className="text-center text-gray-600">Nenhum pedido encontrado.</p>
       ) : (
