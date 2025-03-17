@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const Profile = ({ user, handleLogout, setUser }) => {
+const Profile = ({ user, handleLogout }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editedUser, setEditedUser] = useState({ name: user?.name || '', email: user?.email || '' });
+  const [editedUser, setEditedUser] = useState({ name: user?.name || '', email: user?.email || '', phone: user?.phone || '' });
   const [showPassword, setShowPassword] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [newPassword, setNewPassword] = useState('');
@@ -12,6 +12,9 @@ const Profile = ({ user, handleLogout, setUser }) => {
   const handleEditToggle = () => {
     setIsEditing(!isEditing);
     setMessage('');
+    if (isEditing) {
+      setEditedUser({ name: user.name, email: user.email, phone: user.phone || '' });
+    }
   };
 
   const handleInputChange = (e) => {
@@ -27,7 +30,9 @@ const Profile = ({ user, handleLogout, setUser }) => {
         editedUser,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setUser(response.data);
+      user.name = response.data.name;
+      user.email = response.data.email;
+      user.phone = response.data.phone;
       setIsEditing(false);
       setMessage('Alterações salvas com sucesso!');
     } catch (err) {
@@ -91,11 +96,22 @@ const Profile = ({ user, handleLogout, setUser }) => {
             />
           </div>
           <div>
+            <label className="block text-gray-700 font-semibold">Telefone</label>
+            <input
+              type="text"
+              name="phone"
+              value={editedUser.phone || 'Não informado'}
+              onChange={handleInputChange}
+              disabled={!isEditing}
+              className="w-full p-2 border border-gray-300 rounded mt-1 bg-gray-100 disabled:bg-gray-200"
+            />
+          </div>
+          <div>
             <label className="block text-gray-700 font-semibold">Senha</label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
-                value={showPassword ? user.password : '*****'}
+                value={showPassword ? 'Senha visível' : '*****'}
                 disabled
                 className="w-full p-2 border border-gray-300 rounded mt-1 bg-gray-100"
               />
