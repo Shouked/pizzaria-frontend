@@ -16,7 +16,12 @@ const Menu = ({ cart, setCart }) => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get('https://pizzaria-backend-e254.onrender.com/api/products');
-        setProducts(response.data);
+        // Normalizar as categorias para minúsculas
+        const normalizedProducts = response.data.map((product) => ({
+          ...product,
+          category: product.category.toLowerCase(),
+        }));
+        setProducts(normalizedProducts);
       } catch (err) {
         console.error('Erro ao carregar produtos:', err);
       }
@@ -26,7 +31,7 @@ const Menu = ({ cart, setCart }) => {
 
   useEffect(() => {
     const handleScroll = () => {
-      const bannerHeight = 144; // Altura aproximada do banner (h-36 = 9rem = 144px)
+      const bannerHeight = 144; // Altura do banner (h-36 = 9rem = 144px)
       const scrollPosition = window.scrollY;
 
       // Fixar a barra quando o banner sair da tela
@@ -90,6 +95,7 @@ const Menu = ({ cart, setCart }) => {
   };
 
   const categories = ['Todas', 'Pizza', 'Bebidas', 'Sobremesa'];
+  const normalizedCategories = categories.map((cat) => cat.toLowerCase());
 
   return (
     <div className="relative">
@@ -118,19 +124,60 @@ const Menu = ({ cart, setCart }) => {
       </nav>
 
       <div className={`max-w-screen-lg mx-auto px-4 ${isNavFixed ? 'pt-16' : 'pt-4'}`}>
-        {categories.map((category) => (
+        {/* Seção "Todas" */}
+        <div
+          ref={sectionRefs.current['Todas']}
+          data-section="Todas"
+          className="py-4"
+        >
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Todas</h2>
+          {normalizedCategories.slice(1).map((category) => (
+            <div key={category} className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                {category.charAt(0).toUpperCase() + category.slice(1)}
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {products
+                  .filter((product) => product.category === category)
+                  .map((product) => (
+                    <div
+                      key={product._id}
+                      className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col"
+                    >
+                      <h4 className="text-lg font-semibold text-gray-900">
+                        {product.name}
+                      </h4>
+                      <p className="text-gray-600 text-sm mb-2">{product.description}</p>
+                      <p className="text-[#e63946] font-bold mb-2">
+                        R$ {product.price.toFixed(2)}
+                      </p>
+                      <button
+                        onClick={() => handleAddToCart(product)}
+                        className="bg-[#e63946] text-white px-4 py-2 rounded-full hover:bg-red-700 transition"
+                      >
+                        Adicionar ao Carrinho
+                      </button>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Seções Individuais */}
+        {normalizedCategories.slice(1).map((category) => (
           <div
             key={category}
-            ref={sectionRefs.current[category]}
-            data-section={category}
+            ref={sectionRefs.current[category.charAt(0).toUpperCase() + category.slice(1)]}
+            data-section={category.charAt(0).toUpperCase() + category.slice(1)}
             className="py-4"
           >
-            <h2 className="text-xl font-bold text-gray-900 mb-4">{category}</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
+              {category.charAt(0).toUpperCase() + category.slice(1)}
+            </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {products
-                .filter((product) =>
-                  category === 'Todas' ? true : product.category === category
-                )
+                .filter((product) => product.category === category)
                 .map((product) => (
                   <div
                     key={product._id}
