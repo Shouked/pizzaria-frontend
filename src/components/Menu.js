@@ -3,13 +3,16 @@ import axios from 'axios';
 
 const Menu = ({ cart, setCart }) => {
   const [products, setProducts] = useState([]);
-  const [activeSection, setActiveSection] = useState('Todas');
+  const [activeSection, setActiveSection] = useState('Pizza');
   const [isNavFixed, setIsNavFixed] = useState(false);
   const sectionRefs = useRef({
-    Todas: useRef(null),
     Pizza: useRef(null),
     Bebidas: useRef(null),
     Sobremesa: useRef(null),
+    Esfihas: useRef(null),
+    Beirutes: useRef(null),
+    Calzones: useRef(null),
+    Fogazzas: useRef(null),
   });
 
   useEffect(() => {
@@ -90,11 +93,18 @@ const Menu = ({ cart, setCart }) => {
         top: offsetPosition,
         behavior: 'smooth',
       });
-      // Removido setActiveSection aqui para evitar conflito com o IntersectionObserver
     }
   };
 
-  const categories = ['Todas', 'Pizza', 'Bebidas', 'Sobremesa'];
+  const categories = [
+    'Pizza',
+    'Bebidas',
+    'Sobremesa',
+    'Esfihas',
+    'Beirutes',
+    'Calzones',
+    'Fogazzas',
+  ];
   const normalizedCategories = categories.map((cat) => cat.toLowerCase());
 
   return (
@@ -123,38 +133,8 @@ const Menu = ({ cart, setCart }) => {
         </div>
       </nav>
 
-      <div className={`max-w-screen-lg mx-auto px-4 ${isNavFixed ? 'pt-16' : 'pt-4'}`}>
-        {/* Seção "Todas" */}
-        <div
-          ref={sectionRefs.current['Todas']}
-          data-section="Todas"
-          className="py-4"
-        >
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Todas</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.map((product) => (
-              <div
-                key={product._id}
-                className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col"
-              >
-                <h3 className="text-lg font-semibold text-gray-900">{product.name}</h3>
-                <p className="text-gray-600 text-sm mb-2">{product.description}</p>
-                <p className="text-[#e63946] font-bold mb-2">
-                  R$ {product.price.toFixed(2)}
-                </p>
-                <button
-                  onClick={() => handleAddToCart(product)}
-                  className="bg-[#e63946] text-white px-4 py-2 rounded-full hover:bg-red-700 transition"
-                >
-                  Adicionar ao Carrinho
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Seções Individuais */}
-        {normalizedCategories.slice(1).map((category) => (
+      <div className={`max-w-screen-lg mx-auto px-4 ${isNavFixed ? 'pt-16' : 'pt-4'} pb-20`}>
+        {normalizedCategories.map((category) => (
           <div
             key={category}
             ref={sectionRefs.current[category.charAt(0).toUpperCase() + category.slice(1)]}
