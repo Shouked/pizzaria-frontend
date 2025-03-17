@@ -1,3 +1,5 @@
+import React, { useState, regler
+
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -49,9 +51,20 @@ function App() {
   return (
     <div className="min-h-screen bg-[#f1faee] flex flex-col">
       {/* Header */}
-      <header className="bg-white p-4 shadow-md fixed top-0 left-0 w-full z-50">
-        <div className="container mx-auto flex justify-between items-center">
-          <span className="text-[#e63946] text-xl font-bold md:text-2xl">Pizza da Bia</span>
+      <header className="bg-white shadow-md fixed top-0 left-0 w-full z-50">
+        <div className="relative w-full h-36 sm:h-40 md:h-48">
+          <img
+            src="/pizza.png"
+            alt="Banner da Pizzaria"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-[#e63946] text-xl font-bold md:text-2xl bg-white bg-opacity-80 px-4 py-2 rounded-lg">
+              Pizza da Bia
+            </span>
+          </div>
+        </div>
+        <div className="container mx-auto px-4 py-2 flex justify-end">
           <button
             onClick={() => navigate('/order-summary')}
             className="relative text-[#e63946] hover:text-red-700 focus:outline-none"
@@ -77,13 +90,6 @@ function App() {
               </span>
             )}
           </button>
-        </div>
-        <div className="mt-2">
-          <img
-            src="/pizza.png"
-            alt="Banner da Pizzaria"
-            className="w-full h-24 object-cover sm:h-32 md:h-40"
-          />
         </div>
       </header>
 
@@ -148,7 +154,7 @@ function App() {
       )}
 
       {/* Conteúdo Principal */}
-      <main className="pt-36 pb-20 flex-1 sm:pt-40 md:pt-48">
+      <main className="pt-44 pb-20 flex-1 sm:pt-48 md:pt-56">
         <Routes>
           <Route path="/" element={<Menu cart={cart} setCart={setCart} />} />
           <Route
