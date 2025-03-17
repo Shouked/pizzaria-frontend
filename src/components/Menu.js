@@ -4,6 +4,7 @@ import axios from 'axios';
 const Menu = ({ cart, setCart }) => {
   const [products, setProducts] = useState([]);
   const [activeSection, setActiveSection] = useState('Todas');
+  const [isNavFixed, setIsNavFixed] = useState(false);
   const sectionRefs = useRef({
     Todas: useRef(null),
     Pizza: useRef(null),
@@ -25,6 +26,13 @@ const Menu = ({ cart, setCart }) => {
 
   useEffect(() => {
     const handleScroll = () => {
+      const bannerHeight = 144; // Altura aproximada do banner (h-36 = 9rem = 144px)
+      const scrollPosition = window.scrollY;
+
+      // Fixar a barra quando o banner sair da tela
+      setIsNavFixed(scrollPosition > bannerHeight);
+
+      // Detectar seção ativa
       const options = {
         root: null,
         rootMargin: '0px 0px -80% 0px', // Detecta quando a seção está quase no topo
@@ -69,7 +77,7 @@ const Menu = ({ cart, setCart }) => {
   const scrollToSection = (section) => {
     const ref = sectionRefs.current[section];
     if (ref.current) {
-      const headerOffset = 0; // Sem offset fixo, vai direto ao topo da seção
+      const headerOffset = isNavFixed ? 60 : 0; // Ajusta para a altura da barra fixa
       const elementPosition = ref.current.getBoundingClientRect().top + window.scrollY;
       const offsetPosition = elementPosition - headerOffset;
 
@@ -77,6 +85,7 @@ const Menu = ({ cart, setCart }) => {
         top: offsetPosition,
         behavior: 'smooth',
       });
+      setActiveSection(section); // Define a seção clicada como ativa
     }
   };
 
@@ -84,7 +93,11 @@ const Menu = ({ cart, setCart }) => {
 
   return (
     <div className="relative">
-      <nav className="bg-white border-b border-gray-200 w-full z-40">
+      <nav
+        className={`bg-white border-b border-gray-200 w-full z-40 ${
+          isNavFixed ? 'fixed top-0 left-0 right-0 shadow-md' : ''
+        }`}
+      >
         <div className="max-w-screen-lg mx-auto px-4">
           <div className="flex overflow-x-auto whitespace-nowrap py-2">
             {categories.map((category) => (
@@ -104,7 +117,7 @@ const Menu = ({ cart, setCart }) => {
         </div>
       </nav>
 
-      <div className="max-w-screen-lg mx-auto px-4 pt-4">
+      <div className={`max-w-screen-lg mx-auto px-4 ${isNavFixed ? 'pt-16' : 'pt-4'}`}>
         {categories.map((category) => (
           <div
             key={category}
@@ -121,14 +134,12 @@ const Menu = ({ cart, setCart }) => {
                 .map((product) => (
                   <div
                     key={product._id}
-                    className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col items-center"
+                    className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col"
                   >
                     <h3 className="text-lg font-semibold text-gray-900">
                       {product.name}
                     </h3>
-                    <p className="text-gray-600 text-center text-sm mb-2">
-                      {product.description}
-                    </p>
+                    <p className="text-gray-600 text-sm mb-2">{product.description}</p>
                     <p className="text-[#e63946] font-bold mb-2">
                       R$ {product.price.toFixed(2)}
                     </p>
