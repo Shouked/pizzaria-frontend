@@ -90,7 +90,7 @@ const Menu = ({ cart, setCart }) => {
         top: offsetPosition,
         behavior: 'smooth',
       });
-      setActiveSection(section); // Define a seção clicada como ativa
+      // Removido setActiveSection aqui para evitar conflito com o IntersectionObserver
     }
   };
 
@@ -131,37 +131,26 @@ const Menu = ({ cart, setCart }) => {
           className="py-4"
         >
           <h2 className="text-xl font-bold text-gray-900 mb-4">Todas</h2>
-          {normalizedCategories.slice(1).map((category) => (
-            <div key={category} className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {category.charAt(0).toUpperCase() + category.slice(1)}
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {products
-                  .filter((product) => product.category === category)
-                  .map((product) => (
-                    <div
-                      key={product._id}
-                      className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col"
-                    >
-                      <h4 className="text-lg font-semibold text-gray-900">
-                        {product.name}
-                      </h4>
-                      <p className="text-gray-600 text-sm mb-2">{product.description}</p>
-                      <p className="text-[#e63946] font-bold mb-2">
-                        R$ {product.price.toFixed(2)}
-                      </p>
-                      <button
-                        onClick={() => handleAddToCart(product)}
-                        className="bg-[#e63946] text-white px-4 py-2 rounded-full hover:bg-red-700 transition"
-                      >
-                        Adicionar ao Carrinho
-                      </button>
-                    </div>
-                  ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {products.map((product) => (
+              <div
+                key={product._id}
+                className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col"
+              >
+                <h3 className="text-lg font-semibold text-gray-900">{product.name}</h3>
+                <p className="text-gray-600 text-sm mb-2">{product.description}</p>
+                <p className="text-[#e63946] font-bold mb-2">
+                  R$ {product.price.toFixed(2)}
+                </p>
+                <button
+                  onClick={() => handleAddToCart(product)}
+                  className="bg-[#e63946] text-white px-4 py-2 rounded-full hover:bg-red-700 transition"
+                >
+                  Adicionar ao Carrinho
+                </button>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* Seções Individuais */}
@@ -183,9 +172,7 @@ const Menu = ({ cart, setCart }) => {
                     key={product._id}
                     className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col"
                   >
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {product.name}
-                    </h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{product.name}</h3>
                     <p className="text-gray-600 text-sm mb-2">{product.description}</p>
                     <p className="text-[#e63946] font-bold mb-2">
                       R$ {product.price.toFixed(2)}
