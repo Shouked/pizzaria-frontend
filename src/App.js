@@ -1,5 +1,3 @@
-import React, { useState, regler
-
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -51,7 +49,7 @@ function App() {
   return (
     <div className="min-h-screen bg-[#f1faee] flex flex-col">
       {/* Header */}
-      <header className="bg-white shadow-md fixed top-0 left-0 w-full z-50">
+      <header className="bg-white shadow-md w-full">
         <div className="relative w-full h-36 sm:h-40 md:h-48">
           <img
             src="/pizza.png"
@@ -154,7 +152,7 @@ function App() {
       )}
 
       {/* Conteúdo Principal */}
-      <main className="pt-44 pb-20 flex-1 sm:pt-48 md:pt-56">
+      <main className="flex-1">
         <Routes>
           <Route path="/" element={<Menu cart={cart} setCart={setCart} />} />
           <Route
