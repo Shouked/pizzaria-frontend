@@ -207,7 +207,7 @@ function App() {
           </button>
           <button
             onClick={() => navigate('/order-summary')}
-            className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none"
+            className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none relative"
             aria-label="Carrinho"
           >
             <svg
@@ -226,7 +226,7 @@ function App() {
             </svg>
             Carrinho
             {cart.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-[#e63946] text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+              <span className="absolute top-0 right-0 bg-[#e63946] text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center transform translate-x-1/2 -translate-y-1/2">
                 {cart.reduce((sum, item) => sum + (item.quantity || 1), 0)}
               </span>
             )}
@@ -236,7 +236,7 @@ function App() {
 
       {/* Botão WhatsApp */}
       <a
-        href="https://wa.me/1234567890"
+        href="https://wa.me/11940705013"
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-20 right-4 bg-green-500 text-white p-3 rounded-full shadow-lg hover:bg-green-600 transition z-50 md:bottom-24"
@@ -248,7 +248,7 @@ function App() {
           viewBox="0 0 24 24"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <path d="M12 0C5.373 0 0 5.373 0 12c0 2.136.56 4.22 1.628 6.045l-1.052 3.955 4.035-1.054A11.963 11.963 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm5.626 17.262c-.279.279-.652.443-1.045.443-.392 0-.765-.164-1.045-.443-.559-.559-.559-1.467 0-2.026l.279-.279c.559-.559 1.467-.559 2.026 0l.837.837c.558.558.558 1.467 0 2.026zm-5.626-5.626c-1.104 0-2-.896-2-2s.896-2 2-2 2 .896 2 2-.896 2-2 2zm-5-8.262c0-.552-.448-1-1-1s-1 .448-1 1 .448 1 1 1 1-.448 1-1zm9 9c0-.552-.448-1-1-1s-1 .448-1 1 .448 1 1 1 1-.448 1-1z" />
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.074-.297-.15-1.255-.463-2.39-1.475-.883-.812-1.48-1.214-1.63-1.39-.057-.074-.138-.216-.138-.292 0-.075.074-.148.223-.347.149-.198.298-.496.446-.744.149-.247.074-.496-.074-.744-.173-.297-.767-.964-1.065-1.31-.297-.348-.669-.347-.967-.347h-.668c-.198 0-.52.074-.792.446-.272.371-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.095 3.2 5.076 4.487.708.306 1.263.489 1.694.625.522.173 1.04.148 1.435.074.446-.099 1.364-.446 1.56-.842.198-.397.197-.744.148-.992-.05-.247-.173-.347-.47-.496zm-5.422 6.61h-.002a9.858 9.858 0 01-4.972-1.354l-.356-.211-3.698.957.964-3.62-.229-.38a9.866 9.866 0 01-1.51-5.26 9.916 9.916 0 019.917-9.916 9.878 9.878 0 017.01 2.9 9.864 9.864 0 012.904 7.01c0 5.51-4.492 9.917-10.028 9.917zm6.03-16.66A11.85 11.85 0 0012.05 0C5.495 0 .466 5.026.466 11.583c0 2.092.552 4.14 1.593 5.926l-1.737 6.517 6.674-1.732a11.908 11.908 0 005.604 1.427h.005c6.555 0 11.584-5.026 11.584-11.583a11.8 11.8 0 00-3.51-8.44z" />
         </svg>
       </a>
     </div>
