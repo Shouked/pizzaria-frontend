@@ -236,7 +236,7 @@ function App() {
 
       {/* Botão WhatsApp */}
       <a
-        href="https://wa.me/11940705013"
+        href="https://wa.me/+5511940705013"
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-20 right-4 bg-green-500 text-white p-3 rounded-full shadow-lg hover:bg-green-600 transition z-50 md:bottom-24"
