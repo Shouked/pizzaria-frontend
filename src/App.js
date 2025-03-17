@@ -14,7 +14,6 @@ function App() {
   const [user, setUser] = useState(null);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -42,7 +41,6 @@ function App() {
     setIsLoggedIn(false);
     setUser(null);
     setCart([]);
-    setIsProfileOpen(false);
     navigate('/');
   };
 
@@ -105,25 +103,6 @@ function App() {
         </div>
       )}
 
-      {isProfileOpen && isLoggedIn && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-          onClick={() => setIsProfileOpen(false)}
-        >
-          <div
-            className="bg-white p-6 rounded-lg w-11/12 max-w-lg max-h-[80vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Profile
-              user={user}
-              setIsProfileOpen={setIsProfileOpen}
-              handleLogout={handleLogout}
-              navigate={navigate}
-            />
-          </div>
-        </div>
-      )}
-
       {/* Conteúdo Principal */}
       <main className="flex-1">
         <Routes>
@@ -135,6 +114,10 @@ function App() {
           <Route
             path="/orders"
             element={<Orders user={user} setIsLoginOpen={setIsLoginOpen} />}
+          />
+          <Route
+            path="/profile"
+            element={<Profile user={user} handleLogout={handleLogout} setUser={setUser} />}
           />
         </Routes>
       </main>
@@ -185,7 +168,7 @@ function App() {
             Pedidos
           </button>
           <button
-            onClick={() => (isLoggedIn ? setIsProfileOpen(true) : setIsLoginOpen(true))}
+            onClick={() => (isLoggedIn ? navigate('/profile') : setIsLoginOpen(true))}
             className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none"
             aria-label="Perfil"
           >
@@ -236,7 +219,7 @@ function App() {
 
       {/* Botão WhatsApp */}
       <a
-        href="https://wa.me/+5511940705013"
+        href="https://wa.me/1234567890"
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-20 right-4 bg-green-500 text-white p-3 rounded-full shadow-lg hover:bg-green-600 transition z-50 md:bottom-24"
