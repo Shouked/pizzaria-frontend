@@ -28,7 +28,7 @@ const Menu = ({ cart, setCart }) => {
     const existingItem = cart.find(item => item._id === product._id);
     if (existingItem) {
       setCart(cart.map(item =>
-        item._id === product._id ? { ...item, quantity: item.quantity + 1 } : item
+        item._id === product._id ? { ...item, quantity: (item.quantity || 0) + 1 } : item
       ));
     } else {
       setCart([...cart, { ...product, quantity: 1 }]);
@@ -39,7 +39,7 @@ const Menu = ({ cart, setCart }) => {
     setTimeout(() => {
       const section = document.getElementById(sectionId);
       if (section) {
-        const bannerHeight = document.querySelector('img[src="/pizza.png"]')?.offsetHeight || 128; // Altura do pizza.png
+        const bannerHeight = document.querySelector('#banner')?.offsetHeight || 100; // Altura do banner (ajuste se necessário)
         const sectionTop = section.getBoundingClientRect().top + window.pageYOffset;
         window.scrollTo({
           top: sectionTop - bannerHeight,
