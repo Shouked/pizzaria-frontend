@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const OrderSummary = ({ cart, clearCart, user }) => {
   const navigate = useNavigate();
+  const [deliveryOption, setDeliveryOption] = useState(''); // '' significa nenhuma selecionada
 
   const productsMap = cart.reduce((map, item) => {
     if (item._id) {
@@ -17,6 +18,11 @@ const OrderSummary = ({ cart, clearCart, user }) => {
   };
 
   const handleOrder = async () => {
+    if (!deliveryOption) {
+      alert('Por favor, selecione uma opção de entrega ou retirada.');
+      return;
+    }
+
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -44,6 +50,8 @@ const OrderSummary = ({ cart, clearCart, user }) => {
         user: user._id,
         items,
         total: calculateTotal(),
+        deliveryOption,
+        address: deliveryOption === 'delivery' ? user.address : null,
       };
 
       console.log('Dados do pedido:', orderData);
@@ -56,15 +64,22 @@ const OrderSummary = ({ cart, clearCart, user }) => {
 
       alert('Pedido realizado com sucesso!');
       clearCart();
-      navigate('/');
+      navigate('/orders'); // Redireciona para a página de pedidos
     } catch (err) {
       console.error('Erro ao criar pedido:', err.message);
       alert('Erro ao criar pedido. Tente novamente.');
     }
   };
 
+  const handleClearCart = () => {
+    if (window.confirm('Deseja realmente esvaziar o carrinho?')) {
+      clearCart();
+      navigate('/');
+    }
+  };
+
   return (
-    <div className="container mx-auto p-4 bg-[#f1faee] min-h-screen">
+    <div className="container mx-auto p-4 bg-[#f1faee] min-h-screen pb-16">
       <h1 className="text-3xl font-bold text-[#e63946] mb-4 text-center">Resumo do Pedido</h1>
       {cart.length === 0 ? (
         <p className="text-center text-gray-600">Seu carrinho está vazio.</p>
@@ -81,7 +96,44 @@ const OrderSummary = ({ cart, clearCart, user }) => {
           <div className="text-right mb-4">
             <p className="text-lg font-bold">Total: R$ {calculateTotal()}</p>
           </div>
-          <div className="flex justify-between">
+
+          {/* Opções de Entrega */}
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold text-gray-800">Opção de Entrega</h2>
+            <div className="mt-2 space-y-2">
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="deliveryOption"
+                  value="delivery"
+                  checked={deliveryOption === 'delivery'}
+                  onChange={(e) => setDeliveryOption(e.target.value)}
+                  className="text-[#e63946] focus:ring-[#e63946]"
+                />
+                <span>Entrega no Endereço</span>
+              </label>
+              {deliveryOption === 'delivery' && user?.address && (
+                <div className="ml-6 text-gray-600">
+                  <p>{`${user.address.street}, ${user.address.number}`}</p>
+                  <p>{`${user.address.neighborhood}, ${user.address.city} - ${user.address.cep}`}</p>
+                  {user.address.complement && <p>Complemento: {user.address.complement}</p>}
+                </div>
+              )}
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="deliveryOption"
+                  value="pickup"
+                  checked={deliveryOption === 'pickup'}
+                  onChange={(e) => setDeliveryOption(e.target.value)}
+                  className="text-[#e63946] focus:ring-[#e63946]"
+                />
+                <span>Retirar Pessoalmente</span>
+              </label>
+            </div>
+          </div>
+
+          <div className="flex justify-between gap-2">
             <button
               onClick={() => navigate('/')}
               className="bg-gray-300 text-gray-800 py-2 px-4 rounded-full hover:bg-gray-400 transition text-sm"
@@ -89,8 +141,15 @@ const OrderSummary = ({ cart, clearCart, user }) => {
               Adicionar Mais Produtos
             </button>
             <button
+              onClick={handleClearCart}
+              className="bg-gray-500 text-white py-2 px-4 rounded-full hover:bg-gray-600 transition text-sm"
+            >
+              Esvaziar Carrinho
+            </button>
+            <button
               onClick={handleOrder}
-              className="bg-[#e63946] text-white py-2 px-4 rounded-full hover:bg-red-700 transition text-sm"
+              disabled={!deliveryOption}
+              className={`bg-[#e63946] text-white py-2 px-4 rounded-full transition text-sm ${!deliveryOption ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700'}`}
             >
               Concluir Pedido
             </button>
