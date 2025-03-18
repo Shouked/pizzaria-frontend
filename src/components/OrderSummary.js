@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const OrderSummary = ({ cart, clearCart, user }) => {
+const OrderSummary = ({ cart, clearCart, user, setIsLoginOpen }) => {
   const navigate = useNavigate();
-  const [deliveryOption, setDeliveryOption] = useState(''); // '' significa nenhuma selecionada
+  const [deliveryOption, setDeliveryOption] = useState('');
+
+  useEffect(() => {
+    window.scrollTo(0, 0); // Rola para o topo ao carregar a página
+  }, []);
 
   const productsMap = cart.reduce((map, item) => {
     if (item._id) {
@@ -18,6 +22,13 @@ const OrderSummary = ({ cart, clearCart, user }) => {
   };
 
   const handleOrder = async () => {
+    if (!user) {
+      if (window.confirm('Você precisa estar logado para concluir o pedido. Deseja fazer login agora?')) {
+        setIsLoginOpen(true);
+      }
+      return;
+    }
+
     if (!deliveryOption) {
       alert('Por favor, selecione uma opção de entrega ou retirada.');
       return;
@@ -27,11 +38,7 @@ const OrderSummary = ({ cart, clearCart, user }) => {
       const token = localStorage.getItem('token');
       if (!token) {
         alert('Por favor, faça login para continuar.');
-        return;
-      }
-
-      if (!user || !user._id) {
-        alert('Usuário não autenticado. Por favor, faça login novamente.');
+        setIsLoginOpen(true);
         return;
       }
 
@@ -57,14 +64,12 @@ const OrderSummary = ({ cart, clearCart, user }) => {
       console.log('Dados do pedido:', orderData);
 
       await axios.post('https://pizzaria-backend-e254.onrender.com/api/orders', orderData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       alert('Pedido realizado com sucesso!');
       clearCart();
-      navigate('/orders'); // Redireciona para a página de pedidos
+      navigate('/orders');
     } catch (err) {
       console.error('Erro ao criar pedido:', err.message);
       alert('Erro ao criar pedido. Tente novamente.');
@@ -76,6 +81,16 @@ const OrderSummary = ({ cart, clearCart, user }) => {
       clearCart();
       navigate('/');
     }
+  };
+
+  const handleDeliveryOptionChange = (e) => {
+    if (!user) {
+      if (window.confirm('Você precisa estar logado para selecionar uma opção de entrega. Deseja fazer login agora?')) {
+        setIsLoginOpen(true);
+      }
+      return;
+    }
+    setDeliveryOption(e.target.value);
   };
 
   return (
@@ -107,12 +122,12 @@ const OrderSummary = ({ cart, clearCart, user }) => {
                   name="deliveryOption"
                   value="delivery"
                   checked={deliveryOption === 'delivery'}
-                  onChange={(e) => setDeliveryOption(e.target.value)}
+                  onChange={handleDeliveryOptionChange}
                   className="text-[#e63946] focus:ring-[#e63946]"
                 />
                 <span>Entrega no Endereço</span>
               </label>
-              {deliveryOption === 'delivery' && user?.address && (
+              {user && user.address && (
                 <div className="ml-6 text-gray-600">
                   <p>{`${user.address.street}, ${user.address.number}`}</p>
                   <p>{`${user.address.neighborhood}, ${user.address.city} - ${user.address.cep}`}</p>
@@ -125,7 +140,7 @@ const OrderSummary = ({ cart, clearCart, user }) => {
                   name="deliveryOption"
                   value="pickup"
                   checked={deliveryOption === 'pickup'}
-                  onChange={(e) => setDeliveryOption(e.target.value)}
+                  onChange={handleDeliveryOptionChange}
                   className="text-[#e63946] focus:ring-[#e63946]"
                 />
                 <span>Retirar Pessoalmente</span>
@@ -148,8 +163,8 @@ const OrderSummary = ({ cart, clearCart, user }) => {
             </button>
             <button
               onClick={handleOrder}
-              disabled={!deliveryOption}
-              className={`bg-[#e63946] text-white py-2 px-4 rounded-full transition text-sm ${!deliveryOption ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700'}`}
+              disabled={!deliveryOption && user}
+              className={`bg-[#e63946] text-white py-2 px-4 rounded-full transition text-sm ${!deliveryOption && user ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700'}`}
             >
               Concluir Pedido
             </button>
