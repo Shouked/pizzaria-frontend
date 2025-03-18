@@ -101,12 +101,12 @@ function App() {
         </div>
       )}
 
-      <main className="flex-1 pb-16"> {/* Adicionado pb-16 */}
+      <main className="flex-1 pb-16">
         <Routes>
           <Route path="/" element={<Menu cart={cart} setCart={setCart} />} />
           <Route
             path="/order-summary"
-            element={<OrderSummary cart={cart} clearCart={() => setCart([])} user={user} />}
+            element={<OrderSummary cart={cart} clearCart={() => setCart([])} user={user} setIsLoginOpen={setIsLoginOpen} />}
           />
           <Route
             path="/orders"
