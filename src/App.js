@@ -110,7 +110,7 @@ function App() {
           />
           <Route
             path="/orders"
-            element={<Orders user={user} setIsLoginOpen={setIsLoginOpen} />}
+            element={<Orders user={user} setIsLoginOpen={setIsLoginOpen} setCart={setCart} />} />
           />
           <Route
             path="/profile"
