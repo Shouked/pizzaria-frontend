@@ -48,19 +48,19 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
   const pastOrders = orders.slice(1);
 
   return (
-    <div className="container mx-auto p-4 bg-[#f1faee] min-h-screen pb-16">
+    <div className="container mx-auto p-4 bg-[#f1faee] min-h-screen pb-20">
       <h1 className="text-3xl font-bold text-[#e63946] mb-6 text-center">Meus Pedidos</h1>
       {orders.length === 0 ? (
         <p className="text-center text-gray-600">Você ainda não fez nenhum pedido.</p>
       ) : (
         <>
           {currentOrder && (
-            <div className="bg-white p-6 rounded-xl shadow-lg border-l-4 border-[#e63946] mb-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-bold text-gray-800">
+            <div className="bg-white p-4 md:p-6 rounded-xl shadow-lg border-l-4 border-r-4 border-[#e63946] mb-6 max-w-full">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
+                <h2 className="text-xl font-bold text-gray-800 break-words">
                   Pedido #{currentOrder._id}
                 </h2>
-                <p className={`text-sm font-semibold ${currentOrder.status === 'Entregue' ? 'text-green-600' : 'text-yellow-600'}`}>
+                <p className={`text-sm font-semibold mt-1 sm:mt-0 ${currentOrder.status === 'Entregue' ? 'text-green-600' : 'text-yellow-600'} max-w-xs break-words`}>
                   {currentOrder.status}
                 </p>
               </div>
@@ -133,12 +133,12 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
               {showHistory && (
                 <div className="space-y-6 mt-4">
                   {pastOrders.map((order) => (
-                    <div key={order._id} className="bg-white p-6 rounded-xl shadow-lg border-l-4 border-[#e63946]">
-                      <div className="flex justify-between items-center">
-                        <h2 className="text-xl font-bold text-gray-800">
+                    <div key={order._id} className="bg-white p-4 md:p-6 rounded-xl shadow-lg border-l-4 border-r-4 border-[#e63946] max-w-full">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
+                        <h2 className="text-xl font-bold text-gray-800 break-words">
                           Pedido #{order._id}
                         </h2>
-                        <p className={`text-sm font-semibold ${order.status === 'Entregue' ? 'text-green-600' : 'text-yellow-600'}`}>
+                        <p className={`text-sm font-semibold mt-1 sm:mt-0 ${order.status === 'Entregue' ? 'text-green-600' : 'text-yellow-600'} max-w-xs break-words`}>
                           {order.status}
                         </p>
                       </div>
