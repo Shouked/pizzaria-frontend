@@ -1,76 +1,65 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import PropTypes from 'prop-types';
+
+const ProductItem = React.memo(({ product, addToCart }) => (
+  <div className="bg-white p-4 rounded-lg shadow-md flex flex-col items-center">
+    <img
+      src={product.image || '/default-pizza.png'}
+      alt={product.name}
+      className="w-32 h-32 object-cover mb-2 rounded-full"
+    />
+    <h3 className="text-lg font-semibold text-gray-800">{product.name}</h3>
+    <p className="text-gray-600">R$ {product.price.toFixed(2)}</p>
+    <button
+      onClick={() => addToCart(product)}
+      className="mt-2 bg-[#e63946] text-white py-1 px-4 rounded-full hover:bg-red-700 transition"
+    >
+      Adicionar ao Carrinho
+    </button>
+  </div>
+));
+
+ProductItem.propTypes = {
+  product: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    price: PropTypes.number.isRequired,
+    image: PropTypes.string,
+  }).isRequired,
+  addToCart: PropTypes.func.isRequired,
+};
 
 const Menu = ({ cart, setCart }) => {
   const [products, setProducts] = useState([]);
-  const [activeSection, setActiveSection] = useState('Pizza');
-  const [isNavFixed, setIsNavFixed] = useState(false);
-  const sectionRefs = useRef({
-    Pizza: useRef(null),
-    Bebidas: useRef(null),
-    Sobremesa: useRef(null),
-    Esfihas: useRef(null),
-    Beirutes: useRef(null),
-    Calzones: useRef(null),
-    Fogazzas: useRef(null),
-  });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
+        // Tenta carregar do cache primeiro
+        const cachedProducts = localStorage.getItem('products');
+        if (cachedProducts) {
+          setProducts(JSON.parse(cachedProducts));
+          setLoading(false);
+          return;
+        }
+
+        // Se não houver cache, faz a requisição
         const response = await axios.get('https://pizzaria-backend-e254.onrender.com/api/products');
-        // Normalizar as categorias para minúsculas
-        const normalizedProducts = response.data.map((product) => ({
-          ...product,
-          category: product.category.toLowerCase(),
-        }));
-        setProducts(normalizedProducts);
+        setProducts(response.data);
+        localStorage.setItem('products', JSON.stringify(response.data));
       } catch (err) {
         console.error('Erro ao carregar produtos:', err);
+      } finally {
+        setLoading(false);
       }
     };
+
     fetchProducts();
   }, []);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const bannerHeight = 144; // Altura do banner (h-36 = 9rem = 144px)
-      const scrollPosition = window.scrollY;
-
-      // Fixar a barra quando o banner sair da tela
-      setIsNavFixed(scrollPosition > bannerHeight);
-
-      // Detectar seção ativa
-      const options = {
-        root: null,
-        rootMargin: '0px 0px -80% 0px', // Detecta quando a seção está quase no topo
-        threshold: 0.1,
-      };
-
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.dataset.section);
-          }
-        });
-      }, options);
-
-      Object.values(sectionRefs.current).forEach((ref) => {
-        if (ref.current) observer.observe(ref.current);
-      });
-
-      return () => {
-        Object.values(sectionRefs.current).forEach((ref) => {
-          if (ref.current) observer.unobserve(ref.current);
-        });
-      };
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const handleAddToCart = (product) => {
+  const addToCart = (product) => {
     setCart((prevCart) => {
       const existingItem = prevCart.find((item) => item._id === product._id);
       if (existingItem) {
@@ -82,95 +71,33 @@ const Menu = ({ cart, setCart }) => {
     });
   };
 
-  const scrollToSection = (section) => {
-    const ref = sectionRefs.current[section];
-    if (ref.current) {
-      const headerOffset = isNavFixed ? 60 : 0; // Ajusta para a altura da barra fixa
-      const elementPosition = ref.current.getBoundingClientRect().top + window.scrollY;
-      const offsetPosition = elementPosition - headerOffset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth',
-      });
-    }
-  };
-
-  const categories = [
-    'Pizza',
-    'Bebidas',
-    'Sobremesa',
-    'Esfihas',
-    'Beirutes',
-    'Calzones',
-    'Fogazzas',
-  ];
-  const normalizedCategories = categories.map((cat) => cat.toLowerCase());
+  if (loading) {
+    return (
+      <div className="container mx-auto p-4 text-center">
+        <p className="text-gray-600 text-lg">Carregando produtos...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="relative">
-      <nav
-        className={`bg-white border-b border-gray-200 w-full z-40 ${
-          isNavFixed ? 'fixed top-0 left-0 right-0 shadow-md' : ''
-        }`}
-      >
-        <div className="max-w-screen-lg mx-auto px-4">
-          <div className="flex overflow-x-auto whitespace-nowrap py-2">
-            {categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => scrollToSection(category)}
-                className={`px-4 py-2 text-sm font-medium ${
-                  activeSection === category
-                    ? 'text-[#e63946] border-b-2 border-[#e63946]'
-                    : 'text-gray-600 hover:text-[#e63946]'
-                }`}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
+    <div className="container mx-auto p-4">
+      <h1 className="text-3xl font-bold text-[#e63946] mb-6 text-center">Cardápio</h1>
+      {products.length === 0 ? (
+        <p className="text-center text-gray-600">Nenhum produto disponível no momento.</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {products.map((product) => (
+            <ProductItem key={product._id} product={product} addToCart={addToCart} />
+          ))}
         </div>
-      </nav>
-
-      <div className={`max-w-screen-lg mx-auto px-4 ${isNavFixed ? 'pt-16' : 'pt-4'} pb-20`}>
-        {normalizedCategories.map((category) => (
-          <div
-            key={category}
-            ref={sectionRefs.current[category.charAt(0).toUpperCase() + category.slice(1)]}
-            data-section={category.charAt(0).toUpperCase() + category.slice(1)}
-            className="py-4"
-          >
-            <h2 className="text-xl font-bold text-gray-900 mb-4">
-              {category.charAt(0).toUpperCase() + category.slice(1)}
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {products
-                .filter((product) => product.category === category)
-                .map((product) => (
-                  <div
-                    key={product._id}
-                    className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col"
-                  >
-                    <h3 className="text-lg font-semibold text-gray-900">{product.name}</h3>
-                    <p className="text-gray-600 text-sm mb-2">{product.description}</p>
-                    <p className="text-[#e63946] font-bold mb-2">
-                      R$ {product.price.toFixed(2)}
-                    </p>
-                    <button
-                      onClick={() => handleAddToCart(product)}
-                      className="bg-[#e63946] text-white px-4 py-2 rounded-full hover:bg-red-700 transition"
-                    >
-                      Adicionar ao Carrinho
-                    </button>
-                  </div>
-                ))}
-            </div>
-          </div>
-        ))}
-      </div>
+      )}
     </div>
   );
+};
+
+Menu.propTypes = {
+  cart: PropTypes.array.isRequired,
+  setCart: PropTypes.func.isRequired,
 };
 
 export default Menu;
