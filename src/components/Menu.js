@@ -1,8 +1,36 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import PropTypes from 'prop-types';
+
+// Componente de produto memoizado
+const ProductItem = React.memo(({ product, handleAddToCart }) => (
+  <div className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col">
+    <h3 className="text-lg font-semibold text-gray-900">{product.name}</h3>
+    <p className="text-gray-600 text-sm mb-2">{product.description}</p>
+    <p className="text-[#e63946] font-bold mb-2">R$ {product.price.toFixed(2)}</p>
+    <button
+      onClick={() => handleAddToCart(product)}
+      className="bg-[#e63946] text-white px-4 py-2 rounded-full hover:bg-red-700 transition"
+    >
+      Adicionar ao Carrinho
+    </button>
+  </div>
+));
+
+ProductItem.propTypes = {
+  product: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    description: PropTypes.string,
+    price: PropTypes.number.isRequired,
+    category: PropTypes.string.isRequired,
+  }).isRequired,
+  handleAddToCart: PropTypes.func.isRequired,
+};
 
 const Menu = ({ cart, setCart }) => {
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true); // Adicionado para indicador de carregamento
   const [activeSection, setActiveSection] = useState('Pizza');
   const [isNavFixed, setIsNavFixed] = useState(false);
   const sectionRefs = useRef({
@@ -18,15 +46,30 @@ const Menu = ({ cart, setCart }) => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
+        // Tenta carregar do cache primeiro
+        const cachedProducts = localStorage.getItem('products');
+        if (cachedProducts) {
+          const parsedProducts = JSON.parse(cachedProducts);
+          setProducts(parsedProducts.map((product) => ({
+            ...product,
+            category: product.category.toLowerCase(),
+          })));
+          setLoading(false);
+          return;
+        }
+
+        // Se não houver cache, faz a requisição
         const response = await axios.get('https://pizzaria-backend-e254.onrender.com/api/products');
-        // Normalizar as categorias para minúsculas
         const normalizedProducts = response.data.map((product) => ({
           ...product,
           category: product.category.toLowerCase(),
         }));
         setProducts(normalizedProducts);
+        localStorage.setItem('products', JSON.stringify(normalizedProducts));
       } catch (err) {
         console.error('Erro ao carregar produtos:', err);
+      } finally {
+        setLoading(false);
       }
     };
     fetchProducts();
@@ -107,6 +150,14 @@ const Menu = ({ cart, setCart }) => {
   ];
   const normalizedCategories = categories.map((cat) => cat.toLowerCase());
 
+  if (loading) {
+    return (
+      <div className="container mx-auto p-4 text-center">
+        <p className="text-gray-600 text-lg">Carregando produtos...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="relative">
       <nav
@@ -148,22 +199,11 @@ const Menu = ({ cart, setCart }) => {
               {products
                 .filter((product) => product.category === category)
                 .map((product) => (
-                  <div
+                  <ProductItem
                     key={product._id}
-                    className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col"
-                  >
-                    <h3 className="text-lg font-semibold text-gray-900">{product.name}</h3>
-                    <p className="text-gray-600 text-sm mb-2">{product.description}</p>
-                    <p className="text-[#e63946] font-bold mb-2">
-                      R$ {product.price.toFixed(2)}
-                    </p>
-                    <button
-                      onClick={() => handleAddToCart(product)}
-                      className="bg-[#e63946] text-white px-4 py-2 rounded-full hover:bg-red-700 transition"
-                    >
-                      Adicionar ao Carrinho
-                    </button>
-                  </div>
+                    product={product}
+                    handleAddToCart={handleAddToCart}
+                  />
                 ))}
             </div>
           </div>
@@ -171,6 +211,11 @@ const Menu = ({ cart, setCart }) => {
       </div>
     </div>
   );
+};
+
+Menu.propTypes = {
+  cart: PropTypes.array.isRequired,
+  setCart: PropTypes.func.isRequired,
 };
 
 export default Menu;
