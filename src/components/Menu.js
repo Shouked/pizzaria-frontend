@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import PropTypes from 'prop-types';
 
-// Componente de produto memoizado
 const ProductItem = React.memo(({ product, handleAddToCart }) => (
   <div className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col">
     <h3 className="text-lg font-semibold text-gray-900">{product.name}</h3>
@@ -30,7 +29,7 @@ ProductItem.propTypes = {
 
 const Menu = ({ cart, setCart }) => {
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true); // Adicionado para indicador de carregamento
+  const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState('Pizza');
   const [isNavFixed, setIsNavFixed] = useState(false);
   const sectionRefs = useRef({
@@ -47,25 +46,34 @@ const Menu = ({ cart, setCart }) => {
     const fetchProducts = async () => {
       try {
         // Tenta carregar do cache primeiro
-        const cachedProducts = localStorage.getItem('products');
-        if (cachedProducts) {
-          const parsedProducts = JSON.parse(cachedProducts);
-          setProducts(parsedProducts.map((product) => ({
-            ...product,
-            category: product.category.toLowerCase(),
-          })));
-          setLoading(false);
-          return;
+        const cachedData = localStorage.getItem('productsCache');
+        if (cachedData) {
+          const { products: cachedProducts, timestamp } = JSON.parse(cachedData);
+          const currentTime = Date.now();
+          const oneHourInMs = 3600000; // 1 hora em milissegundos
+
+          // Se o cache tiver menos de 1 hora, usa ele
+          if (currentTime - timestamp < oneHourInMs) {
+            setProducts(cachedProducts.map((product) => ({
+              ...product,
+              category: product.category.toLowerCase(),
+            })));
+            setLoading(false);
+            return;
+          }
         }
 
-        // Se não houver cache, faz a requisição
+        // Se não houver cache válido, faz a requisição
         const response = await axios.get('https://pizzaria-backend-e254.onrender.com/api/products');
         const normalizedProducts = response.data.map((product) => ({
           ...product,
           category: product.category.toLowerCase(),
         }));
         setProducts(normalizedProducts);
-        localStorage.setItem('products', JSON.stringify(normalizedProducts));
+        localStorage.setItem('productsCache', JSON.stringify({
+          products: normalizedProducts,
+          timestamp: Date.now(),
+        }));
       } catch (err) {
         console.error('Erro ao carregar produtos:', err);
       } finally {
@@ -80,13 +88,11 @@ const Menu = ({ cart, setCart }) => {
       const bannerHeight = 144; // Altura do banner (h-36 = 9rem = 144px)
       const scrollPosition = window.scrollY;
 
-      // Fixar a barra quando o banner sair da tela
       setIsNavFixed(scrollPosition > bannerHeight);
 
-      // Detectar seção ativa
       const options = {
         root: null,
-        rootMargin: '0px 0px -80% 0px', // Detecta quando a seção está quase no topo
+        rootMargin: '0px 0px -80% 0px',
         threshold: 0.1,
       };
 
@@ -128,7 +134,7 @@ const Menu = ({ cart, setCart }) => {
   const scrollToSection = (section) => {
     const ref = sectionRefs.current[section];
     if (ref.current) {
-      const headerOffset = isNavFixed ? 60 : 0; // Ajusta para a altura da barra fixa
+      const headerOffset = isNavFixed ? 60 : 0;
       const elementPosition = ref.current.getBoundingClientRect().top + window.scrollY;
       const offsetPosition = elementPosition - headerOffset;
 
