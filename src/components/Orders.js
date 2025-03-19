@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion'; // Para animações
-import { toast } from 'react-toastify'; // Para notificações
-import jsPDF from 'jspdf'; // Para exportação de PDF
+import { motion } from 'framer-motion';
+import { toast } from 'react-toastify';
+import jsPDF from 'jspdf';
 
 const Orders = ({ user, setIsLoginOpen, setCart }) => {
   const [orders, setOrders] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,7 +38,6 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
 
     fetchOrders();
 
-    // Polling para verificar mudanças no status
     const interval = setInterval(async () => {
       try {
         const token = localStorage.getItem('token');
@@ -53,7 +54,7 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
       } catch (err) {
         console.error('Erro no polling de pedidos:', err);
       }
-    }, 30000); // Checa a cada 30 segundos
+    }, 30000);
 
     return () => clearInterval(interval);
   }, [user, setIsLoginOpen, navigate, orders]);
@@ -62,6 +63,26 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
     const newCart = items.map(item => ({ ...item.product, quantity: item.quantity }));
     setCart(newCart);
     navigate('/order-summary');
+  };
+
+  const handleCancel = async (orderId) => {
+    if (window.confirm('Tem certeza que deseja cancelar este pedido?')) {
+      try {
+        const token = localStorage.getItem('token');
+        await axios.put(
+          `https://pizzaria-backend-e254.onrender.com/api/orders/${orderId}/cancel`,
+          {},
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        toast.success(`Pedido #${orderId.slice(-6)} cancelado com sucesso!`);
+        setOrders(orders.map(order => 
+          order._id === orderId ? { ...order, status: 'Cancelado' } : order
+        ));
+      } catch (err) {
+        console.error('Erro ao cancelar pedido:', err);
+        toast.error('Erro ao cancelar o pedido. Tente novamente.');
+      }
+    }
   };
 
   const exportToPDF = (order) => {
@@ -87,18 +108,47 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
     doc.save(`pedido_${order._id.slice(-6)}.pdf`);
   };
 
-  if (!user) {
-    return null;
-  }
+  const filteredOrders = orders.filter(order => 
+    (order._id.toLowerCase().includes(searchTerm.toLowerCase()) || 
+     new Date(order.createdAt).toLocaleString('pt-BR').includes(searchTerm)) &&
+    (statusFilter ? order.status === statusFilter : true)
+  );
 
-  const currentOrder = orders.length > 0 ? orders[0] : null;
-  const pastOrders = orders.slice(1);
+  const currentOrder = filteredOrders.length > 0 ? filteredOrders[0] : null;
+  const pastOrders = filteredOrders.slice(1);
+
+  const progressSteps = ['Pendente', 'Em Preparação', 'Entregue'];
+
+  if (!user) return null;
 
   return (
     <div className="container mx-auto p-4 bg-[#f1faee] min-h-screen pb-20">
       <h1 className="text-3xl font-bold text-[#e63946] mb-6 text-center">Meus Pedidos</h1>
-      {orders.length === 0 ? (
-        <p className="text-center text-gray-600">Você ainda não fez nenhum pedido.</p>
+
+      {/* Filtro e Pesquisa */}
+      <div className="mb-6 flex flex-col sm:flex-row gap-4">
+        <input
+          type="text"
+          placeholder="Buscar por ID ou data..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="p-2 border rounded-lg w-full sm:w-1/2"
+        />
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="p-2 border rounded-lg w-full sm:w-1/4"
+        >
+          <option value="">Todos os Status</option>
+          <option value="Pendente">Pendente</option>
+          <option value="Em Preparação">Em Preparação</option>
+          <option value="Entregue">Entregue</option>
+          <option value="Cancelado">Cancelado</option>
+        </select>
+      </div>
+
+      {filteredOrders.length === 0 ? (
+        <p className="text-center text-gray-600">Nenhum pedido encontrado.</p>
       ) : (
         <>
           {currentOrder && (
@@ -112,13 +162,31 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
                 <h2 className="text-xl font-bold text-gray-800 break-words">
                   Pedido #{currentOrder._id}
                 </h2>
-                <p className={`text-sm font-semibold mt-1 sm:mt-0 ${currentOrder.status === 'Entregue' ? 'text-green-600' : 'text-yellow-600'} max-w-xs break-words`}>
+                <p className={`text-sm font-semibold mt-1 sm:mt-0 ${currentOrder.status === 'Entregue' ? 'text-green-600' : currentOrder.status === 'Cancelado' ? 'text-red-600' : 'text-yellow-600'} max-w-xs break-words`}>
                   {currentOrder.status}
                 </p>
               </div>
               <p className="text-gray-600 text-sm mb-4">
                 Realizado em: {new Date(currentOrder.createdAt).toLocaleString('pt-BR')}
               </p>
+
+              {/* Indicador de Progresso */}
+              <div className="mb-4">
+                <div className="flex justify-between items-center">
+                  {progressSteps.map((step, index) => (
+                    <div key={step} className="flex-1 text-center">
+                      <div
+                        className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center text-white font-bold ${
+                          progressSteps.indexOf(currentOrder.status) >= index ? 'bg-[#e63946]' : 'bg-gray-300'
+                        }`}
+                      >
+                        {index + 1}
+                      </div>
+                      <p className="text-xs mt-1">{step}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
               <div className="mb-4">
                 <h3 className="text-md font-medium text-gray-700 mb-2">Itens:</h3>
@@ -173,10 +241,18 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
                 </button>
                 <button
                   onClick={() => exportToPDF(currentOrder)}
-                  className="bg-gray-500 text-white py-1 px-3 rounded-full hover:bg-gray-600 transition"
+                  className="bg-gray-500 text-white py-1 px-3 rounded-full hover:bg-gray-600 transition mb-2 sm:mb-0"
                 >
                   Exportar PDF
                 </button>
+                {currentOrder.status === 'Pendente' && (
+                  <button
+                    onClick={() => handleCancel(currentOrder._id)}
+                    className="bg-red-600 text-white py-1 px-3 rounded-full hover:bg-red-700 transition"
+                  >
+                    Cancelar Pedido
+                  </button>
+                )}
               </div>
             </motion.div>
           )}
@@ -210,7 +286,7 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
                         <h2 className="text-xl font-bold text-gray-800 break-words">
                           Pedido #{order._id}
                         </h2>
-                        <p className={`text-sm font-semibold mt-1 sm:mt-0 ${order.status === 'Entregue' ? 'text-green-600' : 'text-yellow-600'} max-w-xs break-words`}>
+                        <p className={`text-sm font-semibold mt-1 sm:mt-0 ${order.status === 'Entregue' ? 'text-green-600' : order.status === 'Cancelado' ? 'text-red-600' : 'text-yellow-600'} max-w-xs break-words`}>
                           {order.status}
                         </p>
                       </div>
@@ -271,10 +347,18 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
                         </button>
                         <button
                           onClick={() => exportToPDF(order)}
-                          className="bg-gray-500 text-white py-1 px-3 rounded-full hover:bg-gray-600 transition"
+                          className="bg-gray-500 text-white py-1 px-3 rounded-full hover:bg-gray-600 transition mb-2 sm:mb-0"
                         >
                           Exportar PDF
                         </button>
+                        {order.status === 'Pendente' && (
+                          <button
+                            onClick={() => handleCancel(order._id)}
+                            className="bg-red-600 text-white py-1 px-3 rounded-full hover:bg-red-700 transition"
+                          >
+                            Cancelar Pedido
+                          </button>
+                        )}
                       </div>
                     </motion.div>
                   ))}
