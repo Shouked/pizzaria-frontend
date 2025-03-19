@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const Orders = ({ user, setIsLoginOpen }) => {
+const Orders = ({ user, setIsLoginOpen, setCart }) => {
   const [orders, setOrders] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const navigate = useNavigate();
@@ -23,7 +23,6 @@ const Orders = ({ user, setIsLoginOpen }) => {
         const response = await axios.get('https://pizzaria-backend-e254.onrender.com/api/orders/user', {
           headers: { Authorization: `Bearer ${token}` },
         });
-        // Ordena os pedidos por data decrescente (mais recente primeiro)
         const sortedOrders = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         setOrders(sortedOrders);
       } catch (err) {
@@ -35,13 +34,17 @@ const Orders = ({ user, setIsLoginOpen }) => {
     fetchOrders();
   }, [user, setIsLoginOpen, navigate]);
 
+  const handleReorder = (items) => {
+    const newCart = items.map(item => ({ ...item.product, quantity: item.quantity }));
+    setCart(newCart);
+    navigate('/order-summary');
+  };
+
   if (!user) {
-    return null; // Redireciona antes de renderizar
+    return null;
   }
 
-  // Pega o pedido mais recente
   const currentOrder = orders.length > 0 ? orders[0] : null;
-  // Pega os pedidos antigos (exceto o mais recente)
   const pastOrders = orders.slice(1);
 
   return (
@@ -51,17 +54,20 @@ const Orders = ({ user, setIsLoginOpen }) => {
         <p className="text-center text-gray-600">Você ainda não fez nenhum pedido.</p>
       ) : (
         <>
-          {/* Pedido Atual */}
           {currentOrder && (
-            <div className="bg-white p-4 rounded-lg shadow-md border border-gray-200 mb-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-2">
-                Pedido #{currentOrder._id}
-              </h2>
+            <div className="bg-white p-6 rounded-xl shadow-lg border-l-4 border-[#e63946] mb-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-bold text-gray-800">
+                  Pedido #{currentOrder._id}
+                </h2>
+                <p className={`text-sm font-semibold ${currentOrder.status === 'Entregue' ? 'text-green-600' : 'text-yellow-600'}`}>
+                  {currentOrder.status}
+                </p>
+              </div>
               <p className="text-gray-600 text-sm mb-4">
                 Realizado em: {new Date(currentOrder.createdAt).toLocaleString('pt-BR')}
               </p>
 
-              {/* Itens do Pedido */}
               <div className="mb-4">
                 <h3 className="text-md font-medium text-gray-700 mb-2">Itens:</h3>
                 <ul className="space-y-2">
@@ -81,14 +87,12 @@ const Orders = ({ user, setIsLoginOpen }) => {
                 </ul>
               </div>
 
-              {/* Total */}
               <div className="text-right mb-4">
                 <p className="text-lg font-bold text-gray-800">
                   Total: R$ {currentOrder.total.toFixed(2)}
                 </p>
               </div>
 
-              {/* Opção de Entrega */}
               <div className="text-gray-600">
                 {currentOrder.deliveryOption === 'delivery' ? (
                   <>
@@ -107,10 +111,16 @@ const Orders = ({ user, setIsLoginOpen }) => {
                   <p>Retirar Pessoalmente</p>
                 )}
               </div>
+
+              <button
+                onClick={() => handleReorder(currentOrder.items)}
+                className="mt-4 bg-[#e63946] text-white py-1 px-3 rounded-full hover:bg-red-700 transition"
+              >
+                Fazer Novamente
+              </button>
             </div>
           )}
 
-          {/* Botão e Histórico de Pedidos */}
           {pastOrders.length > 0 && (
             <div className="mt-6">
               <button
@@ -123,15 +133,19 @@ const Orders = ({ user, setIsLoginOpen }) => {
               {showHistory && (
                 <div className="space-y-6 mt-4">
                   {pastOrders.map((order) => (
-                    <div key={order._id} className="bg-white p-4 rounded-lg shadow-md border border-gray-200">
-                      <h2 className="text-lg font-semibold text-gray-800 mb-2">
-                        Pedido #{order._id}
-                      </h2>
+                    <div key={order._id} className="bg-white p-6 rounded-xl shadow-lg border-l-4 border-[#e63946]">
+                      <div className="flex justify-between items-center">
+                        <h2 className="text-xl font-bold text-gray-800">
+                          Pedido #{order._id}
+                        </h2>
+                        <p className={`text-sm font-semibold ${order.status === 'Entregue' ? 'text-green-600' : 'text-yellow-600'}`}>
+                          {order.status}
+                        </p>
+                      </div>
                       <p className="text-gray-600 text-sm mb-4">
                         Realizado em: {new Date(order.createdAt).toLocaleString('pt-BR')}
                       </p>
 
-                      {/* Itens do Pedido */}
                       <div className="mb-4">
                         <h3 className="text-md font-medium text-gray-700 mb-2">Itens:</h3>
                         <ul className="space-y-2">
@@ -151,14 +165,12 @@ const Orders = ({ user, setIsLoginOpen }) => {
                         </ul>
                       </div>
 
-                      {/* Total */}
                       <div className="text-right mb-4">
                         <p className="text-lg font-bold text-gray-800">
                           Total: R$ {order.total.toFixed(2)}
                         </p>
                       </div>
 
-                      {/* Opção de Entrega */}
                       <div className="text-gray-600">
                         {order.deliveryOption === 'delivery' ? (
                           <>
@@ -177,6 +189,13 @@ const Orders = ({ user, setIsLoginOpen }) => {
                           <p>Retirar Pessoalmente</p>
                         )}
                       </div>
+
+                      <button
+                        onClick={() => handleReorder(order.items)}
+                        className="mt-4 bg-[#e63946] text-white py-1 px-3 rounded-full hover:bg-red-700 transition"
+                      >
+                        Fazer Novamente
+                      </button>
                     </div>
                   ))}
                 </div>
