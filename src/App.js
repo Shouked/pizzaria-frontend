@@ -45,8 +45,8 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f1faee] flex flex-col">
-      <header className="bg-white shadow-md w-full">
+    <div className="min-h-screen bg-[#f1faee] flex flex-col relative">
+      <header className="bg-white shadow-md w-full fixed top-0 left-0 z-50">
         <div className="relative w-full h-36 sm:h-40 md:h-48">
           <img
             src="/pizza.png"
@@ -101,7 +101,7 @@ function App() {
         </div>
       )}
 
-      <main className="flex-1 pb-16">
+      <main className="flex-1 mt-36 sm:mt-40 md:mt-48 pb-20">
         <Routes>
           <Route path="/" element={<Menu cart={cart} setCart={setCart} />} />
           <Route
@@ -110,7 +110,7 @@ function App() {
           />
           <Route
             path="/orders"
-            element={<Orders user={user} setIsLoginOpen={setIsLoginOpen} setCart={setCart} />} />
+            element={<Orders user={user} setIsLoginOpen={setIsLoginOpen} setCart={setCart} />}
           />
           <Route
             path="/profile"
