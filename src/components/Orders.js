@@ -117,7 +117,7 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
   const currentOrder = filteredOrders.length > 0 ? filteredOrders[0] : null;
   const pastOrders = filteredOrders.slice(1);
 
-  const progressSteps = ['Pendente', 'Em Preparação', 'Entregue'];
+  const progressSteps = ['Pendente', 'Em Preparação', 'Enviado', 'Entregue']; // Ajustado para refletir o fluxo principal
 
   if (!user) return null;
 
@@ -142,7 +142,9 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
           <option value="">Todos os Status</option>
           <option value="Pendente">Pendente</option>
           <option value="Em Preparação">Em Preparação</option>
+          <option value="Enviado">Enviado</option>
           <option value="Entregue">Entregue</option>
+          <option value="Retirado">Retirado</option>
           <option value="Cancelado">Cancelado</option>
         </select>
       </div>
@@ -162,7 +164,11 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
                 <h2 className="text-xl font-bold text-gray-800 break-words">
                   Pedido #{currentOrder._id}
                 </h2>
-                <p className={`text-sm font-semibold mt-1 sm:mt-0 ${currentOrder.status === 'Entregue' ? 'text-green-600' : currentOrder.status === 'Cancelado' ? 'text-red-600' : 'text-yellow-600'} max-w-xs break-words`}>
+                <p className={`text-sm font-semibold mt-1 sm:mt-0 ${
+                  currentOrder.status === 'Entregue' || currentOrder.status === 'Retirado' ? 'text-green-600' :
+                  currentOrder.status === 'Cancelado' ? 'text-red-600' :
+                  'text-yellow-600'
+                } max-w-xs break-words`}>
                   {currentOrder.status}
                 </p>
               </div>
@@ -171,22 +177,24 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
               </p>
 
               {/* Indicador de Progresso */}
-              <div className="mb-4">
-                <div className="flex justify-between items-center">
-                  {progressSteps.map((step, index) => (
-                    <div key={step} className="flex-1 text-center">
-                      <div
-                        className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center text-white font-bold ${
-                          progressSteps.indexOf(currentOrder.status) >= index ? 'bg-[#e63946]' : 'bg-gray-300'
-                        }`}
-                      >
-                        {index + 1}
+              {currentOrder.status !== 'Cancelado' && currentOrder.status !== 'Retirado' && (
+                <div className="mb-4">
+                  <div className="flex justify-between items-center">
+                    {progressSteps.map((step, index) => (
+                      <div key={step} className="flex-1 text-center">
+                        <div
+                          className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center text-white font-bold ${
+                            progressSteps.indexOf(currentOrder.status) >= index ? 'bg-[#e63946]' : 'bg-gray-300'
+                          }`}
+                        >
+                          {index + 1}
+                        </div>
+                        <p className="text-xs mt-1">{step}</p>
                       </div>
-                      <p className="text-xs mt-1">{step}</p>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="mb-4">
                 <h3 className="text-md font-medium text-gray-700 mb-2">Itens:</h3>
@@ -286,13 +294,36 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
                         <h2 className="text-xl font-bold text-gray-800 break-words">
                           Pedido #{order._id}
                         </h2>
-                        <p className={`text-sm font-semibold mt-1 sm:mt-0 ${order.status === 'Entregue' ? 'text-green-600' : order.status === 'Cancelado' ? 'text-red-600' : 'text-yellow-600'} max-w-xs break-words`}>
+                        <p className={`text-sm font-semibold mt-1 sm:mt-0 ${
+                          order.status === 'Entregue' || order.status === 'Retirado' ? 'text-green-600' :
+                          order.status === 'Cancelado' ? 'text-red-600' :
+                          'text-yellow-600'
+                        } max-w-xs break-words`}>
                           {order.status}
                         </p>
                       </div>
                       <p className="text-gray-600 text-sm mb-4">
                         Realizado em: {new Date(order.createdAt).toLocaleString('pt-BR')}
                       </p>
+
+                      {order.status !== 'Cancelado' && order.status !== 'Retirado' && (
+                        <div className="mb-4">
+                          <div className="flex justify-between items-center">
+                            {progressSteps.map((step, index) => (
+                              <div key={step} className="flex-1 text-center">
+                                <div
+                                  className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center text-white font-bold ${
+                                    progressSteps.indexOf(order.status) >= index ? 'bg-[#e63946]' : 'bg-gray-300'
+                                  }`}
+                                >
+                                  {index + 1}
+                                </div>
+                                <p className="text-xs mt-1">{step}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
                       <div className="mb-4">
                         <h3 className="text-md font-medium text-gray-700 mb-2">Itens:</h3>
