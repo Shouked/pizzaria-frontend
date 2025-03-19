@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion'; // Para animações
+import { toast } from 'react-toastify'; // Para notificações
+import jsPDF from 'jspdf'; // Para exportação de PDF
 
 const Orders = ({ user, setIsLoginOpen, setCart }) => {
   const [orders, setOrders] = useState([]);
@@ -32,12 +35,56 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
     };
 
     fetchOrders();
-  }, [user, setIsLoginOpen, navigate]);
+
+    // Polling para verificar mudanças no status
+    const interval = setInterval(async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get('https://pizzaria-backend-e254.onrender.com/api/orders/user', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const updatedOrders = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        updatedOrders.forEach((newOrder, i) => {
+          if (newOrder.status !== orders[i]?.status) {
+            toast.success(`Pedido #${newOrder._id.slice(-6)} agora está ${newOrder.status}!`);
+          }
+        });
+        setOrders(updatedOrders);
+      } catch (err) {
+        console.error('Erro no polling de pedidos:', err);
+      }
+    }, 30000); // Checa a cada 30 segundos
+
+    return () => clearInterval(interval);
+  }, [user, setIsLoginOpen, navigate, orders]);
 
   const handleReorder = (items) => {
     const newCart = items.map(item => ({ ...item.product, quantity: item.quantity }));
     setCart(newCart);
     navigate('/order-summary');
+  };
+
+  const exportToPDF = (order) => {
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text(`Pizza da Bia - Pedido #${order._id.slice(-6)}`, 10, 10);
+    doc.setFontSize(12);
+    doc.text(`Realizado em: ${new Date(order.createdAt).toLocaleString('pt-BR')}`, 10, 20);
+    doc.text(`Status: ${order.status}`, 10, 30);
+    doc.text('Itens:', 10, 40);
+    order.items.forEach((item, index) => {
+      doc.text(`${item.quantity}x ${item.product.name} - R$ ${(item.product.price * item.quantity).toFixed(2)}`, 10, 50 + index * 10);
+    });
+    doc.text(`Total: R$ ${order.total.toFixed(2)}`, 10, 50 + order.items.length * 10 + 10);
+    doc.text(order.deliveryOption === 'delivery' ? 'Entrega no Endereço' : 'Retirar Pessoalmente', 10, 50 + order.items.length * 10 + 20);
+    if (order.deliveryOption === 'delivery' && order.address) {
+      doc.text(`${order.address.street}, ${order.address.number}`, 10, 50 + order.items.length * 10 + 30);
+      doc.text(`${order.address.neighborhood}, ${order.address.city} - ${order.address.cep}`, 10, 50 + order.items.length * 10 + 40);
+      if (order.address.complement) {
+        doc.text(`Complemento: ${order.address.complement}`, 10, 50 + order.items.length * 10 + 50);
+      }
+    }
+    doc.save(`pedido_${order._id.slice(-6)}.pdf`);
   };
 
   if (!user) {
@@ -55,7 +102,12 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
       ) : (
         <>
           {currentOrder && (
-            <div className="bg-white p-4 md:p-6 rounded-xl shadow-lg border-l-4 border-r-4 border-[#e63946] mb-6 max-w-full">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="bg-white p-4 md:p-6 rounded-xl shadow-lg border-l-4 border-r-4 border-[#e63946] mb-6 max-w-full"
+            >
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
                 <h2 className="text-xl font-bold text-gray-800 break-words">
                   Pedido #{currentOrder._id}
@@ -112,13 +164,21 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
                 )}
               </div>
 
-              <button
-                onClick={() => handleReorder(currentOrder.items)}
-                className="mt-4 bg-[#e63946] text-white py-1 px-3 rounded-full hover:bg-red-700 transition"
-              >
-                Fazer Novamente
-              </button>
-            </div>
+              <div className="flex flex-col sm:flex-row sm:space-x-4 mt-4">
+                <button
+                  onClick={() => handleReorder(currentOrder.items)}
+                  className="bg-[#e63946] text-white py-1 px-3 rounded-full hover:bg-red-700 transition mb-2 sm:mb-0"
+                >
+                  Fazer Novamente
+                </button>
+                <button
+                  onClick={() => exportToPDF(currentOrder)}
+                  className="bg-gray-500 text-white py-1 px-3 rounded-full hover:bg-gray-600 transition"
+                >
+                  Exportar PDF
+                </button>
+              </div>
+            </motion.div>
           )}
 
           {pastOrders.length > 0 && (
@@ -131,9 +191,21 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
               </button>
 
               {showHistory && (
-                <div className="space-y-6 mt-4">
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="space-y-6 mt-4"
+                >
                   {pastOrders.map((order) => (
-                    <div key={order._id} className="bg-white p-4 md:p-6 rounded-xl shadow-lg border-l-4 border-r-4 border-[#e63946] max-w-full">
+                    <motion.div
+                      key={order._id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5 }}
+                      className="bg-white p-4 md:p-6 rounded-xl shadow-lg border-l-4 border-r-4 border-[#e63946] max-w-full"
+                    >
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
                         <h2 className="text-xl font-bold text-gray-800 break-words">
                           Pedido #{order._id}
@@ -190,15 +262,23 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
                         )}
                       </div>
 
-                      <button
-                        onClick={() => handleReorder(order.items)}
-                        className="mt-4 bg-[#e63946] text-white py-1 px-3 rounded-full hover:bg-red-700 transition"
-                      >
-                        Fazer Novamente
-                      </button>
-                    </div>
+                      <div className="flex flex-col sm:flex-row sm:space-x-4 mt-4">
+                        <button
+                          onClick={() => handleReorder(order.items)}
+                          className="bg-[#e63946] text-white py-1 px-3 rounded-full hover:bg-red-700 transition mb-2 sm:mb-0"
+                        >
+                          Fazer Novamente
+                        </button>
+                        <button
+                          onClick={() => exportToPDF(order)}
+                          className="bg-gray-500 text-white py-1 px-3 rounded-full hover:bg-gray-600 transition"
+                        >
+                          Exportar PDF
+                        </button>
+                      </div>
+                    </motion.div>
                   ))}
-                </div>
+                </motion.div>
               )}
             </div>
           )}
