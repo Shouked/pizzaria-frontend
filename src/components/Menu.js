@@ -37,7 +37,7 @@ const Menu = ({ cart, setCart }) => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const tenantId = 'pizzaria-original'; // Fixo por enquanto, para teste
+        const tenantId = 'pizzaria-a'; // Fixo por enquanto, para teste
         const cachedData = localStorage.getItem(`productsCache_${tenantId}`);
         if (cachedData) {
           const { products: cachedProducts, timestamp } = JSON.parse(cachedData);
