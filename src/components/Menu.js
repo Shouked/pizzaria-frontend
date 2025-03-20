@@ -38,10 +38,11 @@ const Menu = ({ cart, setCart }) => {
     const fetchProducts = async () => {
       try {
         // Extrair o tenantId do caminho da URL
-        const pathParts = window.location.pathname.split('/').filter(Boolean); // Remove partes vazias
-        const tenantId = pathParts[0] || null; // Pega o primeiro segmento (ex.: "pizzaria-original")
+        const pathParts = window.location.pathname.split('/').filter(Boolean);
+        const tenantId = pathParts[0] || null;
+        console.log('Pathname:', window.location.pathname); // Depuração
+        console.log('TenantId extraído:', tenantId); // Depuração
 
-        // Se não houver tenantId na URL, mostrar mensagem de erro
         if (!tenantId) {
           console.error('tenantId não fornecido na URL');
           setLoading(false);
@@ -54,6 +55,7 @@ const Menu = ({ cart, setCart }) => {
           const currentTime = Date.now();
           const oneHourInMs = 3600000;
 
+          console.log('Dados do cache:', cachedProducts); // Depuração
           if (currentTime - timestamp < oneHourInMs) {
             setProducts(cachedProducts.map((product) => ({
               ...product,
@@ -64,9 +66,12 @@ const Menu = ({ cart, setCart }) => {
           }
         }
 
+        console.log('Fazendo requisição ao backend com tenantId:', tenantId); // Depuração
         const response = await axios.get('https://pizzaria-backend-e254.onrender.com/api/products', {
           params: { tenantId },
         });
+        console.log('Resposta do backend:', response.data); // Depuração
+
         const normalizedProducts = response.data.map((product) => ({
           ...product,
           category: product.category.toLowerCase(),
@@ -77,7 +82,7 @@ const Menu = ({ cart, setCart }) => {
           timestamp: Date.now(),
         }));
       } catch (err) {
-        console.error('Erro ao carregar produtos:', err);
+        console.error('Erro ao carregar produtos:', err.response ? err.response.data : err.message);
       } finally {
         setLoading(false);
       }
