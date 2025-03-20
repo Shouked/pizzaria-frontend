@@ -30,28 +30,19 @@ ProductItem.propTypes = {
 const Menu = ({ cart, setCart }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeSection, setActiveSection] = useState('Pizza');
+  const [activeSection, setActiveSection] = useState(null); // Inicializa como null
   const [isNavFixed, setIsNavFixed] = useState(false);
-  const sectionRefs = useRef({
-    Pizza: useRef(null),
-    Bebidas: useRef(null),
-    Sobremesa: useRef(null),
-    Esfihas: useRef(null),
-    Beirutes: useRef(null),
-    Calzones: useRef(null),
-    Fogazzas: useRef(null),
-  });
+  const sectionRefs = useRef({});
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const tenantId = 'pizzaria-a'; // Fixo por enquanto, para teste
-        // Tenta carregar do cache primeiro
+        const tenantId = 'pizzaria-original'; // Fixo por enquanto, para teste
         const cachedData = localStorage.getItem(`productsCache_${tenantId}`);
         if (cachedData) {
           const { products: cachedProducts, timestamp } = JSON.parse(cachedData);
           const currentTime = Date.now();
-          const oneHourInMs = 3600000; // 1 hora em milissegundos
+          const oneHourInMs = 3600000;
 
           if (currentTime - timestamp < oneHourInMs) {
             setProducts(cachedProducts.map((product) => ({
@@ -63,7 +54,6 @@ const Menu = ({ cart, setCart }) => {
           }
         }
 
-        // Se não houver cache válido, faz a requisição
         const response = await axios.get('https://pizzaria-backend-e254.onrender.com/api/products', {
           params: { tenantId },
         });
@@ -85,9 +75,40 @@ const Menu = ({ cart, setCart }) => {
     fetchProducts();
   }, []);
 
+  // Filtrar categorias com base nos produtos disponíveis
+  const allCategories = [
+    'Pizza',
+    'Bebidas',
+    'Sobremesa',
+    'Esfihas',
+    'Beirutes',
+    'Calzones',
+    'Fogazzas',
+  ];
+  const normalizedCategories = allCategories.map((cat) => cat.toLowerCase());
+  const availableCategories = normalizedCategories.filter((category) =>
+    products.some((product) => product.category === category)
+  );
+  const availableCategoriesUpper = availableCategories.map(
+    (cat) => cat.charAt(0).toUpperCase() + cat.slice(1)
+  );
+
+  // Inicializar sectionRefs dinamicamente com base nas categorias disponíveis
+  useEffect(() => {
+    availableCategoriesUpper.forEach((category) => {
+      if (!sectionRefs.current[category]) {
+        sectionRefs.current[category] = React.createRef();
+      }
+    });
+    // Definir a primeira categoria disponível como ativa
+    if (availableCategoriesUpper.length > 0 && !activeSection) {
+      setActiveSection(availableCategoriesUpper[0]);
+    }
+  }, [products, activeSection]);
+
   useEffect(() => {
     const handleScroll = () => {
-      const bannerHeight = 144; // Altura do banner (h-36 = 9rem = 144px)
+      const bannerHeight = 144;
       const scrollPosition = window.scrollY;
 
       setIsNavFixed(scrollPosition > bannerHeight);
@@ -147,21 +168,18 @@ const Menu = ({ cart, setCart }) => {
     }
   };
 
-  const categories = [
-    'Pizza',
-    'Bebidas',
-    'Sobremesa',
-    'Esfihas',
-    'Beirutes',
-    'Calzones',
-    'Fogazzas',
-  ];
-  const normalizedCategories = categories.map((cat) => cat.toLowerCase());
-
   if (loading) {
     return (
       <div className="container mx-auto p-4 text-center">
         <p className="text-gray-600 text-lg">Carregando produtos...</p>
+      </div>
+    );
+  }
+
+  if (availableCategories.length === 0) {
+    return (
+      <div className="container mx-auto p-4 text-center">
+        <p className="text-gray-600 text-lg">Nenhum produto disponível no momento.</p>
       </div>
     );
   }
@@ -175,7 +193,7 @@ const Menu = ({ cart, setCart }) => {
       >
         <div className="max-w-screen-lg mx-auto px-4">
           <div className="flex overflow-x-auto whitespace-nowrap py-2">
-            {categories.map((category) => (
+            {availableCategoriesUpper.map((category) => (
               <button
                 key={category}
                 onClick={() => scrollToSection(category)}
@@ -193,7 +211,7 @@ const Menu = ({ cart, setCart }) => {
       </nav>
 
       <div className={`max-w-screen-lg mx-auto px-4 ${isNavFixed ? 'pt-16' : 'pt-4'} pb-20`}>
-        {normalizedCategories.map((category) => (
+        {availableCategories.map((category) => (
           <div
             key={category}
             ref={sectionRefs.current[category.charAt(0).toUpperCase() + category.slice(1)]}
