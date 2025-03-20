@@ -29,28 +29,51 @@ ProductItem.propTypes = {
 
 const Menu = ({ cart, setCart }) => {
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeSection, setActiveSection] = useState('');
+  const [activeSection, setActiveSection] = useState('Pizza');
   const [isNavFixed, setIsNavFixed] = useState(false);
-  const sectionRefs = useRef({});
+  const sectionRefs = useRef({
+    Pizza: useRef(null),
+    Bebidas: useRef(null),
+    Sobremesa: useRef(null),
+    Esfihas: useRef(null),
+    Beirutes: useRef(null),
+    Calzones: useRef(null),
+    Fogazzas: useRef(null),
+  });
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const tenantId = window.location.hostname.split('.')[0] || 'pizzaria-a';
-        const response = await axios.get(`https://pizzaria-backend-e254.onrender.com/api/products?tenant=${tenantId}`);
+        // Tenta carregar do cache primeiro
+        const cachedData = localStorage.getItem('productsCache');
+        if (cachedData) {
+          const { products: cachedProducts, timestamp } = JSON.parse(cachedData);
+          const currentTime = Date.now();
+          const oneHourInMs = 3600000; // 1 hora em milissegundos
+
+          // Se o cache tiver menos de 1 hora, usa ele
+          if (currentTime - timestamp < oneHourInMs) {
+            setProducts(cachedProducts.map((product) => ({
+              ...product,
+              category: product.category.toLowerCase(),
+            })));
+            setLoading(false);
+            return;
+          }
+        }
+
+        // Se não houver cache válido, faz a requisição
+        const response = await axios.get('https://pizzaria-backend-e254.onrender.com/api/products');
         const normalizedProducts = response.data.map((product) => ({
           ...product,
           category: product.category.toLowerCase(),
         }));
         setProducts(normalizedProducts);
-
-        const uniqueCategories = [...new Set(normalizedProducts.map(p => p.category))]
-          .map(cat => cat.charAt(0).toUpperCase() + cat.slice(1))
-          .sort();
-        setCategories(uniqueCategories);
-        setActiveSection(uniqueCategories[0] || '');
+        localStorage.setItem('productsCache', JSON.stringify({
+          products: normalizedProducts,
+          timestamp: Date.now(),
+        }));
       } catch (err) {
         console.error('Erro ao carregar produtos:', err);
       } finally {
@@ -62,8 +85,9 @@ const Menu = ({ cart, setCart }) => {
 
   useEffect(() => {
     const handleScroll = () => {
-      const bannerHeight = 144;
+      const bannerHeight = 144; // Altura do banner (h-36 = 9rem = 144px)
       const scrollPosition = window.scrollY;
+
       setIsNavFixed(scrollPosition > bannerHeight);
 
       const options = {
@@ -93,7 +117,7 @@ const Menu = ({ cart, setCart }) => {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [categories]);
+  }, []);
 
   const handleAddToCart = (product) => {
     setCart((prevCart) => {
@@ -120,6 +144,17 @@ const Menu = ({ cart, setCart }) => {
       });
     }
   };
+
+  const categories = [
+    'Pizza',
+    'Bebidas',
+    'Sobremesa',
+    'Esfihas',
+    'Beirutes',
+    'Calzones',
+    'Fogazzas',
+  ];
+  const normalizedCategories = categories.map((cat) => cat.toLowerCase());
 
   if (loading) {
     return (
@@ -156,30 +191,29 @@ const Menu = ({ cart, setCart }) => {
       </nav>
 
       <div className={`max-w-screen-lg mx-auto px-4 ${isNavFixed ? 'pt-16' : 'pt-4'} pb-20`}>
-        {categories.map((category) => {
-          sectionRefs.current[category] = sectionRefs.current[category] || React.createRef();
-          return (
-            <div
-              key={category}
-              ref={sectionRefs.current[category]}
-              data-section={category}
-              className="py-4"
-            >
-              <h2 className="text-xl font-bold text-gray-900 mb-4">{category}</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {products
-                  .filter((product) => product.category === category.toLowerCase())
-                  .map((product) => (
-                    <ProductItem
-                      key={product._id}
-                      product={product}
-                      handleAddToCart={handleAddToCart}
-                    />
-                  ))}
-              </div>
+        {normalizedCategories.map((category) => (
+          <div
+            key={category}
+            ref={sectionRefs.current[category.charAt(0).toUpperCase() + category.slice(1)]}
+            data-section={category.charAt(0).toUpperCase() + category.slice(1)}
+            className="py-4"
+          >
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
+              {category.charAt(0).toUpperCase() + category.slice(1)}
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {products
+                .filter((product) => product.category === category)
+                .map((product) => (
+                  <ProductItem
+                    key={product._id}
+                    product={product}
+                    handleAddToCart={handleAddToCart}
+                  />
+                ))}
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
     </div>
   );
