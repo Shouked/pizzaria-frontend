@@ -30,14 +30,24 @@ ProductItem.propTypes = {
 const Menu = ({ cart, setCart }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeSection, setActiveSection] = useState(null); // Inicializa como null
+  const [activeSection, setActiveSection] = useState(null);
   const [isNavFixed, setIsNavFixed] = useState(false);
   const sectionRefs = useRef({});
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const tenantId = 'pizzaria-a'; // Fixo por enquanto, para teste
+        // Extrair o tenantId do caminho da URL
+        const pathParts = window.location.pathname.split('/').filter(Boolean); // Remove partes vazias
+        const tenantId = pathParts[0] || null; // Pega o primeiro segmento (ex.: "pizzaria-original")
+
+        // Se não houver tenantId na URL, mostrar mensagem de erro
+        if (!tenantId) {
+          console.error('tenantId não fornecido na URL');
+          setLoading(false);
+          return;
+        }
+
         const cachedData = localStorage.getItem(`productsCache_${tenantId}`);
         if (cachedData) {
           const { products: cachedProducts, timestamp } = JSON.parse(cachedData);
@@ -75,7 +85,6 @@ const Menu = ({ cart, setCart }) => {
     fetchProducts();
   }, []);
 
-  // Filtrar categorias com base nos produtos disponíveis
   const allCategories = [
     'Pizza',
     'Bebidas',
@@ -93,14 +102,12 @@ const Menu = ({ cart, setCart }) => {
     (cat) => cat.charAt(0).toUpperCase() + cat.slice(1)
   );
 
-  // Inicializar sectionRefs dinamicamente com base nas categorias disponíveis
   useEffect(() => {
     availableCategoriesUpper.forEach((category) => {
       if (!sectionRefs.current[category]) {
         sectionRefs.current[category] = React.createRef();
       }
     });
-    // Definir a primeira categoria disponível como ativa
     if (availableCategoriesUpper.length > 0 && !activeSection) {
       setActiveSection(availableCategoriesUpper[0]);
     }
@@ -179,7 +186,7 @@ const Menu = ({ cart, setCart }) => {
   if (availableCategories.length === 0) {
     return (
       <div className="container mx-auto p-4 text-center">
-        <p className="text-gray-600 text-lg">Nenhum produto disponível no momento.</p>
+        <p className="text-gray-600 text-lg">Nenhum produto disponível no momento ou tenant inválido.</p>
       </div>
     );
   }
