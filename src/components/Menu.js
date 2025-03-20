@@ -45,7 +45,7 @@ const Menu = ({ cart, setCart }) => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const tenantId = 'pizzaria-original'; // Fixo por enquanto, para teste
+        const tenantId = 'pizzaria-a'; // Fixo por enquanto, para teste
         // Tenta carregar do cache primeiro
         const cachedData = localStorage.getItem(`productsCache_${tenantId}`);
         if (cachedData) {
