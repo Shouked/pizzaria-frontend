@@ -45,14 +45,14 @@ const Menu = ({ cart, setCart }) => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
+        const tenantId = 'pizzaria-original'; // Fixo por enquanto, para teste
         // Tenta carregar do cache primeiro
-        const cachedData = localStorage.getItem('productsCache');
+        const cachedData = localStorage.getItem(`productsCache_${tenantId}`);
         if (cachedData) {
           const { products: cachedProducts, timestamp } = JSON.parse(cachedData);
           const currentTime = Date.now();
           const oneHourInMs = 3600000; // 1 hora em milissegundos
 
-          // Se o cache tiver menos de 1 hora, usa ele
           if (currentTime - timestamp < oneHourInMs) {
             setProducts(cachedProducts.map((product) => ({
               ...product,
@@ -64,13 +64,15 @@ const Menu = ({ cart, setCart }) => {
         }
 
         // Se não houver cache válido, faz a requisição
-        const response = await axios.get('https://pizzaria-backend-e254.onrender.com/api/products');
+        const response = await axios.get('https://pizzaria-backend-e254.onrender.com/api/products', {
+          params: { tenantId },
+        });
         const normalizedProducts = response.data.map((product) => ({
           ...product,
           category: product.category.toLowerCase(),
         }));
         setProducts(normalizedProducts);
-        localStorage.setItem('productsCache', JSON.stringify({
+        localStorage.setItem(`productsCache_${tenantId}`, JSON.stringify({
           products: normalizedProducts,
           timestamp: Date.now(),
         }));
