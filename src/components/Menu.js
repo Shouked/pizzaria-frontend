@@ -35,9 +35,10 @@ const Menu = () => {
   const [activeSection, setActiveSection] = useState(null);
   const [isNavFixed, setIsNavFixed] = useState(false);
   const sectionRefs = useRef({});
-  const { tenantId } = useParams();
+  const { tenantId } = useParams(); // tenantId deve ser "pizzaria-a", não "order-summary"
 
   useEffect(() => {
+    console.log('TenantId recebido em Menu:', tenantId);
     const savedCart = localStorage.getItem(`cart_${tenantId}`);
     if (savedCart) {
       setCart(JSON.parse(savedCart));
@@ -48,15 +49,14 @@ const Menu = () => {
 
   useEffect(() => {
     localStorage.setItem(`cart_${tenantId}`, JSON.stringify(cart));
-    console.log(`Carrinho atualizado para ${tenantId}:`, cart); // Log para depuração
+    console.log(`Carrinho atualizado para ${tenantId}:`, cart);
   }, [cart, tenantId]);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        console.log('TenantId da rota:', tenantId);
-        if (!tenantId) {
-          console.error('tenantId não fornecido');
+        if (!tenantId || tenantId === 'order-summary' || tenantId === 'orders' || tenantId === 'profile') {
+          console.error('tenantId inválido ou não fornecido:', tenantId);
           setLoading(false);
           return;
         }
