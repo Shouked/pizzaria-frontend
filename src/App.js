@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -15,7 +15,7 @@ function App() {
   const [user, setUser] = useState(null);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
-  const [cart, setCart] = useState([]); // Adicionei o estado do carrinho
+  const [cart, setCart] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -43,6 +43,59 @@ function App() {
     setIsLoggedIn(false);
     setUser(null);
     navigate('/');
+  };
+
+  // Componente interno para acessar useParams
+  const NavigationBar = () => {
+    const { tenantId } = useParams();
+    const basePath = tenantId || 'pizzaria-a'; // Fallback para pizzaria-a
+
+    return (
+      <nav className="bg-white p-2 shadow-md fixed bottom-0 left-0 w-full z-50 border-t border-gray-200">
+        <div className="container mx-auto flex justify-around">
+          <button
+            onClick={() => navigate(`/${basePath}`)}
+            className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none"
+            aria-label="Home"
+          >
+            <svg className="h-6 w-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            Home
+          </button>
+          <button
+            onClick={() => navigate(`/${basePath}/orders`)}
+            className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none"
+            aria-label="Pedidos"
+          >
+            <svg className="h-6 w-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            Pedidos
+          </button>
+          <button
+            onClick={() => (isLoggedIn ? navigate(`/${basePath}/profile`) : setIsLoginOpen(true))}
+            className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none"
+            aria-label="Perfil"
+          >
+            <svg className="h-6 w-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            Perfil
+          </button>
+          <button
+            onClick={() => navigate(`/${basePath}/order-summary`)}
+            className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none relative"
+            aria-label="Carrinho"
+          >
+            <svg className="h-6 w-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            Carrinho
+          </button>
+        </div>
+      </nav>
+    );
   };
 
   return (
@@ -105,57 +158,14 @@ function App() {
       <main className="flex-1 pb-16">
         <Routes>
           <Route path="/" element={<div>Selecione uma pizzaria</div>} />
-          <Route path="/:tenantId" element={<Menu />} />
+          <Route path="/:tenantId" element={<Menu cart={cart} setCart={setCart} />} />
           <Route path="/:tenantId/order-summary" element={<OrderSummary user={user} setIsLoginOpen={setIsLoginOpen} cart={cart} setCart={setCart} />} />
           <Route path="/:tenantId/orders" element={<Orders user={user} setIsLoginOpen={setIsLoginOpen} />} />
           <Route path="/:tenantId/profile" element={<Profile user={user} setUser={setUser} handleLogout={handleLogout} />} />
         </Routes>
       </main>
 
-      <nav className="bg-white p-2 shadow-md fixed bottom-0 left-0 w-full z-50 border-t border-gray-200">
-        <div className="container mx-auto flex justify-around">
-          <button
-            onClick={() => navigate('/pizzaria-a')} // Ajustado para evitar useParams fora de Route
-            className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none"
-            aria-label="Home"
-          >
-            <svg className="h-6 w-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
-            Home
-          </button>
-          <button
-            onClick={() => navigate('/pizzaria-a/orders')}
-            className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none"
-            aria-label="Pedidos"
-          >
-            <svg className="h-6 w-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            Pedidos
-          </button>
-          <button
-            onClick={() => (isLoggedIn ? navigate('/pizzaria-a/profile') : setIsLoginOpen(true))}
-            className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none"
-            aria-label="Perfil"
-          >
-            <svg className="h-6 w-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            Perfil
-          </button>
-          <button
-            onClick={() => navigate('/pizzaria-a/order-summary')}
-            className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none relative"
-            aria-label="Carrinho"
-          >
-            <svg className="h-6 w-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            Carrinho
-          </button>
-        </div>
-      </nav>
+      <NavigationBar />
 
       <a
         href="https://wa.me/+5511940705013"
