@@ -28,29 +28,46 @@ ProductItem.propTypes = {
   handleAddToCart: PropTypes.func.isRequired,
 };
 
-const Menu = ({ cart, setCart }) => {
+const Menu = () => {
   const [products, setProducts] = useState([]);
+  const [cart, setCart] = useState([]); // Carrinho local
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState(null);
   const [isNavFixed, setIsNavFixed] = useState(false);
   const sectionRefs = useRef({});
-  const { tenantId } = useParams(); // Pega o tenantId da rota
+  const { tenantId } = useParams();
+
+  // Carregar carrinho do localStorage baseado no tenantId
+  useEffect(() => {
+    const savedCart = localStorage.getItem(`cart_${tenantId}`);
+    if (savedCart) {
+      setCart(JSON.parse(savedCart));
+    } else {
+      setCart([]);
+    }
+  }, [tenantId]);
+
+  // Salvar carrinho no localStorage sempre que mudar
+  useEffect(() => {
+    localStorage.setItem(`cart_${tenantId}`, JSON.stringify(cart));
+  }, [cart, tenantId]);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        console.log('TenantId da rota:', tenantId); // Depuração
-        // Para a rota raiz ("/"), usaremos um tenantId padrão ou mostraremos uma mensagem
-        const effectiveTenantId = tenantId || 'pizzaria-original'; // Default para raiz, ajustar conforme necessário
-        console.log('TenantId efetivo usado:', effectiveTenantId);
+        console.log('TenantId da rota:', tenantId);
+        if (!tenantId) {
+          console.error('tenantId não fornecido');
+          setLoading(false);
+          return;
+        }
 
-        const cachedData = localStorage.getItem(`productsCache_${effectiveTenantId}`);
+        const cachedData = localStorage.getItem(`productsCache_${tenantId}`);
         if (cachedData) {
           const { products: cachedProducts, timestamp } = JSON.parse(cachedData);
           const currentTime = Date.now();
           const oneHourInMs = 3600000;
 
-          console.log('Dados do cache:', cachedProducts);
           if (currentTime - timestamp < oneHourInMs) {
             setProducts(cachedProducts.map((product) => ({
               ...product,
@@ -61,18 +78,15 @@ const Menu = ({ cart, setCart }) => {
           }
         }
 
-        console.log('Fazendo requisição ao backend com tenantId:', effectiveTenantId);
         const response = await axios.get('https://pizzaria-backend-e254.onrender.com/api/products', {
-          params: { tenantId: effectiveTenantId },
+          params: { tenantId },
         });
-        console.log('Resposta do backend:', response.data);
-
         const normalizedProducts = response.data.map((product) => ({
           ...product,
           category: product.category.toLowerCase(),
         }));
         setProducts(normalizedProducts);
-        localStorage.setItem(`productsCache_${effectiveTenantId}`, JSON.stringify({
+        localStorage.setItem(`productsCache_${tenantId}`, JSON.stringify({
           products: normalizedProducts,
           timestamp: Date.now(),
         }));
@@ -83,7 +97,7 @@ const Menu = ({ cart, setCart }) => {
       }
     };
     fetchProducts();
-  }, [tenantId]); // Re-executa quando tenantId muda
+  }, [tenantId]);
 
   const allCategories = [
     'Pizza',
@@ -244,11 +258,6 @@ const Menu = ({ cart, setCart }) => {
       </div>
     </div>
   );
-};
-
-Menu.propTypes = {
-  cart: PropTypes.array.isRequired,
-  setCart: PropTypes.func.isRequired,
 };
 
 export default Menu;
