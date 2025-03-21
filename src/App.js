@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate } from 'react-router-dom'; // Removido BrowserRouter aqui
 import axios from 'axios';
-import { ToastContainer } from 'react-toastify'; // Importar ToastContainer
-import 'react-toastify/dist/ReactToastify.css'; // Importar CSS do Toastify
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Menu from './components/Menu';
 import OrderSummary from './components/OrderSummary';
 import Orders from './components/Orders';
@@ -105,7 +105,8 @@ function App() {
 
       <main className="flex-1 pb-16">
         <Routes>
-          <Route path="/" element={<Menu cart={cart} setCart={setCart} />} />
+          <Route path="/:tenantId" element={<Menu cart={cart} setCart={setCart} />} /> {/* Rota dinâmica para tenantId */}
+          <Route path="/" element={<Menu cart={cart} setCart={setCart} />} /> {/* Raiz mantida por enquanto */}
           <Route
             path="/order-summary"
             element={<OrderSummary cart={cart} clearCart={() => setCart([])} user={user} setIsLoginOpen={setIsLoginOpen} />}
@@ -156,10 +157,4 @@ function App() {
   );
 }
 
-export default function AppWrapper() {
-  return (
-    <Router>
-      <App />
-    </Router>
-  );
-}
+export default App; // Removido o AppWrapper, pois o BrowserRouter será movido para index.js
