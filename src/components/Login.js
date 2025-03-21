@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useParams } from 'react-router-dom';
 
 const Login = ({ setIsLoginOpen, setIsLoggedIn, setIsRegisterOpen, setUser, cart, navigate }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const { tenantId } = useParams(); // Pega o tenantId da rota atual
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -24,8 +26,12 @@ const Login = ({ setIsLoginOpen, setIsLoggedIn, setIsRegisterOpen, setUser, cart
       setIsLoggedIn(true);
       setIsLoginOpen(false);
 
-      if (cart.length > 0) {
-        navigate('/order-summary');
+      // Redireciona com base no tenantId e no carrinho
+      const basePath = tenantId ? `/${tenantId}` : '/pizzaria-a'; // Default para pizzaria-a se não houver tenantId
+      if (cart && cart.length > 0) {
+        navigate(`${basePath}/order-summary`);
+      } else {
+        navigate(basePath);
       }
     } catch (err) {
       console.error('Erro no login:', err.response?.data || err.message);
