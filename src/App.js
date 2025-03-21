@@ -45,15 +45,14 @@ function App() {
     navigate('/');
   };
 
-  const NavigationBar = () => {
-    const { tenantId } = useParams();
-    const basePath = tenantId || 'pizzaria-a';
-
+  // Componente NavigationBar que recebe tenantId como prop
+  const NavigationBar = ({ tenantId }) => {
+    console.log('TenantId recebido no NavigationBar:', tenantId); // Log para depuração
     return (
       <nav className="bg-white p-2 shadow-md fixed bottom-0 left-0 w-full z-50 border-t border-gray-200">
         <div className="container mx-auto flex justify-around">
           <button
-            onClick={() => navigate(`/${basePath}`)}
+            onClick={() => navigate(`/${tenantId}`)}
             className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none"
             aria-label="Home"
           >
@@ -63,7 +62,7 @@ function App() {
             Home
           </button>
           <button
-            onClick={() => navigate(`/${basePath}/orders`)}
+            onClick={() => navigate(`/${tenantId}/orders`)}
             className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none"
             aria-label="Pedidos"
           >
@@ -73,7 +72,7 @@ function App() {
             Pedidos
           </button>
           <button
-            onClick={() => (isLoggedIn ? navigate(`/${basePath}/profile`) : setIsLoginOpen(true))}
+            onClick={() => (isLoggedIn ? navigate(`/${tenantId}/profile`) : setIsLoginOpen(true))}
             className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none"
             aria-label="Perfil"
           >
@@ -83,7 +82,7 @@ function App() {
             Perfil
           </button>
           <button
-            onClick={() => navigate(`/${basePath}/order-summary`)}
+            onClick={() => navigate(`/${tenantId}/order-summary`)}
             className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none relative"
             aria-label="Carrinho"
           >
@@ -94,6 +93,17 @@ function App() {
           </button>
         </div>
       </nav>
+    );
+  };
+
+  // Wrapper para garantir que NavigationBar receba o tenantId correto
+  const TenantRoute = ({ element }) => {
+    const { tenantId } = useParams();
+    return (
+      <>
+        {element}
+        <NavigationBar tenantId={tenantId} />
+      </>
     );
   };
 
@@ -157,14 +167,24 @@ function App() {
       <main className="flex-1 pb-16">
         <Routes>
           <Route path="/" element={<div>Selecione uma pizzaria</div>} />
-          <Route path="/:tenantId" element={<Menu cart={cart} setCart={setCart} />} />
-          <Route path="/:tenantId/order-summary" element={<OrderSummary user={user} setIsLoginOpen={setIsLoginOpen} cart={cart} setCart={setCart} />} />
-          <Route path="/:tenantId/orders" element={<Orders user={user} setIsLoginOpen={setIsLoginOpen} />} />
-          <Route path="/:tenantId/profile" element={<Profile user={user} setUser={setUser} handleLogout={handleLogout} />} />
+          <Route
+            path="/:tenantId"
+            element={<TenantRoute element={<Menu cart={cart} setCart={setCart} />} />}
+          />
+          <Route
+            path="/:tenantId/order-summary"
+            element={<TenantRoute element={<OrderSummary user={user} setIsLoginOpen={setIsLoginOpen} cart={cart} setCart={setCart} />} />}
+          />
+          <Route
+            path="/:tenantId/orders"
+            element={<TenantRoute element={<Orders user={user} setIsLoginOpen={setIsLoginOpen} />} />}
+          />
+          <Route
+            path="/:tenantId/profile"
+            element={<TenantRoute element={<Profile user={user} setUser={setUser} handleLogout={handleLogout} />} />}
+          />
         </Routes>
       </main>
-
-      <NavigationBar />
 
       <a
         href="https://wa.me/+5511940705013"
