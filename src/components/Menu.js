@@ -30,14 +30,13 @@ ProductItem.propTypes = {
 
 const Menu = () => {
   const [products, setProducts] = useState([]);
-  const [cart, setCart] = useState([]); // Carrinho local
+  const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState(null);
   const [isNavFixed, setIsNavFixed] = useState(false);
   const sectionRefs = useRef({});
   const { tenantId } = useParams();
 
-  // Carregar carrinho do localStorage baseado no tenantId
   useEffect(() => {
     const savedCart = localStorage.getItem(`cart_${tenantId}`);
     if (savedCart) {
@@ -47,9 +46,9 @@ const Menu = () => {
     }
   }, [tenantId]);
 
-  // Salvar carrinho no localStorage sempre que mudar
   useEffect(() => {
     localStorage.setItem(`cart_${tenantId}`, JSON.stringify(cart));
+    console.log(`Carrinho atualizado para ${tenantId}:`, cart); // Log para depuração
   }, [cart, tenantId]);
 
   useEffect(() => {
