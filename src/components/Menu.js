@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import PropTypes from 'prop-types';
 
@@ -33,29 +34,23 @@ const Menu = ({ cart, setCart }) => {
   const [activeSection, setActiveSection] = useState(null);
   const [isNavFixed, setIsNavFixed] = useState(false);
   const sectionRefs = useRef({});
+  const { tenantId } = useParams(); // Pega o tenantId da rota
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        // Extrair o tenantId do caminho da URL
-        const pathParts = window.location.pathname.split('/').filter(Boolean);
-        const tenantId = pathParts[0] || null;
-        console.log('Pathname:', window.location.pathname); // Depuração
-        console.log('TenantId extraído:', tenantId); // Depuração
+        console.log('TenantId da rota:', tenantId); // Depuração
+        // Para a rota raiz ("/"), usaremos um tenantId padrão ou mostraremos uma mensagem
+        const effectiveTenantId = tenantId || 'pizzaria-original'; // Default para raiz, ajustar conforme necessário
+        console.log('TenantId efetivo usado:', effectiveTenantId);
 
-        if (!tenantId) {
-          console.error('tenantId não fornecido na URL');
-          setLoading(false);
-          return;
-        }
-
-        const cachedData = localStorage.getItem(`productsCache_${tenantId}`);
+        const cachedData = localStorage.getItem(`productsCache_${effectiveTenantId}`);
         if (cachedData) {
           const { products: cachedProducts, timestamp } = JSON.parse(cachedData);
           const currentTime = Date.now();
           const oneHourInMs = 3600000;
 
-          console.log('Dados do cache:', cachedProducts); // Depuração
+          console.log('Dados do cache:', cachedProducts);
           if (currentTime - timestamp < oneHourInMs) {
             setProducts(cachedProducts.map((product) => ({
               ...product,
@@ -66,18 +61,18 @@ const Menu = ({ cart, setCart }) => {
           }
         }
 
-        console.log('Fazendo requisição ao backend com tenantId:', tenantId); // Depuração
+        console.log('Fazendo requisição ao backend com tenantId:', effectiveTenantId);
         const response = await axios.get('https://pizzaria-backend-e254.onrender.com/api/products', {
-          params: { tenantId },
+          params: { tenantId: effectiveTenantId },
         });
-        console.log('Resposta do backend:', response.data); // Depuração
+        console.log('Resposta do backend:', response.data);
 
         const normalizedProducts = response.data.map((product) => ({
           ...product,
           category: product.category.toLowerCase(),
         }));
         setProducts(normalizedProducts);
-        localStorage.setItem(`productsCache_${tenantId}`, JSON.stringify({
+        localStorage.setItem(`productsCache_${effectiveTenantId}`, JSON.stringify({
           products: normalizedProducts,
           timestamp: Date.now(),
         }));
@@ -88,7 +83,7 @@ const Menu = ({ cart, setCart }) => {
       }
     };
     fetchProducts();
-  }, []);
+  }, [tenantId]); // Re-executa quando tenantId muda
 
   const allCategories = [
     'Pizza',
