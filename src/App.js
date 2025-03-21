@@ -32,6 +32,12 @@ function App() {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUser(response.data);
+      const userTenantId = response.data.tenantId || getTenantId();
+      console.log('TenantId do usuário logado:', userTenantId);
+      // Redireciona para o tenant correto após carregar os dados do usuário
+      if (location.pathname === '/') {
+        navigate(`/${userTenantId}`);
+      }
     } catch (err) {
       console.error('Erro ao carregar dados do usuário:', err);
       localStorage.removeItem('token');
@@ -49,14 +55,14 @@ function App() {
   // Extrai o tenantId do caminho atual
   const getTenantId = () => {
     const pathParts = location.pathname.split('/');
-    const tenantId = pathParts[1]; // O tenantId está na posição 1 (ex.: /pizzaria-a/orders)
+    const tenantId = pathParts[1];
     return tenantId || 'pizzaria-a'; // Fallback para pizzaria-a se não houver tenantId
   };
 
   // Componente NavigationBar usando tenantId dinâmico
   const NavigationBar = () => {
     const tenantId = getTenantId();
-    console.log('TenantId no NavigationBar:', tenantId); // Log para depuração
+    console.log('TenantId no NavigationBar:', tenantId);
 
     return (
       <nav className="bg-white p-2 shadow-md fixed bottom-0 left-0 w-full z-50 border-t border-gray-200">
@@ -72,7 +78,7 @@ function App() {
             Home
           </button>
           <button
-            onClick={() => navigate(`/${tenantId}/orders`)}
+            onClick={() => navigate(isLoggedIn ? `/${tenantId}/orders` : setIsLoginOpen(true))}
             className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none"
             aria-label="Pedidos"
           >
@@ -82,7 +88,7 @@ function App() {
             Pedidos
           </button>
           <button
-            onClick={() => (isLoggedIn ? navigate(`/${tenantId}/profile`) : setIsLoginOpen(true))}
+            onClick={() => navigate(isLoggedIn ? `/${tenantId}/profile` : setIsLoginOpen(true))}
             className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none"
             aria-label="Perfil"
           >
