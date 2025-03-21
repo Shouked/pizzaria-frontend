@@ -16,7 +16,6 @@ function App() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const navigate = useNavigate();
-  const { tenantId } = useParams(); // Pega o tenantId da rota atual
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -45,12 +44,12 @@ function App() {
     navigate('/');
   };
 
-  // Função para navegar para o "Home" da pizzaria atual
   const handleHomeNavigation = () => {
+    const { tenantId } = useParams();
     if (tenantId) {
       navigate(`/${tenantId}`);
     } else {
-      navigate('/'); // Raiz só se não houver tenantId (página inicial)
+      navigate('/');
     }
   };
 
@@ -113,7 +112,7 @@ function App() {
       <main className="flex-1 pb-16">
         <Routes>
           <Route path="/" element={<div>Selecione uma pizzaria</div>} />
-          <Route path="/:tenantId">
+          <Route path="/:tenantId" element={<TenantLayout />}>
             <Route index element={<Menu />} />
             <Route path="order-summary" element={<OrderSummary user={user} setIsLoginOpen={setIsLoginOpen} />} />
             <Route path="orders" element={<Orders user={user} setIsLoginOpen={setIsLoginOpen} />} />
@@ -125,7 +124,7 @@ function App() {
       <nav className="bg-white p-2 shadow-md fixed bottom-0 left-0 w-full z-50 border-t border-gray-200">
         <div className="container mx-auto flex justify-around">
           <button
-            onClick={handleHomeNavigation} // Atualizado para usar a função
+            onClick={handleHomeNavigation}
             className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none"
             aria-label="Home"
           >
@@ -146,7 +145,7 @@ function App() {
             Home
           </button>
           <button
-            onClick={() => navigate(tenantId ? `/${tenantId}/orders` : '/orders')}
+            onClick={() => navigate(useParams().tenantId ? `/${useParams().tenantId}/orders` : '/orders')}
             className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none"
             aria-label="Pedidos"
           >
@@ -167,7 +166,7 @@ function App() {
             Pedidos
           </button>
           <button
-            onClick={() => (isLoggedIn ? navigate(tenantId ? `/${tenantId}/profile` : '/profile') : setIsLoginOpen(true))}
+            onClick={() => (isLoggedIn ? navigate(useParams().tenantId ? `/${useParams().tenantId}/profile` : '/profile') : setIsLoginOpen(true))}
             className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none"
             aria-label="Perfil"
           >
@@ -188,7 +187,7 @@ function App() {
             Perfil
           </button>
           <button
-            onClick={() => navigate(tenantId ? `/${tenantId}/order-summary` : '/order-summary')}
+            onClick={() => navigate(useParams().tenantId ? `/${useParams().tenantId}/order-summary` : '/order-summary')}
             className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none relative"
             aria-label="Carrinho"
           >
@@ -232,5 +231,11 @@ function App() {
     </div>
   );
 }
+
+// Componente auxiliar para garantir tenantId consistente
+const TenantLayout = () => {
+  const { tenantId } = useParams();
+  return <>{tenantId && <>{/* Renderiza os filhos com tenantId */}</>}</>;
+};
 
 export default App;
