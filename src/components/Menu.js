@@ -28,14 +28,13 @@ ProductItem.propTypes = {
   handleAddToCart: PropTypes.func.isRequired,
 };
 
-const Menu = () => {
+const Menu = ({ setCart }) => {
   const [products, setProducts] = useState([]);
-  const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState(null);
   const [isNavFixed, setIsNavFixed] = useState(false);
   const sectionRefs = useRef({});
-  const { tenantId } = useParams(); // tenantId deve ser "pizzaria-a", não "order-summary"
+  const { tenantId } = useParams();
 
   useEffect(() => {
     console.log('TenantId recebido em Menu:', tenantId);
@@ -45,38 +44,12 @@ const Menu = () => {
     } else {
       setCart([]);
     }
-  }, [tenantId]);
-
-  useEffect(() => {
-    localStorage.setItem(`cart_${tenantId}`, JSON.stringify(cart));
-    console.log(`Carrinho atualizado para ${tenantId}:`, cart);
-  }, [cart, tenantId]);
+  }, [tenantId, setCart]);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        if (!tenantId || tenantId === 'order-summary' || tenantId === 'orders' || tenantId === 'profile') {
-          console.error('tenantId inválido ou não fornecido:', tenantId);
-          setLoading(false);
-          return;
-        }
-
-        const cachedData = localStorage.getItem(`productsCache_${tenantId}`);
-        if (cachedData) {
-          const { products: cachedProducts, timestamp } = JSON.parse(cachedData);
-          const currentTime = Date.now();
-          const oneHourInMs = 3600000;
-
-          if (currentTime - timestamp < oneHourInMs) {
-            setProducts(cachedProducts.map((product) => ({
-              ...product,
-              category: product.category.toLowerCase(),
-            })));
-            setLoading(false);
-            return;
-          }
-        }
-
+        console.log('Buscando produtos para tenantId:', tenantId);
         const response = await axios.get('https://pizzaria-backend-e254.onrender.com/api/products', {
           params: { tenantId },
         });
@@ -165,12 +138,17 @@ const Menu = () => {
   const handleAddToCart = (product) => {
     setCart((prevCart) => {
       const existingItem = prevCart.find((item) => item._id === product._id);
+      let newCart;
       if (existingItem) {
-        return prevCart.map((item) =>
+        newCart = prevCart.map((item) =>
           item._id === product._id ? { ...item, quantity: item.quantity + 1 } : item
         );
+      } else {
+        newCart = [...prevCart, { ...product, quantity: 1 }];
       }
-      return [...prevCart, { ...product, quantity: 1 }];
+      localStorage.setItem(`cart_${tenantId}`, JSON.stringify(newCart));
+      console.log(`Carrinho atualizado para ${tenantId}:`, newCart);
+      return newCart;
     });
   };
 
