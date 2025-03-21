@@ -28,7 +28,7 @@ ProductItem.propTypes = {
   handleAddToCart: PropTypes.func.isRequired,
 };
 
-const Menu = ({ setCart }) => {
+const Menu = ({ cart, setCart }) => { // Adicionei 'cart' como prop para consistência
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState(null);
@@ -47,6 +47,11 @@ const Menu = ({ setCart }) => {
   }, [tenantId, setCart]);
 
   useEffect(() => {
+    localStorage.setItem(`cart_${tenantId}`, JSON.stringify(cart));
+    console.log(`Carrinho atualizado para ${tenantId}:`, cart);
+  }, [cart, tenantId]);
+
+  useEffect(() => {
     const fetchProducts = async () => {
       try {
         console.log('Buscando produtos para tenantId:', tenantId);
@@ -58,10 +63,6 @@ const Menu = ({ setCart }) => {
           category: product.category.toLowerCase(),
         }));
         setProducts(normalizedProducts);
-        localStorage.setItem(`productsCache_${tenantId}`, JSON.stringify({
-          products: normalizedProducts,
-          timestamp: Date.now(),
-        }));
       } catch (err) {
         console.error('Erro ao carregar produtos:', err.response ? err.response.data : err.message);
       } finally {
