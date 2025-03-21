@@ -10,10 +10,11 @@ const Register = ({ setIsRegisterOpen, setIsLoginOpen, setIsLoggedIn, setUser })
     number: '',
     neighborhood: '',
     city: '',
-    complement: '', // Campo opcional
+    complement: '',
     email: '',
     password: '',
     confirmPassword: '',
+    tenantId: '', // Adicionado como opcional
   });
   const [error, setError] = useState('');
 
@@ -38,10 +39,11 @@ const Register = ({ setIsRegisterOpen, setIsLoginOpen, setIsLoggedIn, setUser })
           number: formData.number,
           neighborhood: formData.neighborhood,
           city: formData.city,
-          complement: formData.complement || undefined, // Opcional
+          complement: formData.complement || undefined,
         },
         email: formData.email,
         password: formData.password,
+        tenantId: formData.tenantId || undefined, // Envia tenantId se preenchido
       });
       localStorage.setItem('token', response.data.token);
       setUser(response.data.user);
@@ -185,6 +187,17 @@ const Register = ({ setIsRegisterOpen, setIsLoginOpen, setIsLoggedIn, setUser })
             onChange={handleChange}
             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
             required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700">Tenant ID (Opcional)</label>
+          <input
+            type="text"
+            name="tenantId"
+            value={formData.tenantId}
+            onChange={handleChange}
+            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+            placeholder="Ex: pizzaria-a"
           />
         </div>
         <div className="flex justify-end">
