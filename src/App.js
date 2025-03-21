@@ -9,17 +9,21 @@ import Orders from './components/Orders';
 import Login from './components/Login';
 import Register from './components/Register';
 import Profile from './components/Profile';
+import Admin from './components/Admin';
 
-// Componente para proteger rotas
 const ProtectedRoute = ({ user, children }) => {
   const location = useLocation();
-  const currentTenantId = location.pathname.split('/')[1] || 'pizzaria-a';
+  const currentTenantId = location.pathname.split('/')[1] || null;
   
   if (!user) {
-    return <Navigate to={`/${currentTenantId}`} replace />;
+    return <Navigate to="/" replace />; // Redireciona para admin/login
   }
   
-  const userTenantId = user.tenantId || 'pizzaria-a';
+  if (!currentTenantId) {
+    return children; // Permite acesso à página de admin
+  }
+  
+  const userTenantId = user.tenantId;
   if (userTenantId !== currentTenantId) {
     console.log(`Redirecionando: tenantId da URL (${currentTenantId}) não corresponde ao do usuário (${userTenantId})`);
     return <Navigate to={`/${userTenantId}`} replace />;
@@ -50,9 +54,9 @@ function App() {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUser(response.data);
-      const userTenantId = response.data.tenantId || getTenantId();
+      const userTenantId = response.data.tenantId;
       console.log('TenantId do usuário logado:', userTenantId);
-      if (location.pathname === '/') {
+      if (location.pathname === '/' && !response.data.isAdmin) {
         navigate(`/${userTenantId}`);
       }
     } catch (err) {
@@ -72,12 +76,12 @@ function App() {
   const getTenantId = () => {
     const pathParts = location.pathname.split('/');
     const tenantId = pathParts[1];
-    return tenantId || 'pizzaria-a';
+    return tenantId || null;
   };
 
   const NavigationBar = () => {
     const tenantId = getTenantId();
-    console.log('TenantId no NavigationBar:', tenantId);
+    if (!tenantId) return null; // Não mostra a barra na página de admin
 
     return (
       <nav className="bg-white p-2 shadow-md fixed bottom-0 left-0 w-full z-50 border-t border-gray-200">
@@ -186,7 +190,7 @@ function App() {
 
       <main className="flex-1 pb-16">
         <Routes>
-          <Route path="/" element={<div>Selecione uma pizzaria</div>} />
+          <Route path="/" element={<Admin user={user} setIsLoginOpen={setIsLoginOpen} />} />
           <Route path="/:tenantId" element={<Menu cart={cart} setCart={setCart} />} />
           <Route
             path="/:tenantId/order-summary"
