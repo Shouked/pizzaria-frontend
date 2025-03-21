@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 const Profile = ({ user, setUser, handleLogout }) => {
+  const { tenantId } = useParams(); // Pega o tenantId da rota atual
   const [isEditing, setIsEditing] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [editedUser, setEditedUser] = useState({
     name: user?.name || '',
     email: user?.email || '',
     phone: user?.phone || '',
+    tenantId: user?.tenantId || '', // Adicionado
     address: {
       cep: user?.address?.cep || '',
       street: user?.address?.street || '',
@@ -28,6 +30,7 @@ const Profile = ({ user, setUser, handleLogout }) => {
         name: user.name,
         email: user.email,
         phone: user.phone,
+        tenantId: user.tenantId, // Adicionado
         address: { ...user.address },
       });
     }
@@ -58,7 +61,7 @@ const Profile = ({ user, setUser, handleLogout }) => {
       );
       setUser(response.data);
       setIsEditing(false);
-      navigate('/');
+      navigate(`/${tenantId}`); // Navega para a home da pizzaria atual
     } catch (err) {
       console.error('Erro ao salvar perfil:', err);
       alert('Erro ao salvar alterações.');
@@ -71,6 +74,7 @@ const Profile = ({ user, setUser, handleLogout }) => {
       name: user.name,
       email: user.email,
       phone: user.phone,
+      tenantId: user.tenantId, // Adicionado
       address: { ...user.address },
     });
     setIsEditing(false);
@@ -87,7 +91,7 @@ const Profile = ({ user, setUser, handleLogout }) => {
       );
       setIsChangingPassword(false);
       setNewPassword('');
-      navigate('/');
+      navigate(`/${tenantId}`); // Navega para a home da pizzaria atual
     } catch (err) {
       console.error('Erro ao alterar senha:', err);
       alert('Erro ao alterar senha.');
@@ -134,6 +138,17 @@ const Profile = ({ user, setUser, handleLogout }) => {
             type="text"
             name="phone"
             value={editedUser.phone}
+            onChange={handleInputChange}
+            disabled={!isEditing}
+            className="w-full p-2 border border-gray-300 rounded mt-1 bg-gray-100 disabled:bg-gray-200"
+          />
+        </div>
+        <div>
+          <strong>Tenant ID:</strong>
+          <input
+            type="text"
+            name="tenantId"
+            value={editedUser.tenantId || 'Não definido'}
             onChange={handleInputChange}
             disabled={!isEditing}
             className="w-full p-2 border border-gray-300 rounded mt-1 bg-gray-100 disabled:bg-gray-200"
