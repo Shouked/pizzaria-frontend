@@ -24,6 +24,13 @@ const Orders = ({ user, setIsLoginOpen }) => {
       return;
     }
 
+    const userTenantId = user.tenantId || 'pizzaria-a';
+    if (userTenantId !== tenantId) {
+      console.log(`TenantId da URL (${tenantId}) não corresponde ao do usuário (${userTenantId}). Redirecionando...`);
+      navigate(`/${userTenantId}/orders`);
+      return;
+    }
+
     const fetchOrders = async () => {
       try {
         const token = localStorage.getItem('token');
@@ -32,7 +39,7 @@ const Orders = ({ user, setIsLoginOpen }) => {
           params: { tenantId },
         });
         const sortedOrders = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        console.log(`Pedidos carregados para ${tenantId}:`, sortedOrders); // Log para depuração
+        console.log(`Pedidos carregados para ${tenantId}:`, sortedOrders);
         setOrders(sortedOrders);
       } catch (err) {
         console.error('Erro ao carregar pedidos:', err.response ? err.response.data : err.message);
@@ -42,7 +49,7 @@ const Orders = ({ user, setIsLoginOpen }) => {
 
     fetchOrders();
 
-    const interval = setInterval(fetchOrders, 30000); // Simplificado o polling
+    const interval = setInterval(fetchOrders, 30000);
 
     return () => clearInterval(interval);
   }, [user, setIsLoginOpen, navigate, tenantId]);
