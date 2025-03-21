@@ -17,6 +17,8 @@ const OrderSummary = ({ user, setIsLoginOpen }) => {
     const savedCart = localStorage.getItem(`cart_${tenantId}`);
     if (savedCart) {
       setCart(JSON.parse(savedCart));
+    } else {
+      setCart([]);
     }
   }, [tenantId]);
 
@@ -69,7 +71,7 @@ const OrderSummary = ({ user, setIsLoginOpen }) => {
         total: calculateTotal(),
         deliveryOption,
         address: deliveryOption === 'delivery' ? user.address : null,
-        tenantId, // Inclui o tenantId no pedido
+        tenantId,
       };
 
       console.log('Dados do pedido:', orderData);
@@ -79,9 +81,9 @@ const OrderSummary = ({ user, setIsLoginOpen }) => {
       });
 
       alert('Pedido realizado com sucesso!');
-      localStorage.removeItem(`cart_${tenantId}`); // Limpa o carrinho específico do tenantId
+      localStorage.removeItem(`cart_${tenantId}`);
       setCart([]);
-      navigate(`/${tenantId}/orders`); // Navega mantendo o tenantId
+      navigate(`/${tenantId}/orders`);
     } catch (err) {
       console.error('Erro ao criar pedido:', err.message);
       alert('Erro ao criar pedido. Tente novamente.');
@@ -92,7 +94,7 @@ const OrderSummary = ({ user, setIsLoginOpen }) => {
     if (window.confirm('Deseja realmente esvaziar o carrinho?')) {
       localStorage.removeItem(`cart_${tenantId}`);
       setCart([]);
-      navigate(`/${tenantId}`); // Navega para o menu da pizzaria atual
+      navigate(`/${tenantId}`);
     }
   };
 
@@ -125,7 +127,6 @@ const OrderSummary = ({ user, setIsLoginOpen }) => {
             <p className="text-lg font-bold">Total: R$ {calculateTotal()}</p>
           </div>
 
-          {/* Opções de Entrega */}
           <div className="mb-4">
             <h2 className="text-lg font-semibold text-gray-800">Opção de Entrega</h2>
             <div className="mt-2 space-y-2">
