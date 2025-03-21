@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import jsPDF from 'jspdf';
+import PropTypes from 'prop-types';
 
-const Orders = ({ user, setIsLoginOpen, setCart }) => {
+const Orders = ({ user, setIsLoginOpen }) => {
+  const { tenantId } = useParams();
   const [orders, setOrders] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -17,7 +19,7 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
       if (window.confirm('Você precisa estar logado para ver seus pedidos. Deseja fazer login agora?')) {
         setIsLoginOpen(true);
       } else {
-        navigate('/');
+        navigate(`/${tenantId}`);
       }
       return;
     }
@@ -27,12 +29,13 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
         const token = localStorage.getItem('token');
         const response = await axios.get('https://pizzaria-backend-e254.onrender.com/api/orders/user', {
           headers: { Authorization: `Bearer ${token}` },
+          params: { tenantId }, // Filtra por tenantId
         });
         const sortedOrders = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         setOrders(sortedOrders);
       } catch (err) {
         console.error('Erro ao carregar pedidos:', err);
-        alert('Erro ao carregar pedidos. Tente novamente.');
+        toast.error('Erro ao carregar pedidos. Tente novamente.');
       }
     };
 
@@ -43,6 +46,7 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
         const token = localStorage.getItem('token');
         const response = await axios.get('https://pizzaria-backend-e254.onrender.com/api/orders/user', {
           headers: { Authorization: `Bearer ${token}` },
+          params: { tenantId },
         });
         const updatedOrders = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         updatedOrders.forEach((newOrder, i) => {
@@ -57,12 +61,12 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [user, setIsLoginOpen, navigate, orders]);
+  }, [user, setIsLoginOpen, navigate, tenantId, orders]);
 
   const handleReorder = (items) => {
-    const newCart = items.map(item => ({ ...item.product, quantity: item.quantity }));
-    setCart(newCart);
-    navigate('/order-summary');
+    const newCart = items.map((item) => ({ ...item.product, quantity: item.quantity }));
+    localStorage.setItem(`cart_${tenantId}`, JSON.stringify(newCart));
+    navigate(`/${tenantId}/order-summary`);
   };
 
   const handleCancel = async (orderId) => {
@@ -75,7 +79,7 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
           { headers: { Authorization: `Bearer ${token}` } }
         );
         toast.success(`Pedido #${orderId.slice(-6)} cancelado com sucesso!`);
-        setOrders(orders.map(order => 
+        setOrders(orders.map((order) =>
           order._id === orderId ? { ...order, status: 'Cancelado' } : order
         ));
       } catch (err) {
@@ -108,8 +112,8 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
     doc.save(`pedido_${order._id.slice(-6)}.pdf`);
   };
 
-  const filteredOrders = orders.filter(order => 
-    (order._id.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  const filteredOrders = orders.filter((order) =>
+    (order._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
      new Date(order.createdAt).toLocaleString('pt-BR').includes(searchTerm)) &&
     (statusFilter ? order.status === statusFilter : true)
   );
@@ -117,7 +121,7 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
   const currentOrder = filteredOrders.length > 0 ? filteredOrders[0] : null;
   const pastOrders = filteredOrders.slice(1);
 
-  const progressSteps = ['Pendente', 'Em Preparação', 'Enviado', 'Entregue']; // Ajustado para refletir o fluxo principal
+  const progressSteps = ['Pendente', 'Em Preparação', 'Enviado', 'Entregue'];
 
   if (!user) return null;
 
@@ -164,11 +168,15 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
                 <h2 className="text-xl font-bold text-gray-800 break-words">
                   Pedido #{currentOrder._id}
                 </h2>
-                <p className={`text-sm font-semibold mt-1 sm:mt-0 ${
-                  currentOrder.status === 'Entregue' || currentOrder.status === 'Retirado' ? 'text-green-600' :
-                  currentOrder.status === 'Cancelado' ? 'text-red-600' :
-                  'text-yellow-600'
-                } max-w-xs break-words`}>
+                <p
+                  className={`text-sm font-semibold mt-1 sm:mt-0 ${
+                    currentOrder.status === 'Entregue' || currentOrder.status === 'Retirado'
+                      ? 'text-green-600'
+                      : currentOrder.status === 'Cancelado'
+                      ? 'text-red-600'
+                      : 'text-yellow-600'
+                  } max-w-xs break-words`}
+                >
                   {currentOrder.status}
                 </p>
               </div>
@@ -203,22 +211,16 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
                     <li key={index} className="flex justify-between items-center border-b pb-2">
                       <div>
                         <p className="font-semibold">{item.product.name} (x{item.quantity})</p>
-                        <p className="text-gray-600 text-sm">
-                          R$ {item.product.price.toFixed(2)} cada
-                        </p>
+                        <p className="text-gray-600 text-sm">R$ {item.product.price.toFixed(2)} cada</p>
                       </div>
-                      <p className="font-semibold">
-                        R$ {(item.product.price * item.quantity).toFixed(2)}
-                      </p>
+                      <p className="font-semibold">R$ {(item.product.price * item.quantity).toFixed(2)}</p>
                     </li>
                   ))}
                 </ul>
               </div>
 
               <div className="text-right mb-4">
-                <p className="text-lg font-bold text-gray-800">
-                  Total: R$ {currentOrder.total.toFixed(2)}
-                </p>
+                <p className="text-lg font-bold text-gray-800">Total: R$ {currentOrder.total.toFixed(2)}</p>
               </div>
 
               <div className="text-gray-600">
@@ -229,9 +231,7 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
                       <div className="ml-4">
                         <p>{`${currentOrder.address.street}, ${currentOrder.address.number}`}</p>
                         <p>{`${currentOrder.address.neighborhood}, ${currentOrder.address.city} - ${currentOrder.address.cep}`}</p>
-                        {currentOrder.address.complement && (
-                          <p>Complemento: {currentOrder.address.complement}</p>
-                        )}
+                        {currentOrder.address.complement && <p>Complemento: {currentOrder.address.complement}</p>}
                       </div>
                     )}
                   </>
@@ -291,14 +291,16 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
                       className="bg-white p-4 md:p-6 rounded-xl shadow-lg border-l-4 border-r-4 border-[#e63946] max-w-full"
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
-                        <h2 className="text-xl font-bold text-gray-800 break-words">
-                          Pedido #{order._id}
-                        </h2>
-                        <p className={`text-sm font-semibold mt-1 sm:mt-0 ${
-                          order.status === 'Entregue' || order.status === 'Retirado' ? 'text-green-600' :
-                          order.status === 'Cancelado' ? 'text-red-600' :
-                          'text-yellow-600'
-                        } max-w-xs break-words`}>
+                        <h2 className="text-xl font-bold text-gray-800 break-words">Pedido #{order._id}</h2>
+                        <p
+                          className={`text-sm font-semibold mt-1 sm:mt-0 ${
+                            order.status === 'Entregue' || order.status === 'Retirado'
+                              ? 'text-green-600'
+                              : order.status === 'Cancelado'
+                              ? 'text-red-600'
+                              : 'text-yellow-600'
+                          } max-w-xs break-words`}
+                        >
                           {order.status}
                         </p>
                       </div>
@@ -401,6 +403,11 @@ const Orders = ({ user, setIsLoginOpen, setCart }) => {
       )}
     </div>
   );
+};
+
+Orders.propTypes = {
+  user: PropTypes.object,
+  setIsLoginOpen: PropTypes.func.isRequired,
 };
 
 export default Orders;
