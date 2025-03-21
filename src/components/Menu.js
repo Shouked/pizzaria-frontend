@@ -28,11 +28,12 @@ ProductItem.propTypes = {
   handleAddToCart: PropTypes.func.isRequired,
 };
 
-const Menu = ({ cart, setCart }) => { // Adicionei 'cart' como prop para consistência
+const Menu = ({ cart, setCart }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState(null);
   const [isNavFixed, setIsNavFixed] = useState(false);
+  const [error, setError] = useState(null); // Adicionado para tratar erros
   const sectionRefs = useRef({});
   const { tenantId } = useParams();
 
@@ -52,25 +53,40 @@ const Menu = ({ cart, setCart }) => { // Adicionei 'cart' como prop para consist
   }, [cart, tenantId]);
 
   useEffect(() => {
+    let mounted = true; // Controle para evitar atualizações após desmontagem
+
     const fetchProducts = async () => {
       try {
         console.log('Buscando produtos para tenantId:', tenantId);
         const response = await axios.get('https://pizzaria-backend-e254.onrender.com/api/products', {
           params: { tenantId },
         });
-        const normalizedProducts = response.data.map((product) => ({
-          ...product,
-          category: product.category.toLowerCase(),
-        }));
-        setProducts(normalizedProducts);
+        if (mounted) {
+          const normalizedProducts = response.data.map((product) => ({
+            ...product,
+            category: product.category.toLowerCase(),
+          }));
+          setProducts(normalizedProducts);
+          setError(null);
+        }
       } catch (err) {
         console.error('Erro ao carregar produtos:', err.response ? err.response.data : err.message);
+        if (mounted) {
+          setError('Erro ao carregar produtos. Tente novamente mais tarde.');
+        }
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
+
     fetchProducts();
-  }, [tenantId]);
+
+    return () => {
+      mounted = false; // Evita atualizações após desmontagem
+    };
+  }, [tenantId]); // Removi 'setCart' e 'cart' das dependências para evitar loop
 
   const allCategories = [
     'Pizza',
@@ -171,6 +187,14 @@ const Menu = ({ cart, setCart }) => { // Adicionei 'cart' como prop para consist
     return (
       <div className="container mx-auto p-4 text-center">
         <p className="text-gray-600 text-lg">Carregando produtos...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto p-4 text-center">
+        <p className="text-red-500 text-lg">{error}</p>
       </div>
     );
   }
