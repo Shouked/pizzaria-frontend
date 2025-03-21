@@ -1,14 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import PropTypes from 'prop-types';
 
-const OrderSummary = ({ cart, clearCart, user, setIsLoginOpen }) => {
+const OrderSummary = ({ user, setIsLoginOpen }) => {
+  const { tenantId } = useParams();
   const navigate = useNavigate();
   const [deliveryOption, setDeliveryOption] = useState('');
+  const [cart, setCart] = useState(() => {
+    const savedCart = localStorage.getItem(`cart_${tenantId}`);
+    return savedCart ? JSON.parse(savedCart) : [];
+  });
 
   useEffect(() => {
     window.scrollTo(0, 0); // Rola para o topo ao carregar a página
-  }, []);
+    const savedCart = localStorage.getItem(`cart_${tenantId}`);
+    if (savedCart) {
+      setCart(JSON.parse(savedCart));
+    }
+  }, [tenantId]);
 
   const productsMap = cart.reduce((map, item) => {
     if (item._id) {
@@ -42,12 +52,12 @@ const OrderSummary = ({ cart, clearCart, user, setIsLoginOpen }) => {
         return;
       }
 
-      const items = cart.map(item => ({
+      const items = cart.map((item) => ({
         product: productsMap[item.name],
         quantity: item.quantity || 1,
       }));
 
-      const invalidItems = items.filter(item => !item.product);
+      const invalidItems = items.filter((item) => !item.product);
       if (invalidItems.length > 0) {
         alert('Alguns itens no carrinho não têm IDs válidos. Por favor, adicione os produtos novamente.');
         return;
@@ -59,6 +69,7 @@ const OrderSummary = ({ cart, clearCart, user, setIsLoginOpen }) => {
         total: calculateTotal(),
         deliveryOption,
         address: deliveryOption === 'delivery' ? user.address : null,
+        tenantId, // Inclui o tenantId no pedido
       };
 
       console.log('Dados do pedido:', orderData);
@@ -68,8 +79,9 @@ const OrderSummary = ({ cart, clearCart, user, setIsLoginOpen }) => {
       });
 
       alert('Pedido realizado com sucesso!');
-      clearCart();
-      navigate('/orders');
+      localStorage.removeItem(`cart_${tenantId}`); // Limpa o carrinho específico do tenantId
+      setCart([]);
+      navigate(`/${tenantId}/orders`); // Navega mantendo o tenantId
     } catch (err) {
       console.error('Erro ao criar pedido:', err.message);
       alert('Erro ao criar pedido. Tente novamente.');
@@ -78,8 +90,9 @@ const OrderSummary = ({ cart, clearCart, user, setIsLoginOpen }) => {
 
   const handleClearCart = () => {
     if (window.confirm('Deseja realmente esvaziar o carrinho?')) {
-      clearCart();
-      navigate('/');
+      localStorage.removeItem(`cart_${tenantId}`);
+      setCart([]);
+      navigate(`/${tenantId}`); // Navega para o menu da pizzaria atual
     }
   };
 
@@ -150,7 +163,7 @@ const OrderSummary = ({ cart, clearCart, user, setIsLoginOpen }) => {
 
           <div className="flex justify-between gap-2">
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate(`/${tenantId}`)}
               className="bg-gray-300 text-gray-800 py-2 px-4 rounded-full hover:bg-gray-400 transition text-sm"
             >
               Adicionar Mais Produtos
@@ -164,7 +177,9 @@ const OrderSummary = ({ cart, clearCart, user, setIsLoginOpen }) => {
             <button
               onClick={handleOrder}
               disabled={!deliveryOption && user}
-              className={`bg-[#e63946] text-white py-2 px-4 rounded-full transition text-sm ${!deliveryOption && user ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700'}`}
+              className={`bg-[#e63946] text-white py-2 px-4 rounded-full transition text-sm ${
+                !deliveryOption && user ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700'
+              }`}
             >
               Concluir Pedido
             </button>
@@ -173,6 +188,11 @@ const OrderSummary = ({ cart, clearCart, user, setIsLoginOpen }) => {
       )}
     </div>
   );
+};
+
+OrderSummary.propTypes = {
+  user: PropTypes.object,
+  setIsLoginOpen: PropTypes.func.isRequired,
 };
 
 export default OrderSummary;
