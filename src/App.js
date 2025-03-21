@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import axios from 'axios';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -9,6 +9,24 @@ import Orders from './components/Orders';
 import Login from './components/Login';
 import Register from './components/Register';
 import Profile from './components/Profile';
+
+// Componente para proteger rotas
+const ProtectedRoute = ({ user, children }) => {
+  const location = useLocation();
+  const currentTenantId = location.pathname.split('/')[1] || 'pizzaria-a';
+  
+  if (!user) {
+    return <Navigate to={`/${currentTenantId}`} replace />;
+  }
+  
+  const userTenantId = user.tenantId || 'pizzaria-a';
+  if (userTenantId !== currentTenantId) {
+    console.log(`Redirecionando: tenantId da URL (${currentTenantId}) não corresponde ao do usuário (${userTenantId})`);
+    return <Navigate to={`/${userTenantId}`} replace />;
+  }
+  
+  return children;
+};
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
@@ -34,7 +52,6 @@ function App() {
       setUser(response.data);
       const userTenantId = response.data.tenantId || getTenantId();
       console.log('TenantId do usuário logado:', userTenantId);
-      // Redireciona para o tenant correto após carregar os dados do usuário
       if (location.pathname === '/') {
         navigate(`/${userTenantId}`);
       }
@@ -52,14 +69,12 @@ function App() {
     navigate('/');
   };
 
-  // Extrai o tenantId do caminho atual
   const getTenantId = () => {
     const pathParts = location.pathname.split('/');
     const tenantId = pathParts[1];
-    return tenantId || 'pizzaria-a'; // Fallback para pizzaria-a se não houver tenantId
+    return tenantId || 'pizzaria-a';
   };
 
-  // Componente NavigationBar usando tenantId dinâmico
   const NavigationBar = () => {
     const tenantId = getTenantId();
     console.log('TenantId no NavigationBar:', tenantId);
@@ -78,7 +93,7 @@ function App() {
             Home
           </button>
           <button
-            onClick={() => navigate(isLoggedIn ? `/${tenantId}/orders` : setIsLoginOpen(true))}
+            onClick={() => (isLoggedIn ? navigate(`/${tenantId}/orders`) : setIsLoginOpen(true))}
             className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none"
             aria-label="Pedidos"
           >
@@ -88,7 +103,7 @@ function App() {
             Pedidos
           </button>
           <button
-            onClick={() => navigate(isLoggedIn ? `/${tenantId}/profile` : setIsLoginOpen(true))}
+            onClick={() => (isLoggedIn ? navigate(`/${tenantId}/profile`) : setIsLoginOpen(true))}
             className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none"
             aria-label="Perfil"
           >
@@ -173,9 +188,26 @@ function App() {
         <Routes>
           <Route path="/" element={<div>Selecione uma pizzaria</div>} />
           <Route path="/:tenantId" element={<Menu cart={cart} setCart={setCart} />} />
-          <Route path="/:tenantId/order-summary" element={<OrderSummary user={user} setIsLoginOpen={setIsLoginOpen} cart={cart} setCart={setCart} />} />
-          <Route path="/:tenantId/orders" element={<Orders user={user} setIsLoginOpen={setIsLoginOpen} />} />
-          <Route path="/:tenantId/profile" element={<Profile user={user} setUser={setUser} handleLogout={handleLogout} />} />
+          <Route
+            path="/:tenantId/order-summary"
+            element={<OrderSummary user={user} setIsLoginOpen={setIsLoginOpen} cart={cart} setCart={setCart} />}
+          />
+          <Route
+            path="/:tenantId/orders"
+            element={
+              <ProtectedRoute user={user}>
+                <Orders user={user} setIsLoginOpen={setIsLoginOpen} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/:tenantId/profile"
+            element={
+              <ProtectedRoute user={user}>
+                <Profile user={user} setUser={setUser} handleLogout={handleLogout} />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </main>
 
