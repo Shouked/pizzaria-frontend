@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate, useParams } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -17,6 +17,7 @@ function App() {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [cart, setCart] = useState([]);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -45,9 +46,18 @@ function App() {
     navigate('/');
   };
 
-  // Componente NavigationBar que recebe tenantId como prop
-  const NavigationBar = ({ tenantId }) => {
-    console.log('TenantId recebido no NavigationBar:', tenantId); // Log para depuração
+  // Extrai o tenantId do caminho atual
+  const getTenantId = () => {
+    const pathParts = location.pathname.split('/');
+    const tenantId = pathParts[1]; // O tenantId está na posição 1 (ex.: /pizzaria-a/orders)
+    return tenantId || 'pizzaria-a'; // Fallback para pizzaria-a se não houver tenantId
+  };
+
+  // Componente NavigationBar usando tenantId dinâmico
+  const NavigationBar = () => {
+    const tenantId = getTenantId();
+    console.log('TenantId no NavigationBar:', tenantId); // Log para depuração
+
     return (
       <nav className="bg-white p-2 shadow-md fixed bottom-0 left-0 w-full z-50 border-t border-gray-200">
         <div className="container mx-auto flex justify-around">
@@ -93,17 +103,6 @@ function App() {
           </button>
         </div>
       </nav>
-    );
-  };
-
-  // Wrapper para garantir que NavigationBar receba o tenantId correto
-  const TenantRoute = ({ element }) => {
-    const { tenantId } = useParams();
-    return (
-      <>
-        {element}
-        <NavigationBar tenantId={tenantId} />
-      </>
     );
   };
 
@@ -167,24 +166,14 @@ function App() {
       <main className="flex-1 pb-16">
         <Routes>
           <Route path="/" element={<div>Selecione uma pizzaria</div>} />
-          <Route
-            path="/:tenantId"
-            element={<TenantRoute element={<Menu cart={cart} setCart={setCart} />} />}
-          />
-          <Route
-            path="/:tenantId/order-summary"
-            element={<TenantRoute element={<OrderSummary user={user} setIsLoginOpen={setIsLoginOpen} cart={cart} setCart={setCart} />} />}
-          />
-          <Route
-            path="/:tenantId/orders"
-            element={<TenantRoute element={<Orders user={user} setIsLoginOpen={setIsLoginOpen} />} />}
-          />
-          <Route
-            path="/:tenantId/profile"
-            element={<TenantRoute element={<Profile user={user} setUser={setUser} handleLogout={handleLogout} />} />}
-          />
+          <Route path="/:tenantId" element={<Menu cart={cart} setCart={setCart} />} />
+          <Route path="/:tenantId/order-summary" element={<OrderSummary user={user} setIsLoginOpen={setIsLoginOpen} cart={cart} setCart={setCart} />} />
+          <Route path="/:tenantId/orders" element={<Orders user={user} setIsLoginOpen={setIsLoginOpen} />} />
+          <Route path="/:tenantId/profile" element={<Profile user={user} setUser={setUser} handleLogout={handleLogout} />} />
         </Routes>
       </main>
+
+      <NavigationBar />
 
       <a
         href="https://wa.me/+5511940705013"
