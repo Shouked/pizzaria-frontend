@@ -29,39 +29,23 @@ const Orders = ({ user, setIsLoginOpen }) => {
         const token = localStorage.getItem('token');
         const response = await axios.get('https://pizzaria-backend-e254.onrender.com/api/orders/user', {
           headers: { Authorization: `Bearer ${token}` },
-          params: { tenantId }, // Filtra por tenantId
+          params: { tenantId },
         });
         const sortedOrders = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        console.log(`Pedidos carregados para ${tenantId}:`, sortedOrders); // Log para depuração
         setOrders(sortedOrders);
       } catch (err) {
-        console.error('Erro ao carregar pedidos:', err);
+        console.error('Erro ao carregar pedidos:', err.response ? err.response.data : err.message);
         toast.error('Erro ao carregar pedidos. Tente novamente.');
       }
     };
 
     fetchOrders();
 
-    const interval = setInterval(async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get('https://pizzaria-backend-e254.onrender.com/api/orders/user', {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { tenantId },
-        });
-        const updatedOrders = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        updatedOrders.forEach((newOrder, i) => {
-          if (newOrder.status !== orders[i]?.status) {
-            toast.success(`Pedido #${newOrder._id.slice(-6)} agora está ${newOrder.status}!`);
-          }
-        });
-        setOrders(updatedOrders);
-      } catch (err) {
-        console.error('Erro no polling de pedidos:', err);
-      }
-    }, 30000);
+    const interval = setInterval(fetchOrders, 30000); // Simplificado o polling
 
     return () => clearInterval(interval);
-  }, [user, setIsLoginOpen, navigate, tenantId, orders]);
+  }, [user, setIsLoginOpen, navigate, tenantId]);
 
   const handleReorder = (items) => {
     const newCart = items.map((item) => ({ ...item.product, quantity: item.quantity }));
@@ -79,9 +63,11 @@ const Orders = ({ user, setIsLoginOpen }) => {
           { headers: { Authorization: `Bearer ${token}` } }
         );
         toast.success(`Pedido #${orderId.slice(-6)} cancelado com sucesso!`);
-        setOrders(orders.map((order) =>
-          order._id === orderId ? { ...order, status: 'Cancelado' } : order
-        ));
+        setOrders((prevOrders) =>
+          prevOrders.map((order) =>
+            order._id === orderId ? { ...order, status: 'Cancelado' } : order
+          )
+        );
       } catch (err) {
         console.error('Erro ao cancelar pedido:', err);
         toast.error('Erro ao cancelar o pedido. Tente novamente.');
@@ -129,7 +115,6 @@ const Orders = ({ user, setIsLoginOpen }) => {
     <div className="container mx-auto p-4 bg-[#f1faee] min-h-screen pb-20">
       <h1 className="text-3xl font-bold text-[#e63946] mb-6 text-center">Meus Pedidos</h1>
 
-      {/* Filtro e Pesquisa */}
       <div className="mb-6 flex flex-col sm:flex-row gap-4">
         <input
           type="text"
@@ -154,7 +139,7 @@ const Orders = ({ user, setIsLoginOpen }) => {
       </div>
 
       {filteredOrders.length === 0 ? (
-        <p className="text-center text-gray-600">Nenhum pedido encontrado.</p>
+        <p className="text-center text-gray-600">Nenhum pedido encontrado para esta pizzaria.</p>
       ) : (
         <>
           {currentOrder && (
@@ -165,9 +150,7 @@ const Orders = ({ user, setIsLoginOpen }) => {
               className="bg-white p-4 md:p-6 rounded-xl shadow-lg border-l-4 border-r-4 border-[#e63946] mb-6 max-w-full"
             >
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
-                <h2 className="text-xl font-bold text-gray-800 break-words">
-                  Pedido #{currentOrder._id}
-                </h2>
+                <h2 className="text-xl font-bold text-gray-800 break-words">Pedido #{currentOrder._id}</h2>
                 <p
                   className={`text-sm font-semibold mt-1 sm:mt-0 ${
                     currentOrder.status === 'Entregue' || currentOrder.status === 'Retirado'
@@ -184,7 +167,6 @@ const Orders = ({ user, setIsLoginOpen }) => {
                 Realizado em: {new Date(currentOrder.createdAt).toLocaleString('pt-BR')}
               </p>
 
-              {/* Indicador de Progresso */}
               {currentOrder.status !== 'Cancelado' && currentOrder.status !== 'Retirado' && (
                 <div className="mb-4">
                   <div className="flex justify-between items-center">
