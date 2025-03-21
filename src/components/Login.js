@@ -25,7 +25,7 @@ const Login = ({ setIsLoginOpen, setIsLoggedIn, setIsRegisterOpen, setUser, cart
       // Verifica se o tenantId do usuário corresponde ao tenantId atual
       const userTenantId = user.tenantId || 'pizzaria-a'; // Fallback caso o backend não retorne tenantId
       if (userTenantId !== currentTenantId) {
-        throw new Error('Usuário não encontrado. Por favor, faça o cadastro.');
+        throw new Error('Usuário não encontrado. Por favor, crie um login para esta pizzaria.');
       }
 
       // Se os tenantIds coincidirem, prossegue com o login
@@ -35,7 +35,7 @@ const Login = ({ setIsLoginOpen, setIsLoggedIn, setIsRegisterOpen, setUser, cart
       setIsLoginOpen(false);
 
       console.log('TenantId após login:', userTenantId);
-      navigate(`/${userTenantId}/`);
+      navigate(`/${userTenantId}/profile`);
       
       toast.success('Login realizado com sucesso!');
     } catch (err) {
