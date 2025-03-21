@@ -25,7 +25,7 @@ const Login = ({ setIsLoginOpen, setIsLoggedIn, setIsRegisterOpen, setUser, cart
       // Verifica se o tenantId do usuário corresponde ao tenantId atual
       const userTenantId = user.tenantId || 'pizzaria-a'; // Fallback caso o backend não retorne tenantId
       if (userTenantId !== currentTenantId) {
-        throw new Error('Usuário não encontrado. Por favor, crie um login para esta pizzaria.');
+        throw new Error(`Você não pode fazer login na ${currentTenantId} com credenciais de outra pizzaria (${userTenantId}).`);
       }
 
       // Se os tenantIds coincidirem, prossegue com o login
