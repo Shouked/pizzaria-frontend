@@ -14,25 +14,33 @@ const Login = ({ setIsLoginOpen, setIsLoggedIn, setIsRegisterOpen, setUser, cart
         email,
         password,
       });
-      console.log('Resposta do backend:', response.data); // Log para verificar a resposta
+      console.log('Resposta do backend:', response.data);
       const { token, user } = response.data;
+
+      // Obtém o tenantId da URL atual
+      const currentPath = window.location.pathname.split('/')[1];
+      const currentTenantId = currentPath || 'pizzaria-a'; // Fallback para pizzaria-a se não houver tenantId na URL
+      console.log('TenantId atual da URL:', currentTenantId);
+
+      // Verifica se o tenantId do usuário corresponde ao tenantId atual
+      const userTenantId = user.tenantId || 'pizzaria-a'; // Fallback caso o backend não retorne tenantId
+      if (userTenantId !== currentTenantId) {
+        throw new Error(`Você não pode fazer login na ${currentTenantId} com credenciais de outra pizzaria (${userTenantId}).`);
+      }
+
+      // Se os tenantIds coincidirem, prossegue com o login
       localStorage.setItem('token', token);
       setUser(user);
       setIsLoggedIn(true);
       setIsLoginOpen(false);
 
-      // Determina o tenantId com base no usuário ou na URL atual
-      const currentPath = window.location.pathname.split('/')[1];
-      const userTenantId = user.tenantId || currentPath || 'pizzaria-a';
       console.log('TenantId após login:', userTenantId);
-
-      // Redireciona para o perfil do tenant correto
       navigate(`/${userTenantId}/profile`);
       
       toast.success('Login realizado com sucesso!');
     } catch (err) {
       console.error('Erro no login:', err.response ? err.response.data : err.message);
-      toast.error(err.response?.data?.message || 'Erro ao fazer login');
+      toast.error(err.message || err.response?.data?.message || 'Erro ao fazer login');
     }
   };
 
