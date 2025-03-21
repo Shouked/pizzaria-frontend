@@ -45,16 +45,13 @@ function App() {
     navigate('/');
   };
 
-  // Componente interno para acessar useParams
-  const NavigationBar = () => {
-    const { tenantId } = useParams();
-    const basePath = tenantId || 'pizzaria-a'; // Fallback para pizzaria-a
-
+  // Componente NavigationBar que usa o tenantId da rota atual
+  const NavigationBar = ({ tenantId }) => {
     return (
       <nav className="bg-white p-2 shadow-md fixed bottom-0 left-0 w-full z-50 border-t border-gray-200">
         <div className="container mx-auto flex justify-around">
           <button
-            onClick={() => navigate(`/${basePath}`)}
+            onClick={() => navigate(`/${tenantId}`)}
             className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none"
             aria-label="Home"
           >
@@ -64,7 +61,7 @@ function App() {
             Home
           </button>
           <button
-            onClick={() => navigate(`/${basePath}/orders`)}
+            onClick={() => navigate(`/${tenantId}/orders`)}
             className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none"
             aria-label="Pedidos"
           >
@@ -74,7 +71,7 @@ function App() {
             Pedidos
           </button>
           <button
-            onClick={() => (isLoggedIn ? navigate(`/${basePath}/profile`) : setIsLoginOpen(true))}
+            onClick={() => (isLoggedIn ? navigate(`/${tenantId}/profile`) : setIsLoginOpen(true))}
             className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none"
             aria-label="Perfil"
           >
@@ -84,7 +81,7 @@ function App() {
             Perfil
           </button>
           <button
-            onClick={() => navigate(`/${basePath}/order-summary`)}
+            onClick={() => navigate(`/${tenantId}/order-summary`)}
             className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none relative"
             aria-label="Carrinho"
           >
@@ -95,6 +92,17 @@ function App() {
           </button>
         </div>
       </nav>
+    );
+  };
+
+  // Componente Wrapper para capturar tenantId dinamicamente
+  const TenantWrapper = ({ children }) => {
+    const { tenantId } = useParams();
+    return (
+      <>
+        {children}
+        <NavigationBar tenantId={tenantId || 'pizzaria-a'} />
+      </>
     );
   };
 
@@ -158,14 +166,40 @@ function App() {
       <main className="flex-1 pb-16">
         <Routes>
           <Route path="/" element={<div>Selecione uma pizzaria</div>} />
-          <Route path="/:tenantId" element={<Menu cart={cart} setCart={setCart} />} />
-          <Route path="/:tenantId/order-summary" element={<OrderSummary user={user} setIsLoginOpen={setIsLoginOpen} cart={cart} setCart={setCart} />} />
-          <Route path="/:tenantId/orders" element={<Orders user={user} setIsLoginOpen={setIsLoginOpen} />} />
-          <Route path="/:tenantId/profile" element={<Profile user={user} setUser={setUser} handleLogout={handleLogout} />} />
+          <Route
+            path="/:tenantId"
+            element={
+              <TenantWrapper>
+                <Menu cart={cart} setCart={setCart} />
+              </TenantWrapper>
+            }
+          />
+          <Route
+            path="/:tenantId/order-summary"
+            element={
+              <TenantWrapper>
+                <OrderSummary user={user} setIsLoginOpen={setIsLoginOpen} cart={cart} setCart={setCart} />
+              </TenantWrapper>
+            }
+          />
+          <Route
+            path="/:tenantId/orders"
+            element={
+              <TenantWrapper>
+                <Orders user={user} setIsLoginOpen={setIsLoginOpen} />
+              </TenantWrapper>
+            }
+          />
+          <Route
+            path="/:tenantId/profile"
+            element={
+              <TenantWrapper>
+                <Profile user={user} setUser={setUser} handleLogout={handleLogout} />
+              </TenantWrapper>
+            }
+          />
         </Routes>
       </main>
-
-      <NavigationBar />
 
       <a
         href="https://wa.me/+5511940705013"
