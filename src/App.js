@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom'; // Removido BrowserRouter aqui
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -11,7 +11,6 @@ import Register from './components/Register';
 import Profile from './components/Profile';
 
 function App() {
-  const [cart, setCart] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
   const [user, setUser] = useState(null);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -42,7 +41,6 @@ function App() {
     localStorage.removeItem('token');
     setIsLoggedIn(false);
     setUser(null);
-    setCart([]);
     navigate('/');
   };
 
@@ -77,7 +75,6 @@ function App() {
               setIsLoggedIn={setIsLoggedIn}
               setIsRegisterOpen={setIsRegisterOpen}
               setUser={setUser}
-              cart={cart}
               navigate={navigate}
             />
           </div>
@@ -105,20 +102,13 @@ function App() {
 
       <main className="flex-1 pb-16">
         <Routes>
-          <Route path="/:tenantId" element={<Menu cart={cart} setCart={setCart} />} /> {/* Rota dinâmica para tenantId */}
-          <Route path="/" element={<Menu cart={cart} setCart={setCart} />} /> {/* Raiz mantida por enquanto */}
-          <Route
-            path="/order-summary"
-            element={<OrderSummary cart={cart} clearCart={() => setCart([])} user={user} setIsLoginOpen={setIsLoginOpen} />}
-          />
-          <Route
-            path="/orders"
-            element={<Orders user={user} setIsLoginOpen={setIsLoginOpen} setCart={setCart} />}
-          />
-          <Route
-            path="/profile"
-            element={<Profile user={user} setUser={setUser} handleLogout={handleLogout} />}
-          />
+          <Route path="/" element={<div>Selecione uma pizzaria</div>} /> {/* Página inicial temporária */}
+          <Route path="/:tenantId">
+            <Route index element={<Menu />} />
+            <Route path="order-summary" element={<OrderSummary user={user} setIsLoginOpen={setIsLoginOpen} />} />
+            <Route path="orders" element={<Orders user={user} setIsLoginOpen={setIsLoginOpen} />} />
+            <Route path="profile" element={<Profile user={user} setUser={setUser} handleLogout={handleLogout} />} />
+          </Route>
         </Routes>
       </main>
 
@@ -128,22 +118,17 @@ function App() {
             <svg className="h-6 w-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
             Home
           </button>
-          <button onClick={() => navigate('/orders')} className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none" aria-label="Pedidos">
+          <button onClick={() => navigate('orders')} className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none" aria-label="Pedidos">
             <svg className="h-6 w-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
             Pedidos
           </button>
-          <button onClick={() => (isLoggedIn ? navigate('/profile') : setIsLoginOpen(true))} className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none" aria-label="Perfil">
+          <button onClick={() => (isLoggedIn ? navigate('profile') : setIsLoginOpen(true))} className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none" aria-label="Perfil">
             <svg className="h-6 w-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
             Perfil
           </button>
-          <button onClick={() => navigate('/order-summary')} className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none relative" aria-label="Carrinho">
+          <button onClick={() => navigate('order-summary')} className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none relative" aria-label="Carrinho">
             <svg className="h-6 w-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
             Carrinho
-            {cart.length > 0 && (
-              <span className="absolute top-0 right-0 bg-[#e63946] text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center transform translate-x-1/2 -translate-y-1/2">
-                {cart.reduce((sum, item) => sum + (item.quantity || 1), 0)}
-              </span>
-            )}
           </button>
         </div>
       </nav>
@@ -157,4 +142,4 @@ function App() {
   );
 }
 
-export default App; // Removido o AppWrapper, pois o BrowserRouter será movido para index.js
+export default App;
