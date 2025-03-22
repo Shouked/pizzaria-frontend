@@ -18,13 +18,12 @@ const Admin = ({ user, setIsLoginOpen }) => {
       return;
     }
     if (!user.isAdmin) {
-      console.log('Usuário não é admin, redirecionando para /pizzaria-a');
-      navigate('/pizzaria-a');
-      return;
+      console.log('Usuário não é admin, não deve estar aqui');
+      return; // Não redireciona, deixa o App.js lidar com isso
     }
     console.log('Usuário é admin, carregando tenants');
     fetchTenants();
-  }, [user, setIsLoginOpen, navigate]);
+  }, [user, setIsLoginOpen]);
 
   const fetchTenants = async () => {
     try {
@@ -62,13 +61,8 @@ const Admin = ({ user, setIsLoginOpen }) => {
     }
   };
 
-  if (!user) {
-    console.log('Renderização bloqueada: sem usuário');
-    return null;
-  }
-
-  if (!user.isAdmin) {
-    console.log('Renderização bloqueada: usuário não é admin');
+  if (!user || !user.isAdmin) {
+    console.log('Renderização bloqueada: sem usuário ou não é admin');
     return null;
   }
 
