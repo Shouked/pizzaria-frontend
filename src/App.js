@@ -14,7 +14,6 @@ import Admin from './components/Admin';
 const ProtectedRoute = ({ user, children, setIsLoginOpen, tenantId }) => {
   const location = useLocation();
 
-  // Só abre o login se a rota for '/orders' ou '/profile' e o usuário não estiver logado
   if (!user && (location.pathname.includes('/orders') || location.pathname.includes('/profile'))) {
     setIsLoginOpen(true);
     return <Navigate to={`/${tenantId || ''}`} replace />;
@@ -43,12 +42,10 @@ function App() {
     if (token && !user) {
       fetchUserData(token);
     } else if (!token && user) {
-      // Reseta o usuário se o token for removido
       setUser(null);
       setIsLoggedIn(false);
     }
 
-    // Reseta o login se o tenantId mudar
     if (user && user.tenantId && currentTenantId && user.tenantId !== currentTenantId) {
       console.log(`TenantId mudou de ${user.tenantId} para ${currentTenantId}. Resetando login.`);
       localStorage.removeItem('token');
@@ -57,11 +54,11 @@ function App() {
       setCart([]);
     }
 
-    // Fecha o modal de login se estiver aberto na página principal
-    if (isLoginOpen && location.pathname === `/${currentTenantId}`) {
-      setIsLoginOpen(false);
+    // Abre o login apenas na raiz (/) se não houver usuário
+    if (location.pathname === '/' && !user && !isLoginOpen) {
+      setIsLoginOpen(true);
     }
-  }, [location.pathname, user, isLoginOpen]); // Adicionei isLoginOpen para reagir a mudanças
+  }, [location.pathname, user]);
 
   const fetchUserData = async (token) => {
     try {
@@ -203,9 +200,7 @@ function App() {
               user && user.isAdmin ? (
                 <Admin user={user} setIsLoginOpen={setIsLoginOpen} />
               ) : (
-                <div className="flex justify-center items-center h-full">
-                  {!isLoginOpen && !user && setIsLoginOpen(true)}
-                </div>
+                <div className="flex justify-center items-center h-full" /> // Apenas um container vazio na raiz para não logados
               )
             }
           />
