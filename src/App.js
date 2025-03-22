@@ -14,21 +14,21 @@ import Admin from './components/Admin';
 const ProtectedRoute = ({ user, children }) => {
   const location = useLocation();
   const currentTenantId = location.pathname.split('/')[1] || null;
-  
+
   if (!user) {
-    return <Navigate to="/" replace />; // Redireciona para admin/login
+    return <Navigate to="/" replace />; // Redireciona para login na raiz
   }
-  
+
   if (!currentTenantId) {
-    return children; // Permite acesso à página de admin
+    return children; // Permite acesso à página de admin na raiz
   }
-  
+
   const userTenantId = user.tenantId;
-  if (userTenantId !== currentTenantId) {
+  if (userTenantId && userTenantId !== currentTenantId) {
     console.log(`Redirecionando: tenantId da URL (${currentTenantId}) não corresponde ao do usuário (${userTenantId})`);
     return <Navigate to={`/${userTenantId}`} replace />;
   }
-  
+
   return children;
 };
 
@@ -55,8 +55,8 @@ function App() {
       });
       setUser(response.data);
       const userTenantId = response.data.tenantId;
-      console.log('TenantId do usuário logado:', userTenantId);
-      if (location.pathname === '/' && !response.data.isAdmin) {
+      console.log('Usuário carregado:', response.data);
+      if (location.pathname === '/' && !response.data.isAdmin && userTenantId) {
         navigate(`/${userTenantId}`);
       }
     } catch (err) {
@@ -81,7 +81,7 @@ function App() {
 
   const NavigationBar = () => {
     const tenantId = getTenantId();
-    if (!tenantId) return null; // Não mostra a barra na página de admin
+    if (!tenantId) return null; // Não mostra a barra na página de admin ou login
 
     return (
       <nav className="bg-white p-2 shadow-md fixed bottom-0 left-0 w-full z-50 border-t border-gray-200">
@@ -190,7 +190,18 @@ function App() {
 
       <main className="flex-1 pb-16">
         <Routes>
-          <Route path="/" element={<Admin user={user} setIsLoginOpen={setIsLoginOpen} />} />
+          <Route
+            path="/"
+            element={
+              user && user.isAdmin ? (
+                <Admin user={user} setIsLoginOpen={setIsLoginOpen} />
+              ) : (
+                <div className="flex justify-center items-center h-full">
+                  {!isLoginOpen && !user && setIsLoginOpen(true)}
+                </div>
+              )
+            }
+          />
           <Route path="/:tenantId" element={<Menu cart={cart} setCart={setCart} />} />
           <Route
             path="/:tenantId/order-summary"
