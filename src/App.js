@@ -46,7 +46,10 @@ function App() {
     if (token && !user) {
       fetchUserData(token);
     }
-  }, [user]);
+    if (!token && location.pathname === '/' && !isLoginOpen) {
+      setIsLoginOpen(true); // Abre login automaticamente na raiz sem token
+    }
+  }, [user, location.pathname, isLoginOpen]);
 
   const fetchUserData = async (token) => {
     try {
@@ -54,10 +57,9 @@ function App() {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUser(response.data);
-      const userTenantId = response.data.tenantId;
       console.log('Usuário carregado:', response.data);
-      if (location.pathname === '/' && !response.data.isAdmin && userTenantId) {
-        navigate(`/${userTenantId}`);
+      if (!response.data.isAdmin && response.data.tenantId && location.pathname === '/') {
+        navigate(`/${response.data.tenantId}`);
       }
     } catch (err) {
       console.error('Erro ao carregar dados do usuário:', err);
