@@ -17,30 +17,37 @@ const Login = ({ setIsLoginOpen, setIsLoggedIn, setIsRegisterOpen, setUser, cart
       console.log('Resposta do backend:', response.data);
       const { token, user } = response.data;
 
-      // Obtém o tenantId da URL atual
-      const currentPath = window.location.pathname.split('/')[1];
-      const currentTenantId = currentPath || 'pizzaria-a'; // Fallback para pizzaria-a se não houver tenantId na URL
-      console.log('TenantId atual da URL:', currentTenantId);
+      // Obtém o tenantId da URL atual (se houver)
+      const currentPath = window.location.pathname.split('/')[1] || null;
+      console.log('TenantId atual da URL:', currentPath);
 
-      // Verifica se o tenantId do usuário corresponde ao tenantId atual
-      const userTenantId = user.tenantId || 'pizzaria-a'; // Fallback caso o backend não retorne tenantId
-      if (userTenantId !== currentTenantId) {
-        throw new Error('Usuário não encontrado. Por favor, crie um login para esta pizzaria.');
-      }
+      // Define o tenantId do usuário (sem fallback)
+      const userTenantId = user.tenantId || null;
+      console.log('TenantId do usuário após login:', userTenantId);
 
-      // Se os tenantIds coincidirem, prossegue com o login
+      // Armazena o token e atualiza o estado
       localStorage.setItem('token', token);
       setUser(user);
       setIsLoggedIn(true);
       setIsLoginOpen(false);
 
-      console.log('TenantId após login:', userTenantId);
-      navigate(`/${userTenantId}`); // Redireciona para a página principal
-      
+      // Lógica de redirecionamento
+      if (user.isAdmin) {
+        navigate('/'); // Admin sempre fica na raiz
+      } else if (userTenantId) {
+        navigate(`/${userTenantId}`); // Usuários normais vão para seu tenantId
+      } else {
+        toast.error('Usuário sem tenantId. Contate o administrador.');
+        localStorage.removeItem('token');
+        setIsLoggedIn(false);
+        setUser(null);
+        return;
+      }
+
       toast.success('Login realizado com sucesso!');
     } catch (err) {
       console.error('Erro no login:', err.response ? err.response.data : err.message);
-      toast.error(err.message || err.response?.data?.message || 'Erro ao fazer login');
+      toast.error(err.response?.data?.message || 'Erro ao fazer login');
     }
   };
 
