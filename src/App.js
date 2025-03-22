@@ -11,12 +11,12 @@ import Register from './components/Register';
 import Profile from './components/Profile';
 import Admin from './components/Admin';
 
-const ProtectedRoute = ({ user, children }) => {
+const ProtectedRoute = ({ user, children, setIsLoginOpen, tenantId }) => {
   const location = useLocation();
-  const currentTenantId = location.pathname.split('/')[1] || null;
 
   if (!user && (location.pathname.includes('/orders') || location.pathname.includes('/profile'))) {
-    return <Navigate to={`/${currentTenantId || ''}`} replace />; // Redireciona para a raiz da pizzaria se não logado
+    setIsLoginOpen(true); // Abre o login apenas em rotas protegidas
+    return <Navigate to={`/${tenantId || ''}`} replace />;
   }
 
   return children;
@@ -31,12 +31,31 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const getTenantId = () => {
+    const pathParts = location.pathname.split('/');
+    return pathParts[1] || null;
+  };
+  const currentTenantId = getTenantId();
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token && !user) {
       fetchUserData(token);
+    } else if (!token && user) {
+      // Reseta o usuário se o token for removido
+      setUser(null);
+      setIsLoggedIn(false);
     }
-  }, [user]);
+
+    // Verifica se o tenantId mudou e reseta o login
+    if (user && user.tenantId && currentTenantId && user.tenantId !== currentTenantId) {
+      console.log(`TenantId mudou de ${user.tenantId} para ${currentTenantId}. Resetando login.`);
+      localStorage.removeItem('token');
+      setUser(null);
+      setIsLoggedIn(false);
+      setCart([]); // Reseta o carrinho também
+    }
+  }, [location.pathname, user]); // Monitora mudanças na URL e no usuário
 
   const fetchUserData = async (token) => {
     try {
@@ -49,6 +68,7 @@ function App() {
       console.error('Erro ao carregar dados do usuário:', err);
       localStorage.removeItem('token');
       setIsLoggedIn(false);
+      setUser(null);
     }
   };
 
@@ -56,17 +76,13 @@ function App() {
     localStorage.removeItem('token');
     setIsLoggedIn(false);
     setUser(null);
+    setCart([]);
     navigate('/');
   };
 
-  const getTenantId = () => {
-    const pathParts = location.pathname.split('/');
-    return pathParts[1] || null;
-  };
-
   const NavigationBar = () => {
-    const tenantId = getTenantId();
-    if (!tenantId) return null; // Não mostra a barra na página de admin
+    const tenantId = currentTenantId;
+    if (!tenantId) return null;
 
     return (
       <nav className="bg-white p-2 shadow-md fixed bottom-0 left-0 w-full z-50 border-t border-gray-200">
@@ -195,7 +211,7 @@ function App() {
           <Route
             path="/:tenantId/orders"
             element={
-              <ProtectedRoute user={user}>
+              <ProtectedRoute user={user} setIsLoginOpen={setIsLoginOpen} tenantId={currentTenantId}>
                 <Orders user={user} setIsLoginOpen={setIsLoginOpen} />
               </ProtectedRoute>
             }
@@ -203,7 +219,7 @@ function App() {
           <Route
             path="/:tenantId/profile"
             element={
-              <ProtectedRoute user={user}>
+              <ProtectedRoute user={user} setIsLoginOpen={setIsLoginOpen} tenantId={currentTenantId}>
                 <Profile user={user} setUser={setUser} handleLogout={handleLogout} />
               </ProtectedRoute>
             }
