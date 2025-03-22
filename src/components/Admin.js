@@ -11,23 +11,29 @@ const Admin = ({ user, setIsLoginOpen }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log('User recebido em Admin:', user);
     if (!user) {
+      console.log('Nenhum usuário logado, abrindo login');
       setIsLoginOpen(true);
       return;
     }
-    if (user && !user.isAdmin) {
-      navigate('/pizzaria-a'); // Redireciona usuários normais para uma pizzaria padrão
+    if (!user.isAdmin) {
+      console.log('Usuário não é admin, redirecionando para /pizzaria-a');
+      navigate('/pizzaria-a');
       return;
     }
+    console.log('Usuário é admin, carregando tenants');
     fetchTenants();
   }, [user, setIsLoginOpen, navigate]);
 
   const fetchTenants = async () => {
     try {
       const token = localStorage.getItem('token');
+      console.log('Fazendo requisição para /api/tenants com token:', token);
       const response = await axios.get('https://pizzaria-backend-e254.onrender.com/api/tenants', {
         headers: { Authorization: `Bearer ${token}` },
       });
+      console.log('Tenants recebidos:', response.data);
       setTenants(response.data);
     } catch (err) {
       console.error('Erro ao listar tenants:', err);
@@ -39,6 +45,7 @@ const Admin = ({ user, setIsLoginOpen }) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
+      console.log('Cadastrando tenant:', { tenantId, name, description });
       const response = await axios.post(
         'https://pizzaria-backend-e254.onrender.com/api/tenants',
         { tenantId, name, description },
@@ -55,12 +62,17 @@ const Admin = ({ user, setIsLoginOpen }) => {
     }
   };
 
-  if (!user) return null;
-
-  if (!user.isAdmin) {
-    return null; // O redirecionamento já ocorre no useEffect
+  if (!user) {
+    console.log('Renderização bloqueada: sem usuário');
+    return null;
   }
 
+  if (!user.isAdmin) {
+    console.log('Renderização bloqueada: usuário não é admin');
+    return null;
+  }
+
+  console.log('Renderizando página de admin');
   return (
     <div className="container mx-auto p-4 bg-[#f1faee] min-h-screen">
       <h1 className="text-3xl font-bold text-[#e63946] mb-6 text-center">Administração de Pizzarias</h1>
