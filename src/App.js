@@ -14,8 +14,9 @@ import Admin from './components/Admin';
 const ProtectedRoute = ({ user, children, setIsLoginOpen, tenantId }) => {
   const location = useLocation();
 
+  // Só abre o login se a rota for '/orders' ou '/profile' e o usuário não estiver logado
   if (!user && (location.pathname.includes('/orders') || location.pathname.includes('/profile'))) {
-    setIsLoginOpen(true); // Abre o login apenas em rotas protegidas
+    setIsLoginOpen(true);
     return <Navigate to={`/${tenantId || ''}`} replace />;
   }
 
@@ -47,15 +48,20 @@ function App() {
       setIsLoggedIn(false);
     }
 
-    // Verifica se o tenantId mudou e reseta o login
+    // Reseta o login se o tenantId mudar
     if (user && user.tenantId && currentTenantId && user.tenantId !== currentTenantId) {
       console.log(`TenantId mudou de ${user.tenantId} para ${currentTenantId}. Resetando login.`);
       localStorage.removeItem('token');
       setUser(null);
       setIsLoggedIn(false);
-      setCart([]); // Reseta o carrinho também
+      setCart([]);
     }
-  }, [location.pathname, user]); // Monitora mudanças na URL e no usuário
+
+    // Fecha o modal de login se estiver aberto na página principal
+    if (isLoginOpen && location.pathname === `/${currentTenantId}`) {
+      setIsLoginOpen(false);
+    }
+  }, [location.pathname, user, isLoginOpen]); // Adicionei isLoginOpen para reagir a mudanças
 
   const fetchUserData = async (token) => {
     try {
