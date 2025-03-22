@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import PropTypes from 'prop-types';
+import { toast } from 'react-toastify';
 
 const ProductItem = React.memo(({ product, handleAddToCart }) => (
   <div className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col">
@@ -28,12 +29,12 @@ ProductItem.propTypes = {
   handleAddToCart: PropTypes.func.isRequired,
 };
 
-const Menu = ({ cart, setCart }) => {
+const Menu = ({ cart, setCart, setIsLoginOpen }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState(null);
   const [isNavFixed, setIsNavFixed] = useState(false);
-  const [error, setError] = useState(null); // Adicionado para tratar erros
+  const [error, setError] = useState(null);
   const sectionRefs = useRef({});
   const { tenantId } = useParams();
 
@@ -45,6 +46,7 @@ const Menu = ({ cart, setCart }) => {
     } else {
       setCart([]);
     }
+    console.log(`Carrinho atualizado para ${tenantId}:`, cart);
   }, [tenantId, setCart]);
 
   useEffect(() => {
@@ -53,7 +55,7 @@ const Menu = ({ cart, setCart }) => {
   }, [cart, tenantId]);
 
   useEffect(() => {
-    let mounted = true; // Controle para evitar atualizações após desmontagem
+    let mounted = true;
 
     const fetchProducts = async () => {
       try {
@@ -72,7 +74,8 @@ const Menu = ({ cart, setCart }) => {
       } catch (err) {
         console.error('Erro ao carregar produtos:', err.response ? err.response.data : err.message);
         if (mounted) {
-          setError('Erro ao carregar produtos. Tente novamente mais tarde.');
+          setError('Erro ao carregar o cardápio. Tente novamente mais tarde.');
+          toast.error('Erro ao carregar o cardápio.');
         }
       } finally {
         if (mounted) {
@@ -84,9 +87,9 @@ const Menu = ({ cart, setCart }) => {
     fetchProducts();
 
     return () => {
-      mounted = false; // Evita atualizações após desmontagem
+      mounted = false;
     };
-  }, [tenantId]); // Removi 'setCart' e 'cart' das dependências para evitar loop
+  }, [tenantId]);
 
   const allCategories = [
     'Pizza',
@@ -165,6 +168,7 @@ const Menu = ({ cart, setCart }) => {
       }
       localStorage.setItem(`cart_${tenantId}`, JSON.stringify(newCart));
       console.log(`Carrinho atualizado para ${tenantId}:`, newCart);
+      toast.success(`${product.name} adicionado ao carrinho!`);
       return newCart;
     });
   };
@@ -260,6 +264,12 @@ const Menu = ({ cart, setCart }) => {
       </div>
     </div>
   );
+};
+
+Menu.propTypes = {
+  cart: PropTypes.array.isRequired,
+  setCart: PropTypes.func.isRequired,
+  setIsLoginOpen: PropTypes.func.isRequired, // Adicionado como prop
 };
 
 export default Menu;
