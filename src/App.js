@@ -15,18 +15,8 @@ const ProtectedRoute = ({ user, children }) => {
   const location = useLocation();
   const currentTenantId = location.pathname.split('/')[1] || null;
 
-  if (!user) {
-    return <Navigate to="/" replace />; // Redireciona para login na raiz
-  }
-
-  if (!currentTenantId) {
-    return children; // Permite acesso à página de admin na raiz
-  }
-
-  const userTenantId = user.tenantId;
-  if (userTenantId && userTenantId !== currentTenantId) {
-    console.log(`Redirecionando: tenantId da URL (${currentTenantId}) não corresponde ao do usuário (${userTenantId})`);
-    return <Navigate to={`/${userTenantId}`} replace />;
+  if (!user && (location.pathname.includes('/orders') || location.pathname.includes('/profile'))) {
+    return <Navigate to={`/${currentTenantId || ''}`} replace />; // Redireciona para a raiz da pizzaria se não logado
   }
 
   return children;
@@ -46,10 +36,7 @@ function App() {
     if (token && !user) {
       fetchUserData(token);
     }
-    if (!token && location.pathname === '/' && !isLoginOpen) {
-      setIsLoginOpen(true); // Abre login automaticamente na raiz sem token
-    }
-  }, [user, location.pathname, isLoginOpen]);
+  }, [user]);
 
   const fetchUserData = async (token) => {
     try {
@@ -58,9 +45,6 @@ function App() {
       });
       setUser(response.data);
       console.log('Usuário carregado:', response.data);
-      if (!response.data.isAdmin && response.data.tenantId && location.pathname === '/') {
-        navigate(`/${response.data.tenantId}`);
-      }
     } catch (err) {
       console.error('Erro ao carregar dados do usuário:', err);
       localStorage.removeItem('token');
@@ -77,13 +61,12 @@ function App() {
 
   const getTenantId = () => {
     const pathParts = location.pathname.split('/');
-    const tenantId = pathParts[1];
-    return tenantId || null;
+    return pathParts[1] || null;
   };
 
   const NavigationBar = () => {
     const tenantId = getTenantId();
-    if (!tenantId) return null; // Não mostra a barra na página de admin ou login
+    if (!tenantId) return null; // Não mostra a barra na página de admin
 
     return (
       <nav className="bg-white p-2 shadow-md fixed bottom-0 left-0 w-full z-50 border-t border-gray-200">
@@ -99,7 +82,7 @@ function App() {
             Home
           </button>
           <button
-            onClick={() => (isLoggedIn ? navigate(`/${tenantId}/orders`) : setIsLoginOpen(true))}
+            onClick={() => navigate(`/${tenantId}/orders`)}
             className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none"
             aria-label="Pedidos"
           >
@@ -109,7 +92,7 @@ function App() {
             Pedidos
           </button>
           <button
-            onClick={() => (isLoggedIn ? navigate(`/${tenantId}/profile`) : setIsLoginOpen(true))}
+            onClick={() => navigate(`/${tenantId}/profile`)}
             className="text-[#e63946] hover:text-red-700 flex flex-col items-center text-xs focus:outline-none"
             aria-label="Perfil"
           >
@@ -204,7 +187,7 @@ function App() {
               )
             }
           />
-          <Route path="/:tenantId" element={<Menu cart={cart} setCart={setCart} />} />
+          <Route path="/:tenantId" element={<Menu cart={cart} setCart={setCart} setIsLoginOpen={setIsLoginOpen} />} />
           <Route
             path="/:tenantId/order-summary"
             element={<OrderSummary user={user} setIsLoginOpen={setIsLoginOpen} cart={cart} setCart={setCart} />}
