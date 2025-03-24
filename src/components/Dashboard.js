@@ -7,7 +7,7 @@ import {
 } from 'recharts';
 import dayjs from 'dayjs';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable'; // Para tabelas no PDF
+import 'jspdf-autotable';
 
 const Dashboard = ({ user }) => {
   const { tenantId } = useParams();
@@ -66,8 +66,13 @@ const Dashboard = ({ user }) => {
     return true;
   });
 
+  const totalVendas = filteredOrders.reduce((sum, order) => sum + order.total, 0);
+  const totalPedidos = filteredOrders.length;
+  const pedidosPendentes = filteredOrders.filter((o) => o.status === 'pending').length;
+  const ticketMedio = totalPedidos > 0 ? totalVendas / totalPedidos : 0;
+
   const ordersByStatus = [
-    { name: 'Pendente', value: filteredOrders.filter((o) => o.status === 'pending').length },
+    { name: 'Pendente', value: pedidosPendentes },
     { name: 'Finalizado', value: filteredOrders.filter((o) => o.status === 'completed').length },
     { name: 'Cancelado', value: filteredOrders.filter((o) => o.status === 'canceled').length },
   ];
@@ -96,7 +101,6 @@ const Dashboard = ({ user }) => {
 
   const COLORS = ['#0088FE', '#00C49F', '#FF8042'];
 
-  // Exportação PDF
   const exportPDF = () => {
     const doc = new jsPDF();
 
@@ -117,7 +121,6 @@ const Dashboard = ({ user }) => {
     doc.save(`Relatorio-Pedidos-${filter}.pdf`);
   };
 
-  // Exportação CSV
   const exportCSV = () => {
     let csv = 'ID,Status,Total,Data\n';
     filteredOrders.forEach((order) => {
@@ -137,11 +140,10 @@ const Dashboard = ({ user }) => {
 
   return (
     <div className="container mx-auto p-4 space-y-8">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center flex-wrap gap-4">
         <h2 className="text-2xl font-bold mb-4" style={{ color: primaryColor }}>Dashboard Administrativo</h2>
 
         <div className="flex gap-4">
-          {/* Filtro de Período */}
           <select
             className="px-4 py-2 border rounded bg-white"
             value={filter}
@@ -153,7 +155,6 @@ const Dashboard = ({ user }) => {
             <option value="all">Todos</option>
           </select>
 
-          {/* Botões de Exportação */}
           <button
             onClick={exportPDF}
             className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
@@ -166,6 +167,34 @@ const Dashboard = ({ user }) => {
           >
             Exportar CSV
           </button>
+        </div>
+      </div>
+
+      {/* Métricas de KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white shadow rounded p-4 flex flex-col items-center">
+          <h4 className="text-sm text-gray-500 mb-2">Total de Vendas</h4>
+          <p className="text-2xl font-bold" style={{ color: primaryColor }}>
+            R$ {totalVendas.toFixed(2)}
+          </p>
+        </div>
+        <div className="bg-white shadow rounded p-4 flex flex-col items-center">
+          <h4 className="text-sm text-gray-500 mb-2">Total de Pedidos</h4>
+          <p className="text-2xl font-bold" style={{ color: primaryColor }}>
+            {totalPedidos}
+          </p>
+        </div>
+        <div className="bg-white shadow rounded p-4 flex flex-col items-center">
+          <h4 className="text-sm text-gray-500 mb-2">Pedidos Pendentes</h4>
+          <p className="text-2xl font-bold" style={{ color: primaryColor }}>
+            {pedidosPendentes}
+          </p>
+        </div>
+        <div className="bg-white shadow rounded p-4 flex flex-col items-center">
+          <h4 className="text-sm text-gray-500 mb-2">Ticket Médio</h4>
+          <p className="text-2xl font-bold" style={{ color: primaryColor }}>
+            R$ {ticketMedio.toFixed(2)}
+          </p>
         </div>
       </div>
 
