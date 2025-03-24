@@ -14,6 +14,7 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Profile from './components/Profile';
 import Admin from './components/Admin';
+import Dashboard from './components/Dashboard'; // ✅ Import do Dashboard
 
 // Rota protegida
 const ProtectedRoute = ({ user, children, setIsLoginOpen, tenantId }) => {
@@ -229,6 +230,7 @@ const AppContent = () => {
             }
           />
           <Route path="/:tenantId/admin" element={<Admin user={user} />} />
+          <Route path="/:tenantId/admin/dashboard" element={<Dashboard user={user} />} /> {/* ✅ ROTA NOVA */}
         </Routes>
       </main>
 
