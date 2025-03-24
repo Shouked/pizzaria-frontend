@@ -7,26 +7,29 @@ const Admin = ({ user, setIsLoginOpen }) => {
   const { tenantId } = useParams();
   const navigate = useNavigate();
 
+  const [activeTab, setActiveTab] = useState('products');
+
+  // Produtos State
   const [products, setProducts] = useState([]);
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    price: '',
-    imageUrl: ''
-  });
+  const [formData, setFormData] = useState({ name: '', description: '', price: '', imageUrl: '' });
   const [editingProductId, setEditingProductId] = useState(null);
 
-  // Verificação básica: só admins acessam
+  // Pedidos State
+  const [orders, setOrders] = useState([]);
+
   useEffect(() => {
     if (!user || !user.isAdmin) {
       alert('Acesso negado! Apenas administradores podem acessar.');
       navigate(`/${tenantId}`);
     } else {
       fetchProducts();
+      fetchOrders();
     }
   }, [tenantId, user]);
 
-  // Buscar produtos do tenant atual
+  // =======================
+  // CRUD DE PRODUTOS
+  // =======================
   const fetchProducts = async () => {
     try {
       const res = await api.get(`/products/${tenantId}/products`);
@@ -36,20 +39,16 @@ const Admin = ({ user, setIsLoginOpen }) => {
     }
   };
 
-  // Adicionar ou editar produto
-  const handleSubmit = async (e) => {
+  const handleSubmitProduct = async (e) => {
     e.preventDefault();
-
     const token = localStorage.getItem('token');
     const config = { headers: { Authorization: `Bearer ${token}` } };
 
     try {
       if (editingProductId) {
-        // Editar produto existente
         await api.put(`/products/${tenantId}/products/${editingProductId}`, formData, config);
         alert('Produto atualizado com sucesso!');
       } else {
-        // Adicionar novo produto
         await api.post(`/products/${tenantId}/products`, formData, config);
         alert('Produto adicionado com sucesso!');
       }
@@ -63,8 +62,7 @@ const Admin = ({ user, setIsLoginOpen }) => {
     }
   };
 
-  // Preenche o form para edição
-  const handleEdit = (product) => {
+  const handleEditProduct = (product) => {
     setFormData({
       name: product.name,
       description: product.description,
@@ -74,8 +72,7 @@ const Admin = ({ user, setIsLoginOpen }) => {
     setEditingProductId(product._id);
   };
 
-  // Exclui produto
-  const handleDelete = async (productId) => {
+  const handleDeleteProduct = async (productId) => {
     if (!window.confirm('Tem certeza que deseja excluir este produto?')) return;
 
     const token = localStorage.getItem('token');
@@ -90,96 +87,99 @@ const Admin = ({ user, setIsLoginOpen }) => {
     }
   };
 
+  // =======================
+  // GERENCIAMENTO DE PEDIDOS
+  // =======================
+  const fetchOrders = async () => {
+    const token = localStorage.getItem('token');
+    try {
+      const res = await api.get(`/orders/${tenantId}/orders`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setOrders(res.data);
+    } catch (err) {
+      console.error('Erro ao buscar pedidos:', err);
+    }
+  };
+
+  const handleUpdateOrderStatus = async (orderId, newStatus) => {
+    const token = localStorage.getItem('token');
+    try {
+      await api.put(`/orders/${tenantId}/orders/${orderId}/status`, { status: newStatus }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      alert('Status do pedido atualizado!');
+      fetchOrders();
+    } catch (err) {
+      console.error('Erro ao atualizar status do pedido:', err);
+    }
+  };
+
   return (
     <div className="container mx-auto p-4">
       <h2 className="text-2xl font-bold mb-4">Painel Administrativo</h2>
 
-      {/* Formulário para adicionar/editar produtos */}
-      <form onSubmit={handleSubmit} className="mb-6 bg-white p-4 shadow rounded">
-        <h3 className="text-xl mb-4">{editingProductId ? 'Editar Produto' : 'Novo Produto'}</h3>
-
-        <input
-          type="text"
-          placeholder="Nome"
-          name="name"
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          required
-          className="block w-full mb-2 p-2 border rounded"
-        />
-
-        <textarea
-          placeholder="Descrição"
-          name="description"
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          required
-          className="block w-full mb-2 p-2 border rounded"
-        />
-
-        <input
-          type="number"
-          placeholder="Preço"
-          name="price"
-          value={formData.price}
-          onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-          required
-          className="block w-full mb-2 p-2 border rounded"
-        />
-
-        <input
-          type="text"
-          placeholder="URL da Imagem"
-          name="imageUrl"
-          value={formData.imageUrl}
-          onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-          required
-          className="block w-full mb-4 p-2 border rounded"
-        />
-
-        <button
-          type="submit"
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
-        >
-          {editingProductId ? 'Atualizar Produto' : 'Adicionar Produto'}
+      {/* Tabs de navegação */}
+      <div className="flex space-x-4 mb-6">
+        <button onClick={() => setActiveTab('products')} className={`px-4 py-2 rounded ${activeTab === 'products' ? 'bg-green-600 text-white' : 'bg-gray-300'}`}>
+          Produtos
         </button>
-      </form>
+        <button onClick={() => setActiveTab('orders')} className={`px-4 py-2 rounded ${activeTab === 'orders' ? 'bg-green-600 text-white' : 'bg-gray-300'}`}>
+          Pedidos
+        </button>
+      </div>
 
-      {/* Lista de produtos */}
-      <div className="bg-white shadow rounded p-4">
-        <h3 className="text-xl mb-4">Produtos Cadastrados</h3>
-        {products.length === 0 ? (
-          <p>Nenhum produto cadastrado.</p>
-        ) : (
-          <ul>
-            {products.map((product) => (
-              <li key={product._id} className="mb-4 border-b pb-2">
-                <div className="flex justify-between items-center">
+      {/* Aba de Produtos */}
+      {activeTab === 'products' && (
+        <>
+          <form onSubmit={handleSubmitProduct} className="mb-6 bg-white p-4 shadow rounded">
+            <h3 className="text-xl mb-4">{editingProductId ? 'Editar Produto' : 'Novo Produto'}</h3>
+            <input type="text" placeholder="Nome" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required className="block w-full mb-2 p-2 border rounded" />
+            <textarea placeholder="Descrição" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} required className="block w-full mb-2 p-2 border rounded" />
+            <input type="number" placeholder="Preço" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} required className="block w-full mb-2 p-2 border rounded" />
+            <input type="text" placeholder="URL da Imagem" value={formData.imageUrl} onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })} required className="block w-full mb-4 p-2 border rounded" />
+            <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">{editingProductId ? 'Atualizar' : 'Adicionar'}</button>
+          </form>
+
+          <div className="bg-white shadow rounded p-4">
+            <h3 className="text-xl mb-4">Produtos</h3>
+            {products.length === 0 ? <p>Nenhum produto cadastrado.</p> : (
+              products.map((product) => (
+                <div key={product._id} className="mb-4 border-b pb-2 flex justify-between">
                   <div>
                     <p className="font-bold">{product.name}</p>
                     <p>R$ {product.price}</p>
-                    <img src={product.imageUrl} alt={product.name} className="h-16 mt-2" />
                   </div>
                   <div className="flex gap-2">
-                    <button
-                      onClick={() => handleEdit(product)}
-                      className="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 transition"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      onClick={() => handleDelete(product._id)}
-                      className="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 transition"
-                    >
-                      Excluir
-                    </button>
+                    <button onClick={() => handleEditProduct(product)} className="bg-yellow-500 text-white px-2 py-1 rounded">Editar</button>
+                    <button onClick={() => handleDeleteProduct(product._id)} className="bg-red-600 text-white px-2 py-1 rounded">Excluir</button>
                   </div>
                 </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+              ))
+            )}
+          </div>
+        </>
+      )}
+
+      {/* Aba de Pedidos */}
+      {activeTab === 'orders' && (
+        <div className="bg-white shadow rounded p-4">
+          <h3 className="text-xl mb-4">Pedidos</h3>
+          {orders.length === 0 ? <p>Nenhum pedido encontrado.</p> : (
+            orders.map((order) => (
+              <div key={order._id} className="mb-4 border-b pb-2">
+                <p><strong>ID:</strong> {order._id}</p>
+                <p><strong>Status:</strong> {order.status}</p>
+                <p><strong>Total:</strong> R$ {order.total}</p>
+                <div className="flex space-x-2 mt-2">
+                  <button onClick={() => handleUpdateOrderStatus(order._id, 'completed')} className="bg-green-500 text-white px-2 py-1 rounded">Completar</button>
+                  <button onClick={() => handleUpdateOrderStatus(order._id, 'canceled')} className="bg-red-500 text-white px-2 py-1 rounded">Cancelar</button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 };
