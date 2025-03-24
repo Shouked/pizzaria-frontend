@@ -1,3 +1,7 @@
+import React, { useState } from 'react'; // ✅ Tem que importar o useState!
+import { useParams } from 'react-router-dom';
+import api from '../services/api';
+
 const Login = ({ tenantId, setIsLoginOpen, setIsLoggedIn, setUser, navigate }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -31,8 +35,18 @@ const Login = ({ tenantId, setIsLoginOpen, setIsLoggedIn, setUser, navigate }) =
   return (
     <div>
       <h2>Login</h2>
-      <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-      <input type="password" placeholder="Senha" value={password} onChange={(e) => setPassword(e.target.value)} />
+      <input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <input
+        type="password"
+        placeholder="Senha"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
       <button onClick={handleLogin}>Entrar</button>
       <button onClick={() => setIsLoginOpen(false)}>Cancelar</button>
     </div>
