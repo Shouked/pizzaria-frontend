@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import api from '../services/api';
-
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, Legend, ResponsiveContainer
 } from 'recharts';
+import dayjs from 'dayjs'; // Recomendado para manipulação de datas
 
 const Dashboard = ({ user }) => {
   const { tenantId } = useParams();
@@ -14,6 +14,7 @@ const Dashboard = ({ user }) => {
 
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
+  const [filter, setFilter] = useState('7days');
 
   useEffect(() => {
     if (!user || !user.isAdmin) {
@@ -49,15 +50,30 @@ const Dashboard = ({ user }) => {
     }
   };
 
-  // Tratamento de dados para gráficos
+  // Função para filtrar pedidos pelo período
+  const filteredOrders = orders.filter((order) => {
+    const orderDate = dayjs(order.createdAt);
+    const now = dayjs();
+
+    if (filter === 'today') {
+      return orderDate.isSame(now, 'day');
+    } else if (filter === '7days') {
+      return orderDate.isAfter(now.subtract(7, 'day'));
+    } else if (filter === 'month') {
+      return orderDate.isSame(now, 'month');
+    }
+    return true;
+  });
+
+  // Preparar dados para os gráficos com base no filtro
   const ordersByStatus = [
-    { name: 'Pendente', value: orders.filter((o) => o.status === 'pending').length },
-    { name: 'Finalizado', value: orders.filter((o) => o.status === 'completed').length },
-    { name: 'Cancelado', value: orders.filter((o) => o.status === 'canceled').length },
+    { name: 'Pendente', value: filteredOrders.filter((o) => o.status === 'pending').length },
+    { name: 'Finalizado', value: filteredOrders.filter((o) => o.status === 'completed').length },
+    { name: 'Cancelado', value: filteredOrders.filter((o) => o.status === 'canceled').length },
   ];
 
-  const salesData = orders.reduce((acc, order) => {
-    const date = new Date(order.createdAt).toLocaleDateString();
+  const salesData = filteredOrders.reduce((acc, order) => {
+    const date = dayjs(order.createdAt).format('DD/MM');
     const existing = acc.find((item) => item.date === date);
 
     if (existing) {
@@ -70,7 +86,7 @@ const Dashboard = ({ user }) => {
   }, []);
 
   const productSales = products.map((product) => {
-    const count = orders.reduce((sum, order) => {
+    const count = filteredOrders.reduce((sum, order) => {
       const found = order.items.find((item) => item.productId === product._id);
       return sum + (found ? found.quantity : 0);
     }, 0);
@@ -82,7 +98,21 @@ const Dashboard = ({ user }) => {
 
   return (
     <div className="container mx-auto p-4 space-y-8">
-      <h2 className="text-2xl font-bold mb-4" style={{ color: primaryColor }}>Dashboard Administrativo</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold mb-4" style={{ color: primaryColor }}>Dashboard Administrativo</h2>
+
+        {/* Filtro de Período */}
+        <select
+          className="px-4 py-2 border rounded bg-white"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+        >
+          <option value="7days">Últimos 7 dias</option>
+          <option value="today">Hoje</option>
+          <option value="month">Mês atual</option>
+          <option value="all">Todos</option>
+        </select>
+      </div>
 
       {/* Pedidos por Status */}
       <div className="bg-white rounded shadow p-4">
