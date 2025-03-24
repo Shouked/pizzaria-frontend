@@ -1,40 +1,66 @@
-
+// src/components/Orders.js
 import React, { useEffect, useState } from 'react';
-import api from '../services/api';
+import axios from 'axios';
 import { useParams } from 'react-router-dom';
-import { useTheme } from '../context/ThemeContext';
 
 const Orders = ({ user, setIsLoginOpen }) => {
   const { tenantId } = useParams();
-  const { primaryColor } = useTheme();
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
     const fetchOrders = async () => {
+      const token = localStorage.getItem('token');
+      if (!token || !user) {
+        setIsLoginOpen(true);
+        return;
+      }
+
       try {
-        const res = await api.get(`/orders/${tenantId}/orders`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        });
-        setOrders(res.data);
-      } catch (err) {
-        console.error('Erro ao carregar pedidos:', err);
+        const response = await axios.get(
+          `https://pizzaria-backend-e254.onrender.com/api/orders/${tenantId}/user`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+        setOrders(response.data);
+      } catch (error) {
+        console.error('Erro ao buscar pedidos:', error);
+        alert('Erro ao carregar seus pedidos.');
       }
     };
 
-    fetchOrders();
-  }, [tenantId]);
+    if (tenantId) {
+      fetchOrders();
+    }
+  }, [tenantId, user, setIsLoginOpen]);
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4" style={{ color: primaryColor }}>Meus Pedidos</h1>
-      <ul>
-        {orders.map(order => (
-          <li key={order._id} className="border p-4 rounded shadow mb-2">
-            <p><strong>Total:</strong> R$ {order.total.toFixed(2)}</p>
-            <p><strong>Status:</strong> {order.status}</p>
-          </li>
-        ))}
-      </ul>
+    <div className="p-4">
+      <h2 className="text-xl font-bold text-[#e63946] mb-4">Meus Pedidos</h2>
+
+      {orders.length === 0 ? (
+        <p className="text-gray-600">Você ainda não fez nenhum pedido.</p>
+      ) : (
+        <div className="space-y-6">
+          {orders.map(order => (
+            <div key={order._id} className="border p-4 rounded shadow-sm bg-white">
+              <h3 className="font-semibold text-[#1d3557] mb-2">Pedido #{order._id.slice(-6)}</h3>
+              <ul className="mb-2">
+                {order.items.map(item => (
+                  <li key={item.productId} className="text-sm text-gray-700">
+                    {item.quantity}x {item.name || 'Produto'}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-sm text-gray-600">Total: R$ {order.total.toFixed(2)}</p>
+              <p className="text-sm text-gray-600">Status: {order.status}</p>
+              <p className="text-sm text-gray-400">Data: {new Date(order.createdAt).toLocaleString()}</p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
