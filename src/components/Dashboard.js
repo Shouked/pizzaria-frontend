@@ -5,7 +5,9 @@ import api from '../services/api';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, Legend, ResponsiveContainer
 } from 'recharts';
-import dayjs from 'dayjs'; // Recomendado para manipulação de datas
+import dayjs from 'dayjs';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable'; // Para tabelas no PDF
 
 const Dashboard = ({ user }) => {
   const { tenantId } = useParams();
@@ -50,7 +52,6 @@ const Dashboard = ({ user }) => {
     }
   };
 
-  // Função para filtrar pedidos pelo período
   const filteredOrders = orders.filter((order) => {
     const orderDate = dayjs(order.createdAt);
     const now = dayjs();
@@ -65,7 +66,6 @@ const Dashboard = ({ user }) => {
     return true;
   });
 
-  // Preparar dados para os gráficos com base no filtro
   const ordersByStatus = [
     { name: 'Pendente', value: filteredOrders.filter((o) => o.status === 'pending').length },
     { name: 'Finalizado', value: filteredOrders.filter((o) => o.status === 'completed').length },
@@ -96,22 +96,77 @@ const Dashboard = ({ user }) => {
 
   const COLORS = ['#0088FE', '#00C49F', '#FF8042'];
 
+  // Exportação PDF
+  const exportPDF = () => {
+    const doc = new jsPDF();
+
+    doc.text('Relatório de Pedidos', 14, 20);
+    const tableData = filteredOrders.map((order) => ([
+      order._id,
+      order.status,
+      `R$ ${order.total.toFixed(2)}`,
+      dayjs(order.createdAt).format('DD/MM/YYYY HH:mm')
+    ]));
+
+    doc.autoTable({
+      head: [['ID', 'Status', 'Total', 'Data']],
+      body: tableData,
+      startY: 30,
+    });
+
+    doc.save(`Relatorio-Pedidos-${filter}.pdf`);
+  };
+
+  // Exportação CSV
+  const exportCSV = () => {
+    let csv = 'ID,Status,Total,Data\n';
+    filteredOrders.forEach((order) => {
+      csv += `${order._id},${order.status},${order.total},${dayjs(order.createdAt).format('DD/MM/YYYY HH:mm')}\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Relatorio-Pedidos-${filter}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="container mx-auto p-4 space-y-8">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold mb-4" style={{ color: primaryColor }}>Dashboard Administrativo</h2>
 
-        {/* Filtro de Período */}
-        <select
-          className="px-4 py-2 border rounded bg-white"
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-        >
-          <option value="7days">Últimos 7 dias</option>
-          <option value="today">Hoje</option>
-          <option value="month">Mês atual</option>
-          <option value="all">Todos</option>
-        </select>
+        <div className="flex gap-4">
+          {/* Filtro de Período */}
+          <select
+            className="px-4 py-2 border rounded bg-white"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          >
+            <option value="7days">Últimos 7 dias</option>
+            <option value="today">Hoje</option>
+            <option value="month">Mês atual</option>
+            <option value="all">Todos</option>
+          </select>
+
+          {/* Botões de Exportação */}
+          <button
+            onClick={exportPDF}
+            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
+          >
+            Exportar PDF
+          </button>
+          <button
+            onClick={exportCSV}
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+          >
+            Exportar CSV
+          </button>
+        </div>
       </div>
 
       {/* Pedidos por Status */}
