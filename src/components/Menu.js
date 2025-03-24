@@ -1,27 +1,30 @@
-// src/components/Menu.js
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { useParams } from 'react-router-dom';
+import api from '../services/api';
 
 const Menu = ({ cart, setCart, setIsLoginOpen }) => {
   const { tenantId } = useParams();
   const [products, setProducts] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [groupedProducts, setGroupedProducts] = useState({});
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get(`https://pizzaria-backend-e254.onrender.com/api/products/${tenantId}/products`);
-        setProducts(res.data);
-        const uniqueCategories = [...new Set(res.data.map(p => p.category))];
-        setCategories(uniqueCategories);
-        if (uniqueCategories.length > 0) {
-          setSelectedCategory(uniqueCategories[0]);
-        }
-      } catch (err) {
-        console.error('Erro ao carregar produtos:', err);
+        const res = await api.get(`/products/${tenantId}/products`);
+        const fetchedProducts = res.data;
+
+        // Agrupar por categoria
+        const grouped = fetchedProducts.reduce((acc, product) => {
+          const category = product.category || 'Outros';
+          if (!acc[category]) acc[category] = [];
+          acc[category].push(product);
+          return acc;
+        }, {});
+
+        setGroupedProducts(grouped);
+        setProducts(fetchedProducts);
+      } catch (error) {
+        console.error('Erro ao carregar produtos:', error);
       }
     };
 
@@ -30,62 +33,55 @@ const Menu = ({ cart, setCart, setIsLoginOpen }) => {
     }
   }, [tenantId]);
 
-  useEffect(() => {
-    const filtered = selectedCategory
-      ? products.filter(product => product.category === selectedCategory)
-      : products;
-    setFilteredProducts(filtered);
-  }, [products, selectedCategory]);
+  const addToCart = (product) => {
+    const itemIndex = cart.findIndex((item) => item._id === product._id);
+    let updatedCart = [...cart];
 
-  const handleAddToCart = (product) => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setIsLoginOpen(true);
-      return;
-    }
-
-    const existing = cart.find(item => item._id === product._id);
-    if (existing) {
-      setCart(cart.map(item =>
-        item._id === product._id ? { ...item, quantity: item.quantity + 1 } : item
-      ));
+    if (itemIndex >= 0) {
+      updatedCart[itemIndex].quantity += 1;
     } else {
-      setCart([...cart, { ...product, quantity: 1 }]);
+      updatedCart.push({ ...product, quantity: 1 });
     }
+
+    setCart(updatedCart);
   };
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold text-[#e63946] mb-4">Cardápio</h2>
+    <div className="p-4 max-w-4xl mx-auto">
+      <h2 className="text-xl font-bold text-center text-[#e63946] mb-4">Cardápio</h2>
 
-      <div className="flex overflow-x-auto space-x-4 mb-4">
-        {categories.map((cat, idx) => (
-          <button
-            key={idx}
-            className={`px-4 py-2 rounded-full text-sm whitespace-nowrap border ${cat === selectedCategory ? 'bg-[#e63946] text-white' : 'bg-white text-[#e63946] border-[#e63946]'}`}
-            onClick={() => setSelectedCategory(cat)}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
+      {Object.keys(groupedProducts).length === 0 && (
+        <p className="text-center text-gray-500">Nenhum produto disponível no momento.</p>
+      )}
 
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
-        {filteredProducts.map(product => (
-          <div key={product._id} className="bg-white rounded-lg shadow-md p-4 flex flex-col">
-            <img src={product.image} alt={product.name} className="h-40 object-cover rounded-md mb-2" />
-            <h3 className="text-lg font-semibold text-[#1d3557]">{product.name}</h3>
-            <p className="text-sm text-gray-600 mb-2">{product.description}</p>
-            <span className="text-[#e63946] font-bold mb-2">R$ {product.price.toFixed(2)}</span>
-            <button
-              onClick={() => handleAddToCart(product)}
-              className="bg-[#e63946] text-white px-4 py-2 rounded hover:bg-red-600 mt-auto"
-            >
-              Adicionar
-            </button>
+      {Object.entries(groupedProducts).map(([category, items]) => (
+        <div key={category} className="mb-6">
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">{category}</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {items.map((product) => (
+              <div
+                key={product._id}
+                className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition"
+              >
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="w-full h-40 object-cover rounded mb-2"
+                />
+                <h4 className="text-md font-bold">{product.name}</h4>
+                <p className="text-sm text-gray-600">{product.description}</p>
+                <p className="text-sm font-semibold text-[#e63946]">R$ {product.price.toFixed(2)}</p>
+                <button
+                  onClick={() => addToCart(product)}
+                  className="mt-2 bg-[#e63946] text-white px-4 py-1 rounded hover:bg-red-600 transition text-sm"
+                >
+                  Adicionar
+                </button>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </div>
   );
 };
