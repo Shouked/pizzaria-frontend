@@ -1,10 +1,4 @@
-
-import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
-import api from '../services/api';
-
-const Login = ({ setIsLoginOpen, setIsLoggedIn, setUser, navigate }) => {
-  const { tenantId } = useParams();
+const Login = ({ tenantId, setIsLoginOpen, setIsLoggedIn, setUser, navigate }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
