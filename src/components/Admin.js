@@ -1,132 +1,185 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
+// src/components/Admin.js
+import React, { useEffect, useState } from 'react';
+import api from '../services/api';
+import { useParams, useNavigate } from 'react-router-dom';
 
 const Admin = ({ user, setIsLoginOpen }) => {
-  const [tenants, setTenants] = useState([]);
-  const [tenantId, setTenantId] = useState('');
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
+  const { tenantId } = useParams();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    console.log('User recebido em Admin:', user);
-    if (!user) {
-      console.log('Nenhum usuário logado, abrindo login');
-      setIsLoginOpen(true);
-      return;
-    }
-    if (!user.isAdmin) {
-      console.log('Usuário não é admin, não deve estar aqui');
-      return; // Não redireciona, deixa o App.js lidar com isso
-    }
-    console.log('Usuário é admin, carregando tenants');
-    fetchTenants();
-  }, [user, setIsLoginOpen]);
+  const [products, setProducts] = useState([]);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    price: '',
+    imageUrl: ''
+  });
+  const [editingProductId, setEditingProductId] = useState(null);
 
-  const fetchTenants = async () => {
+  // Verificação básica: só admins acessam
+  useEffect(() => {
+    if (!user || !user.isAdmin) {
+      alert('Acesso negado! Apenas administradores podem acessar.');
+      navigate(`/${tenantId}`);
+    } else {
+      fetchProducts();
+    }
+  }, [tenantId, user]);
+
+  // Buscar produtos do tenant atual
+  const fetchProducts = async () => {
     try {
-      const token = localStorage.getItem('token');
-      console.log('Fazendo requisição para /api/tenants com token:', token);
-      const response = await axios.get('https://pizzaria-backend-e254.onrender.com/api/tenants', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      console.log('Tenants recebidos:', response.data);
-      setTenants(response.data);
+      const res = await api.get(`/products/${tenantId}/products`);
+      setProducts(res.data);
     } catch (err) {
-      console.error('Erro ao listar tenants:', err);
-      toast.error('Erro ao carregar pizzarias.');
+      console.error('Erro ao buscar produtos:', err);
     }
   };
 
+  // Adicionar ou editar produto
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const token = localStorage.getItem('token');
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+
     try {
-      const token = localStorage.getItem('token');
-      console.log('Cadastrando tenant:', { tenantId, name, description });
-      const response = await axios.post(
-        'https://pizzaria-backend-e254.onrender.com/api/tenants',
-        { tenantId, name, description },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setTenants([...tenants, response.data]);
-      setTenantId('');
-      setName('');
-      setDescription('');
-      toast.success('Pizzaria cadastrada com sucesso!');
+      if (editingProductId) {
+        // Editar produto existente
+        await api.put(`/products/${tenantId}/products/${editingProductId}`, formData, config);
+        alert('Produto atualizado com sucesso!');
+      } else {
+        // Adicionar novo produto
+        await api.post(`/products/${tenantId}/products`, formData, config);
+        alert('Produto adicionado com sucesso!');
+      }
+
+      setFormData({ name: '', description: '', price: '', imageUrl: '' });
+      setEditingProductId(null);
+      fetchProducts();
+
     } catch (err) {
-      console.error('Erro ao cadastrar tenant:', err);
-      toast.error(err.response?.data?.message || 'Erro ao cadastrar pizzaria.');
+      console.error('Erro ao salvar produto:', err);
     }
   };
 
-  if (!user || !user.isAdmin) {
-    console.log('Renderização bloqueada: sem usuário ou não é admin');
-    return null;
-  }
+  // Preenche o form para edição
+  const handleEdit = (product) => {
+    setFormData({
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      imageUrl: product.imageUrl
+    });
+    setEditingProductId(product._id);
+  };
 
-  console.log('Renderizando página de admin');
+  // Exclui produto
+  const handleDelete = async (productId) => {
+    if (!window.confirm('Tem certeza que deseja excluir este produto?')) return;
+
+    const token = localStorage.getItem('token');
+    try {
+      await api.delete(`/products/${tenantId}/products/${productId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      alert('Produto excluído!');
+      fetchProducts();
+    } catch (err) {
+      console.error('Erro ao excluir produto:', err);
+    }
+  };
+
   return (
-    <div className="container mx-auto p-4 bg-[#f1faee] min-h-screen">
-      <h1 className="text-3xl font-bold text-[#e63946] mb-6 text-center">Administração de Pizzarias</h1>
-      
-      <form onSubmit={handleSubmit} className="mb-6 bg-white p-6 rounded-lg shadow-md">
-        <div className="mb-4">
-          <label className="block text-gray-700 font-bold mb-2">ID da Pizzaria (ex.: pizzaria-joao)</label>
-          <input
-            type="text"
-            value={tenantId}
-            onChange={(e) => setTenantId(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
-            className="w-full p-2 border rounded"
-            placeholder="Digite um ID único"
-            required
-          />
-          <p className="text-sm text-gray-500 mt-1">Use letras minúsculas e hífens, sem espaços.</p>
-        </div>
-        <div className="mb-4">
-          <label className="block text-gray-700 font-bold mb-2">Nome da Pizzaria</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full p-2 border rounded"
-            placeholder="Ex.: Pizzaria do João"
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-gray-700 font-bold mb-2">Descrição (opcional)</label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full p-2 border rounded"
-            placeholder="Descrição da pizzaria"
-          />
-        </div>
+    <div className="container mx-auto p-4">
+      <h2 className="text-2xl font-bold mb-4">Painel Administrativo</h2>
+
+      {/* Formulário para adicionar/editar produtos */}
+      <form onSubmit={handleSubmit} className="mb-6 bg-white p-4 shadow rounded">
+        <h3 className="text-xl mb-4">{editingProductId ? 'Editar Produto' : 'Novo Produto'}</h3>
+
+        <input
+          type="text"
+          placeholder="Nome"
+          name="name"
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+          required
+          className="block w-full mb-2 p-2 border rounded"
+        />
+
+        <textarea
+          placeholder="Descrição"
+          name="description"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          required
+          className="block w-full mb-2 p-2 border rounded"
+        />
+
+        <input
+          type="number"
+          placeholder="Preço"
+          name="price"
+          value={formData.price}
+          onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+          required
+          className="block w-full mb-2 p-2 border rounded"
+        />
+
+        <input
+          type="text"
+          placeholder="URL da Imagem"
+          name="imageUrl"
+          value={formData.imageUrl}
+          onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+          required
+          className="block w-full mb-4 p-2 border rounded"
+        />
+
         <button
           type="submit"
-          className="bg-[#e63946] text-white py-2 px-4 rounded hover:bg-red-700 transition"
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
         >
-          Cadastrar Pizzaria
+          {editingProductId ? 'Atualizar Produto' : 'Adicionar Produto'}
         </button>
       </form>
 
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">Pizzarias Cadastradas</h2>
-      {tenants.length === 0 ? (
-        <p className="text-gray-600">Nenhuma pizzaria cadastrada ainda.</p>
-      ) : (
-        <ul className="space-y-4">
-          {tenants.map((tenant) => (
-            <li key={tenant.tenantId} className="bg-white p-4 rounded-lg shadow-md">
-              <p><strong>ID:</strong> {tenant.tenantId}</p>
-              <p><strong>Nome:</strong> {tenant.name}</p>
-              {tenant.description && <p><strong>Descrição:</strong> {tenant.description}</p>}
-              <p><strong>Link:</strong> <a href={`/${tenant.tenantId}`} className="text-[#e63946] hover:underline">{`pizzadabia.netlify.app/${tenant.tenantId}`}</a></p>
-            </li>
-          ))}
-        </ul>
-      )}
+      {/* Lista de produtos */}
+      <div className="bg-white shadow rounded p-4">
+        <h3 className="text-xl mb-4">Produtos Cadastrados</h3>
+        {products.length === 0 ? (
+          <p>Nenhum produto cadastrado.</p>
+        ) : (
+          <ul>
+            {products.map((product) => (
+              <li key={product._id} className="mb-4 border-b pb-2">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="font-bold">{product.name}</p>
+                    <p>R$ {product.price}</p>
+                    <img src={product.imageUrl} alt={product.name} className="h-16 mt-2" />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleEdit(product)}
+                      className="bg-yellow-500 text-white px-2 py-1 rounded hover:bg-yellow-600 transition"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => handleDelete(product._id)}
+                      className="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 transition"
+                    >
+                      Excluir
+                    </button>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 };
