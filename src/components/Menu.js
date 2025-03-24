@@ -106,3 +106,4 @@ const Menu = ({ cart, setCart, setIsLoginOpen }) => {
 };
 
 export default Menu;
+ 
