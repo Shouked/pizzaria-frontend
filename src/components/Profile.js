@@ -1,49 +1,18 @@
-// src/components/Profile.js
-import React, { useState } from 'react';
-import api from '../services/api';
-import { useParams } from 'react-router-dom';
+
+import React from 'react';
+import { useTheme } from '../context/ThemeContext';
 
 const Profile = ({ user, setUser, handleLogout }) => {
-  const { tenantId } = useParams();
-  const [formData, setFormData] = useState({
-    name: user.name,
-    email: user.email
-  });
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSave = async () => {
-    const token = localStorage.getItem('token');
-    try {
-      const res = await api.put(`/user/${tenantId}/users/${user._id}`, formData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setUser(res.data);
-      alert('Perfil atualizado!');
-    } catch (err) {
-      console.error('Erro ao atualizar perfil:', err);
-    }
-  };
+  const { primaryColor } = useTheme();
 
   return (
-    <div>
-      <h2>Meu Perfil</h2>
-      <input
-        name="name"
-        value={formData.name}
-        onChange={handleChange}
-        placeholder="Nome"
-      />
-      <input
-        name="email"
-        value={formData.email}
-        onChange={handleChange}
-        placeholder="Email"
-      />
-      <button onClick={handleSave}>Salvar</button>
-      <button onClick={handleLogout}>Sair</button>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4" style={{ color: primaryColor }}>Meu Perfil</h1>
+      <div className="border p-4 rounded shadow mb-4">
+        <p><strong>Nome:</strong> {user.name}</p>
+        <p><strong>Email:</strong> {user.email}</p>
+      </div>
+      <button onClick={handleLogout} className="bg-red-500 text-white px-4 py-2 rounded">Sair</button>
     </div>
   );
 };

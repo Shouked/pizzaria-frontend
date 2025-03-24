@@ -1,43 +1,44 @@
-// src/components/OrderSummary.js
+
 import React from 'react';
-import api from '../services/api';
 import { useParams } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
+import api from '../services/api';
 
-const OrderSummary = ({ user, cart, setCart, setIsLoginOpen }) => {
+const OrderSummary = ({ cart, setCart, user, setIsLoginOpen }) => {
   const { tenantId } = useParams();
+  const { primaryColor } = useTheme();
 
-  const placeOrder = async () => {
+  const total = cart.reduce((acc, item) => acc + item.price, 0);
+
+  const handleOrder = async () => {
     if (!user) {
       setIsLoginOpen(true);
       return;
     }
 
-    const token = localStorage.getItem('token');
     try {
-      await api.post(`/orders/${tenantId}/orders`, {
-        items: cart.map(({ _id, quantity }) => ({ productId: _id, quantity })),
-        total: cart.reduce((acc, item) => acc + item.price * item.quantity, 0),
-      }, {
-        headers: { Authorization: `Bearer ${token}` },
+      await api.post(`/orders/${tenantId}/orders`, { items: cart }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
-      alert('Pedido realizado com sucesso!');
       setCart([]);
+      alert('Pedido realizado com sucesso!');
     } catch (err) {
-      console.error('Erro ao finalizar pedido:', err);
+      console.error('Erro ao fazer pedido:', err);
     }
   };
 
   return (
-    <div>
-      <h2>Resumo do Pedido</h2>
-      {cart.length === 0 && <p>Carrinho vazio!</p>}
-      {cart.map((item) => (
-        <div key={item._id}>
-          {item.name} - {item.quantity}x
-        </div>
-      ))}
-      <p>Total: R$ {cart.reduce((acc, item) => acc + item.price * item.quantity, 0)}</p>
-      <button onClick={placeOrder}>Finalizar Pedido</button>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4" style={{ color: primaryColor }}>Resumo do Pedido</h1>
+      <ul>
+        {cart.map((item, index) => (
+          <li key={index} className="border p-4 rounded shadow mb-2">
+            {item.name} - R$ {item.price.toFixed(2)}
+          </li>
+        ))}
+      </ul>
+      <p className="font-bold mt-4">Total: R$ {total.toFixed(2)}</p>
+      <button onClick={handleOrder} className="mt-4 bg-green-500 text-white px-4 py-2 rounded">Finalizar Pedido</button>
     </div>
   );
 };

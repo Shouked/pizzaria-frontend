@@ -1,49 +1,37 @@
-// src/components/Register.js
+
 import React, { useState } from 'react';
 import api from '../services/api';
 import { useParams } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 
 const Register = ({ setIsRegisterOpen, setIsLoginOpen, setIsLoggedIn, setUser }) => {
   const { tenantId } = useParams();
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-  });
-  const [error, setError] = useState('');
+  const { primaryColor } = useTheme();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      setError('Senhas não coincidem.');
-      return;
-    }
-
     try {
-      const response = await api.post(`/auth/${tenantId}/register`, formData);
-      localStorage.setItem('token', response.data.token);
-      setUser(response.data.user);
+      const res = await api.post(`/auth/${tenantId}/register`, { name, email, password });
+      const { token } = res.data;
+      localStorage.setItem('token', token);
       setIsLoggedIn(true);
+      setUser(res.data.user);
       setIsRegisterOpen(false);
     } catch (err) {
-      setError(err.response?.data?.message || 'Erro no cadastro.');
+      console.error('Erro no registro:', err);
     }
   };
 
   return (
     <div>
-      <h2>Cadastrar</h2>
-      {error && <p>{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <input name="name" onChange={handleChange} required placeholder="Nome" />
-        <input type="email" name="email" onChange={handleChange} required placeholder="Email" />
-        <input type="password" name="password" onChange={handleChange} required placeholder="Senha" />
-        <input type="password" name="confirmPassword" onChange={handleChange} required placeholder="Confirmar Senha" />
+      <h2 className="text-lg font-bold mb-4" style={{ color: primaryColor }}>Registrar</h2>
+      <form onSubmit={handleRegister}>
+        <input type="text" placeholder="Nome" value={name} onChange={(e) => setName(e.target.value)} required />
+        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        <input type="password" placeholder="Senha" value={password} onChange={(e) => setPassword(e.target.value)} required />
         <button type="submit">Registrar</button>
       </form>
     </div>
