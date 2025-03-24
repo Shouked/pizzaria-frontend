@@ -1,44 +1,77 @@
-
+// src/components/OrderSummary.js
 import React from 'react';
+import axios from 'axios';
 import { useParams } from 'react-router-dom';
-import { useTheme } from '../context/ThemeContext';
-import api from '../services/api';
 
-const OrderSummary = ({ cart, setCart, user, setIsLoginOpen }) => {
+const OrderSummary = ({ user, cart, setCart, setIsLoginOpen }) => {
   const { tenantId } = useParams();
-  const { primaryColor } = useTheme();
 
-  const total = cart.reduce((acc, item) => acc + item.price, 0);
-
-  const handleOrder = async () => {
-    if (!user) {
+  const handlePlaceOrder = async () => {
+    const token = localStorage.getItem('token');
+    if (!token || !user) {
       setIsLoginOpen(true);
       return;
     }
 
     try {
-      await api.post(`/orders/${tenantId}/orders`, { items: cart }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      setCart([]);
+      const orderPayload = {
+        tenantId: user.tenantId,
+        userId: user._id,
+        items: cart.map(item => ({
+          productId: item._id,
+          quantity: item.quantity
+        })),
+        total: cart.reduce((acc, item) => acc + item.price * item.quantity, 0),
+      };
+
+      const response = await axios.post(
+        `https://pizzaria-backend-e254.onrender.com/api/orders/${tenantId}`,
+        orderPayload,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      console.log('Pedido criado com sucesso:', response.data);
       alert('Pedido realizado com sucesso!');
-    } catch (err) {
-      console.error('Erro ao fazer pedido:', err);
+      setCart([]);
+    } catch (error) {
+      console.error('Erro ao enviar pedido:', error);
+      alert('Erro ao enviar pedido.');
     }
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4" style={{ color: primaryColor }}>Resumo do Pedido</h1>
-      <ul>
-        {cart.map((item, index) => (
-          <li key={index} className="border p-4 rounded shadow mb-2">
-            {item.name} - R$ {item.price.toFixed(2)}
-          </li>
-        ))}
-      </ul>
-      <p className="font-bold mt-4">Total: R$ {total.toFixed(2)}</p>
-      <button onClick={handleOrder} className="mt-4 bg-green-500 text-white px-4 py-2 rounded">Finalizar Pedido</button>
+    <div className="p-4">
+      <h2 className="text-xl font-bold text-[#e63946] mb-4">Resumo do Pedido</h2>
+
+      {cart.length === 0 ? (
+        <p className="text-gray-600">Seu carrinho está vazio.</p>
+      ) : (
+        <div className="space-y-4">
+          {cart.map(item => (
+            <div key={item._id} className="flex justify-between items-center border-b pb-2">
+              <div>
+                <h3 className="font-semibold text-[#1d3557]">{item.name}</h3>
+                <p className="text-sm text-gray-600">Qtd: {item.quantity}</p>
+              </div>
+              <span className="text-[#e63946] font-bold">
+                R$ {(item.price * item.quantity).toFixed(2)}
+              </span>
+            </div>
+          ))}
+
+          <div className="text-right mt-4">
+            <p className="text-lg font-semibold text-[#1d3557]">
+              Total: R$ {cart.reduce((acc, item) => acc + item.price * item.quantity, 0).toFixed(2)}
+            </p>
+            <button
+              onClick={handlePlaceOrder}
+              className="mt-2 bg-[#e63946] text-white px-6 py-2 rounded hover:bg-red-600"
+            >
+              Finalizar Pedido
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
