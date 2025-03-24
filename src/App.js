@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate, BrowserRouter as Router } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { AnimatePresence, motion } from 'framer-motion';
 
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import api from './services/api';
@@ -14,7 +15,7 @@ import Register from './components/Register';
 import Profile from './components/Profile';
 import Admin from './components/Admin';
 
-// ProtectedRoute com lógica de autenticação
+// Rota protegida
 const ProtectedRoute = ({ user, children, setIsLoginOpen, tenantId }) => {
   const location = useLocation();
 
@@ -117,6 +118,7 @@ const AppContent = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* HEADER */}
       <header className="bg-white shadow-md w-full">
         <div className="relative w-full h-36 sm:h-40 md:h-48">
           {logoUrl ? (
@@ -136,44 +138,62 @@ const AppContent = () => {
       </header>
 
       {/* LOGIN MODAL */}
-      {isLoginOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-          onClick={() => setIsLoginOpen(false)}
-        >
-          <div
-            className="bg-white p-6 rounded-lg w-11/12 max-w-md max-h-[80vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
+      <AnimatePresence>
+        {isLoginOpen && (
+          <motion.div
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            onClick={() => setIsLoginOpen(false)}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
           >
-            <Login
-              setIsLoginOpen={setIsLoginOpen}
-              setIsRegisterOpen={setIsRegisterOpen}
-              setUser={setUser}
-              cart={cart}
-              navigate={navigate}
-            />
-          </div>
-        </div>
-      )}
+            <motion.div
+              className="bg-white p-6 rounded-lg w-11/12 max-w-md max-h-[80vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Login
+                setIsLoginOpen={setIsLoginOpen}
+                setIsRegisterOpen={setIsRegisterOpen}
+                setUser={setUser}
+                cart={cart}
+                navigate={navigate}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* REGISTER MODAL */}
-      {isRegisterOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-          onClick={() => setIsRegisterOpen(false)}
-        >
-          <div
-            className="bg-white p-6 rounded-lg w-11/12 max-w-lg max-h-[80vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
+      <AnimatePresence>
+        {isRegisterOpen && (
+          <motion.div
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            onClick={() => setIsRegisterOpen(false)}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
           >
-            <Register
-              setIsRegisterOpen={setIsRegisterOpen}
-              setIsLoginOpen={setIsLoginOpen}
-              setUser={setUser}
-            />
-          </div>
-        </div>
-      )}
+            <motion.div
+              className="bg-white p-6 rounded-lg w-11/12 max-w-lg max-h-[80vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Register
+                setIsRegisterOpen={setIsRegisterOpen}
+                setIsLoginOpen={setIsLoginOpen}
+                setUser={setUser}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <main className="flex-1 pb-16">
         <Routes>
