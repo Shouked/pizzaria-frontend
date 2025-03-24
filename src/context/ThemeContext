@@ -3,17 +3,24 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import api from '../services/api';
 import { useParams } from 'react-router-dom';
 
+// Cria o contexto
 const ThemeContext = createContext();
 
-export const useTheme = () => useContext(ThemeContext);
+// Named export do hook useTheme
+export const useTheme = () => {
+  return useContext(ThemeContext);
+};
 
+// ThemeProvider para envolver o app
 export const ThemeProvider = ({ children }) => {
   const { tenantId } = useParams();
+
   const [theme, setTheme] = useState({
     primaryColor: '#E63946',
     secondaryColor: '#F1FAEE',
     logoUrl: ''
   });
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,24 +28,29 @@ export const ThemeProvider = ({ children }) => {
       try {
         const res = await api.get(`/tenants/${tenantId}`);
         const tenant = res.data;
+
         setTheme({
           primaryColor: tenant.primaryColor || '#E63946',
           secondaryColor: tenant.secondaryColor || '#F1FAEE',
           logoUrl: tenant.logoUrl || ''
         });
-        setLoading(false);
       } catch (err) {
         console.error('Erro ao carregar o tema:', err);
+      } finally {
         setLoading(false);
       }
     };
 
     if (tenantId) {
       fetchTenant();
+    } else {
+      setLoading(false);
     }
   }, [tenantId]);
 
-  if (loading) return <div>Carregando tema...</div>;
+  if (loading) {
+    return <div>Carregando tema...</div>;
+  }
 
   return (
     <ThemeContext.Provider value={theme}>
