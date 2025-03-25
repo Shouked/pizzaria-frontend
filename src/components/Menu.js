@@ -1,13 +1,14 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../services/api';
+import { toast } from 'react-toastify';
 
 const Menu = ({ cart, setCart, setIsLoginOpen }) => {
   const { tenantId } = useParams();
   const [products, setProducts] = useState([]);
   const [groupedProducts, setGroupedProducts] = useState({});
-  const [activeCategory, setActiveCategory] = useState(null);
-  const categoryRefs = useRef({});
+  const [activeCategory, setActiveCategory] = useState('');
+  const sectionRefs = useRef({});
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -16,7 +17,7 @@ const Menu = ({ cart, setCart, setIsLoginOpen }) => {
         const fetchedProducts = res.data;
 
         const grouped = fetchedProducts.reduce((acc, product) => {
-          const category = product.category || 'Outros';
+          const category = product.category?.toLowerCase() || 'outros';
           if (!acc[category]) acc[category] = [];
           acc[category].push(product);
           return acc;
@@ -24,6 +25,7 @@ const Menu = ({ cart, setCart, setIsLoginOpen }) => {
 
         setGroupedProducts(grouped);
         setProducts(fetchedProducts);
+        setActiveCategory(Object.keys(grouped)[0]);
       } catch (error) {
         console.error('Erro ao carregar produtos:', error);
       }
@@ -34,26 +36,11 @@ const Menu = ({ cart, setCart, setIsLoginOpen }) => {
     }
   }, [tenantId]);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollTop = window.scrollY + 130; // ajuste para compensar a barra fixa
-      const entries = Object.entries(categoryRefs.current);
-      for (let i = 0; i < entries.length; i++) {
-        const [category, ref] = entries[i];
-        if (ref?.offsetTop <= scrollTop) {
-          setActiveCategory(category);
-        }
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   const scrollToCategory = (category) => {
-    const section = categoryRefs.current[category];
-    if (section) {
-      window.scrollTo({ top: section.offsetTop - 120, behavior: 'smooth' });
+    const ref = sectionRefs.current[category];
+    if (ref) {
+      ref.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setActiveCategory(category);
     }
   };
 
@@ -68,60 +55,65 @@ const Menu = ({ cart, setCart, setIsLoginOpen }) => {
     }
 
     setCart(updatedCart);
+    toast.success(`${product.name} adicionado ao carrinho!`);
   };
 
   return (
-    <div className="pb-24">
-      {/* Barra Fixa de Categorias */}
-      <div className="sticky top-[5.5rem] z-40 bg-[#f1faee] overflow-x-auto whitespace-nowrap border-b border-gray-300 shadow-sm">
-        <div className="flex space-x-2 px-4 py-2">
+    <div className="p-4 pt-2 max-w-4xl mx-auto">
+      <h2 className="text-xl font-bold text-center text-[#e63946] mb-2">Cardápio</h2>
+
+      {/* Barra de Categorias */}
+      <div className="sticky top-0 bg-[#f1faee] py-2 z-40 shadow-sm">
+        <div className="flex gap-2 overflow-x-auto px-2 justify-center md:justify-center scrollbar-hide">
           {Object.keys(groupedProducts).map((category) => (
             <button
               key={category}
               onClick={() => scrollToCategory(category)}
-              className={`px-4 py-1 rounded-full border ${
+              className={`whitespace-nowrap border px-4 py-1 rounded-full text-sm capitalize transition-all ${
                 activeCategory === category
                   ? 'bg-[#e63946] text-white border-[#e63946]'
                   : 'bg-white text-[#e63946] border-[#e63946]'
-              } transition whitespace-nowrap text-sm font-semibold`}
+              }`}
             >
-              {category}
+              {category.charAt(0).toUpperCase() + category.slice(1)}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="p-4 max-w-4xl mx-auto">
-        <h2 className="text-xl font-bold text-center text-[#e63946] mb-4">Cardápio</h2>
-
-        {Object.keys(groupedProducts).length === 0 && (
-          <p className="text-center text-gray-500">Nenhum produto disponível no momento.</p>
-        )}
-
+      {/* Produtos por Categoria */}
+      <div className="space-y-6 mt-4">
         {Object.entries(groupedProducts).map(([category, items]) => (
           <div
             key={category}
-            ref={(el) => (categoryRefs.current[category] = el)}
-            className="mb-6 scroll-mt-28"
+            ref={(el) => (sectionRefs.current[category] = el)}
           >
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">{category}</h3>
+            <h3 className="text-lg font-semibold text-gray-700 mb-2 capitalize">
+              {category}
+            </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {items.map((product) => (
                 <div
                   key={product._id}
                   className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition"
                 >
-                  <img
-                    src={product.image || product.imageUrl}
+                  {/* <img
+                    src={product.imageUrl}
                     alt={product.name}
                     className="w-full h-40 object-cover rounded mb-2"
-                  />
-                  <h4 className="text-md font-bold">{product.name}</h4>
-                  <p className="text-sm text-gray-600">{product.description}</p>
-                  <p className="text-sm font-semibold text-[#e63946]">R$ {product.price.toFixed(2)}</p>
+                  /> */}
+                  <h4 className="text-md font-bold text-[#1d3557] mb-1">
+                    {product.name}
+                  </h4>
+                  <p className="text-sm text-gray-600 mb-1">
+                    {product.description}
+                  </p>
+                  <p className="text-sm font-semibold text-[#e63946] mb-2">
+                    R$ {product.price.toFixed(2)}
+                  </p>
                   <button
                     onClick={() => addToCart(product)}
-                    className="mt-2 bg-[#e63946] text-white px-4 py-1 rounded hover:bg-red-600 transition text-sm"
+                    className="bg-[#e63946] text-white px-4 py-1 rounded hover:bg-red-600 transition text-sm"
                   >
                     Adicionar
                   </button>
