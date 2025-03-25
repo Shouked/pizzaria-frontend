@@ -1,12 +1,9 @@
-// src/components/Login.js
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
 import api from '../services/api';
 
-const Login = ({ setIsLoginOpen, setIsLoggedIn, setUser, navigate }) => {
+const Login = ({ tenantId, setIsLoginOpen, setIsLoggedIn, setUser, navigate }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { tenantId } = useParams(); // Captura tenantId da URL
 
   const handleLogin = async () => {
     try {
