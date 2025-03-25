@@ -89,17 +89,22 @@ const Menu = ({ cart, setCart, setIsLoginOpen }) => {
   };
 
   return (
-    <div ref={containerRef} className="max-w-4xl mx-auto">
-      <div className="sticky top-0 z-40 bg-white shadow-sm overflow-x-auto no-scrollbar border-b border-gray-200"
-           ref={categoryBarRef}>
-        <div className="flex whitespace-nowrap px-2">
+    <div ref={containerRef} className="max-w-5xl mx-auto px-4 py-6">
+      {/* Barra de Categorias */}
+      <div
+        className="sticky top-0 z-40 bg-white shadow-lg rounded-b-lg overflow-x-auto no-scrollbar border-b border-gray-100"
+        ref={categoryBarRef}
+      >
+        <div className="flex whitespace-nowrap px-4 py-3">
           {Object.keys(groupedProducts).map((category) => (
             <button
               key={category}
               id={`category-btn-${category}`}
               onClick={() => scrollToCategory(category)}
-              className={`px-3 py-2 text-sm font-medium capitalize border-b-2 transition-all duration-200 ${
-                activeCategory === category ? 'text-[#e63946] border-[#e63946]' : 'text-gray-500 border-transparent'
+              className={`px-4 py-2 mx-1 text-sm font-semibold rounded-full transition-all duration-300 ${
+                activeCategory === category
+                  ? 'bg-[#e63946] text-white shadow-md'
+                  : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
               {category}
@@ -108,33 +113,38 @@ const Menu = ({ cart, setCart, setIsLoginOpen }) => {
         </div>
       </div>
 
-      {Object.entries(groupedProducts).map(([category, items]) => (
-        <div
-          key={category}
-          ref={(el) => (categoryRefs.current[category] = el)}
-          className="px-4 py-6"
-        >
-          <h3 className="text-lg font-semibold text-gray-700 mb-3 capitalize">{category}</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4">
-            {items.map((product) => (
-              <div
-                key={product._id}
-                className="bg-white rounded-lg shadow p-4 hover:shadow-md transition"
-              >
-                <h4 className="text-md font-bold mb-1">{product.name}</h4>
-                <p className="text-sm text-gray-600 mb-2">{product.description}</p>
-                <p className="text-sm font-semibold text-[#e63946] mb-2">R$ {product.price.toFixed(2)}</p>
-                <button
-                  onClick={() => addToCart(product)}
-                  className="bg-[#e63946] text-white px-4 py-1 rounded hover:bg-red-600 text-sm"
+      {/* Seções de Produtos */}
+      {Object.entries(groupedProducts).length === 0 ? (
+        <p className="text-center text-gray-500 mt-8 text-lg">Nenhum produto disponível no momento.</p>
+      ) : (
+        Object.entries(groupedProducts).map(([category, items]) => (
+          <div
+            key={category}
+            ref={(el) => (categoryRefs.current[category] = el)}
+            className="py-8"
+          >
+            <h3 className="text-2xl font-bold text-gray-800 mb-6 capitalize tracking-wide">{category}</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {items.map((product) => (
+                <div
+                  key={product._id}
+                  className="bg-white rounded-xl shadow-md p-5 hover:shadow-xl transition-all duration-300 flex flex-col"
                 >
-                  Adicionar
-                </button>
-              </div>
-            ))}
+                  <h4 className="text-lg font-semibold text-gray-900 mb-2">{product.name}</h4>
+                  <p className="text-sm text-gray-500 mb-3 flex-grow">{product.description}</p>
+                  <p className="text-lg font-bold text-[#e63946] mb-4">R$ {product.price.toFixed(2)}</p>
+                  <button
+                    onClick={() => addToCart(product)}
+                    className="mt-auto bg-[#e63946] text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all duration-200 text-sm font-medium"
+                  >
+                    Adicionar ao Carrinho
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
+        ))
+      )}
     </div>
   );
 };
