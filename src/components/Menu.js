@@ -41,10 +41,9 @@ const Menu = ({ cart, setCart, setIsLoginOpen }) => {
 
   const handleScroll = () => {
     const scrollY = window.scrollY;
-    const headerHeight = 160; // Ajustado para o banner + margem (160px em mobile, ajuste conforme necessário)
     const barOffset = 48; // Altura da barra de categorias
     for (const [category, ref] of Object.entries(categoryRefs.current)) {
-      if (ref && ref.offsetTop - headerHeight - barOffset <= scrollY) {
+      if (ref && ref.offsetTop - barOffset <= scrollY) {
         setActiveCategory(category);
         scrollCategoryIntoView(category);
       }
@@ -70,7 +69,7 @@ const Menu = ({ cart, setCart, setIsLoginOpen }) => {
   const scrollToCategory = (category) => {
     const ref = categoryRefs.current[category];
     if (ref) {
-      window.scrollTo({ top: ref.offsetTop - 208, behavior: 'smooth' }); // Ajustado para banner + barra
+      window.scrollTo({ top: ref.offsetTop - 48, behavior: 'smooth' }); // Apenas a altura da barra
     }
   };
 
@@ -89,10 +88,7 @@ const Menu = ({ cart, setCart, setIsLoginOpen }) => {
   };
 
   return (
-    <div ref={containerRef} className="max-w-5xl mx-auto">
-      {/* Espaço reservado para o banner */}
-      <div className="h-40 sm:h-48 md:h-56" /> {/* Altura fixa correspondente ao banner */}
-
+    <div ref={containerRef} className="w-full">
       {/* Barra de Categorias */}
       <div
         className="sticky top-0 z-40 bg-white border-b border-gray-100 overflow-x-auto no-scrollbar w-full shadow-sm"
@@ -124,7 +120,7 @@ const Menu = ({ cart, setCart, setIsLoginOpen }) => {
           <div
             key={category}
             ref={(el) => (categoryRefs.current[category] = el)}
-            className="px-4 py-8"
+            className="px-4 py-8 max-w-5xl mx-auto"
           >
             <h3 className="text-2xl font-bold text-gray-800 mb-6 capitalize tracking-wide">{category}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
