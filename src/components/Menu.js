@@ -41,8 +41,8 @@ const Menu = ({ cart, setCart, setIsLoginOpen }) => {
 
   const handleScroll = () => {
     const scrollY = window.scrollY;
-    const headerHeight = 144;
-    const barOffset = 56;
+    const headerHeight = 144; // Ajustado para o banner
+    const barOffset = 48; // Altura da barra de categorias
     for (const [category, ref] of Object.entries(categoryRefs.current)) {
       if (ref && ref.offsetTop - headerHeight - barOffset <= scrollY) {
         setActiveCategory(category);
@@ -70,7 +70,7 @@ const Menu = ({ cart, setCart, setIsLoginOpen }) => {
   const scrollToCategory = (category) => {
     const ref = categoryRefs.current[category];
     if (ref) {
-      window.scrollTo({ top: ref.offsetTop - 144, behavior: 'smooth' });
+      window.scrollTo({ top: ref.offsetTop - 192, behavior: 'smooth' }); // Ajustado para incluir a barra
     }
   };
 
@@ -89,22 +89,22 @@ const Menu = ({ cart, setCart, setIsLoginOpen }) => {
   };
 
   return (
-    <div ref={containerRef} className="max-w-5xl mx-auto px-4 py-6">
+    <div ref={containerRef} className="max-w-5xl mx-auto">
       {/* Barra de Categorias */}
       <div
-        className="sticky top-0 z-40 bg-white shadow-lg rounded-b-lg overflow-x-auto no-scrollbar border-b border-gray-100"
+        className="sticky top-[144px] z-40 bg-white border-b border-gray-100 overflow-x-auto no-scrollbar w-full" // Encostada no banner, largura total
         ref={categoryBarRef}
       >
-        <div className="flex whitespace-nowrap px-4 py-3">
+        <div className="flex whitespace-nowrap px-4 py-2">
           {Object.keys(groupedProducts).map((category) => (
             <button
               key={category}
               id={`category-btn-${category}`}
               onClick={() => scrollToCategory(category)}
-              className={`px-4 py-2 mx-1 text-sm font-semibold rounded-full transition-all duration-300 ${
+              className={`px-4 py-2 text-sm font-medium capitalize transition-all duration-200 ${
                 activeCategory === category
-                  ? 'bg-[#e63946] text-white shadow-md'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? 'text-gray-900 border-b-2 border-[#e63946]'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               {category}
@@ -115,13 +115,13 @@ const Menu = ({ cart, setCart, setIsLoginOpen }) => {
 
       {/* Seções de Produtos */}
       {Object.entries(groupedProducts).length === 0 ? (
-        <p className="text-center text-gray-500 mt-8 text-lg">Nenhum produto disponível no momento.</p>
+        <p className="text-center text-gray-500 mt-8 text-lg px-4">Nenhum produto disponível no momento.</p>
       ) : (
         Object.entries(groupedProducts).map(([category, items]) => (
           <div
             key={category}
             ref={(el) => (categoryRefs.current[category] = el)}
-            className="py-8"
+            className="px-4 py-8"
           >
             <h3 className="text-2xl font-bold text-gray-800 mb-6 capitalize tracking-wide">{category}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
