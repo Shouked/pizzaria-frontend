@@ -96,7 +96,7 @@ const Menu = ({ cart, setCart, setIsLoginOpen }) => {
     <div ref={containerRef} className="w-full">
       {/* Barra de Categorias */}
       <div
-        className="sticky top-0 z-40 bg-white border-b border-gray-100 overflow-x-auto no-scrollbar w-full shadow-sm md:max-w-md md:mx-auto"
+        className="sticky top-0 z-40 bg-white border-b border-gray-100 overflow-x-auto no-scrollbar w-full md:max-w-5xl md:mx-auto"
         ref={categoryBarRef}
       >
         <div className="flex whitespace-nowrap px-4 py-2">
