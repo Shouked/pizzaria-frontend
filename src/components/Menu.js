@@ -41,7 +41,7 @@ const Menu = ({ cart, setCart, setIsLoginOpen }) => {
 
   const handleScroll = () => {
     const scrollY = window.scrollY;
-    const headerHeight = 144; // Ajustado para o banner
+    const headerHeight = 160; // Ajustado para o banner + margem (160px em mobile, ajuste conforme necessário)
     const barOffset = 48; // Altura da barra de categorias
     for (const [category, ref] of Object.entries(categoryRefs.current)) {
       if (ref && ref.offsetTop - headerHeight - barOffset <= scrollY) {
@@ -70,7 +70,7 @@ const Menu = ({ cart, setCart, setIsLoginOpen }) => {
   const scrollToCategory = (category) => {
     const ref = categoryRefs.current[category];
     if (ref) {
-      window.scrollTo({ top: ref.offsetTop - 192, behavior: 'smooth' }); // Ajustado para incluir a barra
+      window.scrollTo({ top: ref.offsetTop - 208, behavior: 'smooth' }); // Ajustado para banner + barra
     }
   };
 
@@ -90,9 +90,12 @@ const Menu = ({ cart, setCart, setIsLoginOpen }) => {
 
   return (
     <div ref={containerRef} className="max-w-5xl mx-auto">
+      {/* Espaço reservado para o banner */}
+      <div className="h-40 sm:h-48 md:h-56" /> {/* Altura fixa correspondente ao banner */}
+
       {/* Barra de Categorias */}
       <div
-        className="sticky top-[144px] z-40 bg-white border-b border-gray-100 overflow-x-auto no-scrollbar w-full" // Encostada no banner, largura total
+        className="sticky top-0 z-40 bg-white border-b border-gray-100 overflow-x-auto no-scrollbar w-full shadow-sm"
         ref={categoryBarRef}
       >
         <div className="flex whitespace-nowrap px-4 py-2">
