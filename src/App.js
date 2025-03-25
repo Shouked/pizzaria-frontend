@@ -36,6 +36,7 @@ function App() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [cart, setCart] = useState([]);
+  const [isNavLoading, setIsNavLoading] = useState(false); // Estado para carregamento da navegação
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -89,6 +90,12 @@ function App() {
     navigate('/');
   };
 
+  const handleNavigation = (path) => {
+    setIsNavLoading(true);
+    navigate(path);
+    setTimeout(() => setIsNavLoading(false), 1000); // Simula carregamento (ajuste conforme necessário)
+  };
+
   const NavigationBar = () => {
     if (!currentTenantId) return null;
     const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
@@ -96,31 +103,47 @@ function App() {
     return (
       <nav className="bg-white p-3 shadow-lg fixed bottom-0 left-0 w-full z-50 rounded-t-xl border-t border-gray-100">
         <div className="container mx-auto flex justify-around max-w-md">
-          <button onClick={() => navigate(`/${currentTenantId}`)} className="text-[#e63946] flex flex-col items-center text-xs font-medium hover:text-red-700 transition">
+          <button
+            onClick={() => handleNavigation(`/${currentTenantId}`)}
+            className="text-[#e63946] flex flex-col items-center text-xs font-medium hover:text-red-700 transition"
+            disabled={isNavLoading}
+          >
             <svg className="h-6 w-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
-            Início
+            {isNavLoading ? 'Carregando...' : 'Início'}
           </button>
-          <button onClick={() => navigate(`/${currentTenantId}/orders`)} className="text-[#e63946] flex flex-col items-center text-xs font-medium hover:text-red-700 transition">
+          <button
+            onClick={() => handleNavigation(`/${currentTenantId}/orders`)}
+            className="text-[#e63946] flex flex-col items-center text-xs font-medium hover:text-red-700 transition"
+            disabled={isNavLoading}
+          >
             <svg className="h-6 w-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-            Pedidos
+            {isNavLoading ? 'Carregando...' : 'Pedidos'}
           </button>
-          <button onClick={() => navigate(`/${currentTenantId}/profile`)} className="text-[#e63946] flex flex-col items-center text-xs font-medium hover:text-red-700 transition">
+          <button
+            onClick={() => handleNavigation(`/${currentTenantId}/profile`)}
+            className="text-[#e63946] flex flex-col items-center text-xs font-medium hover:text-red-700 transition"
+            disabled={isNavLoading}
+          >
             <svg className="h-6 w-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
-            Perfil
+            {isNavLoading ? 'Carregando...' : 'Perfil'}
           </button>
-          <button onClick={() => navigate(`/${currentTenantId}/order-summary`)} className="text-[#e63946] flex flex-col items-center text-xs font-medium hover:text-red-700 transition relative">
+          <button
+            onClick={() => handleNavigation(`/${currentTenantId}/order-summary`)}
+            className="text-[#e63946] flex flex-col items-center text-xs font-medium hover:text-red-700 transition relative"
+            disabled={isNavLoading}
+          >
             <svg className="h-6 w-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            Carrinho
-            {cartCount > 0 && (
-              <span className="absolute top-0 right-0 bg-[#e63946] text-white rounded-full text-[10px] px-2 py-1 font-bold">
+            {isNavLoading ? 'Carregando...' : 'Carrinho'}
+            {cartCount > 0 && !isNavLoading && (
+              <span className="absolute top-1 right-1 bg-[#e63946] text-white rounded-full text-[8px] px-1 py-0.5 font-bold">
                 {cartCount}
               </span>
             )}
