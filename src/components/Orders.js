@@ -26,7 +26,7 @@ const Orders = ({ user, setIsLoginOpen }) => {
         );
         setOrders(response.data);
       } catch (error) {
-        console.error('Erro ao buscar pedidos:', error);
+        console.error('Erro ao buscar pedidos:', error.response?.data || error.message);
         alert('Erro ao carregar seus pedidos.');
       }
     };
@@ -48,8 +48,8 @@ const Orders = ({ user, setIsLoginOpen }) => {
             <div key={order._id} className="border p-4 rounded shadow-sm bg-white">
               <h3 className="font-semibold text-[#1d3557] mb-2">Pedido #{order._id.slice(-6)}</h3>
               <ul className="mb-2">
-                {order.items.map(item => (
-                  <li key={item.productId} className="text-sm text-gray-700">
+                {order.items.map((item, index) => (
+                  <li key={index} className="text-sm text-gray-700">
                     {item.quantity}x {item.name || 'Produto'}
                   </li>
                 ))}
