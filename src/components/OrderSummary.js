@@ -1,4 +1,3 @@
-// src/components/OrderSummary.js
 import React from 'react';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
@@ -10,6 +9,11 @@ const OrderSummary = ({ user, cart, setCart, setIsLoginOpen }) => {
     const token = localStorage.getItem('token');
     if (!token || !user) {
       setIsLoginOpen(true);
+      return;
+    }
+
+    if (cart.length === 0) {
+      alert('Seu carrinho está vazio. Adicione itens antes de finalizar o pedido.');
       return;
     }
 
@@ -25,7 +29,7 @@ const OrderSummary = ({ user, cart, setCart, setIsLoginOpen }) => {
       };
 
       const response = await axios.post(
-        `https://pizzaria-backend-e254.onrender.com/api/orders/${tenantId}`,
+        `https://pizzaria-backend-e254.onrender.com/api/orders/${tenantId}/orders`, // Corrigido para incluir "/orders"
         orderPayload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -35,7 +39,7 @@ const OrderSummary = ({ user, cart, setCart, setIsLoginOpen }) => {
       setCart([]);
     } catch (error) {
       console.error('Erro ao enviar pedido:', error.response?.data || error.message);
-      alert('Erro ao enviar pedido.');
+      alert('Erro ao enviar pedido: ' + (error.response?.data?.message || error.message));
     }
   };
 
