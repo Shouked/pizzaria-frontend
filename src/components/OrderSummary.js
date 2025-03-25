@@ -15,7 +15,7 @@ const OrderSummary = ({ user, cart, setCart, setIsLoginOpen }) => {
 
     try {
       const orderPayload = {
-        tenantId: user.tenantId,
+        tenantId,
         userId: user._id,
         items: cart.map(item => ({
           productId: item._id,
@@ -34,7 +34,7 @@ const OrderSummary = ({ user, cart, setCart, setIsLoginOpen }) => {
       alert('Pedido realizado com sucesso!');
       setCart([]);
     } catch (error) {
-      console.error('Erro ao enviar pedido:', error);
+      console.error('Erro ao enviar pedido:', error.response?.data || error.message);
       alert('Erro ao enviar pedido.');
     }
   };
