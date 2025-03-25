@@ -8,12 +8,14 @@ const Menu = ({ cart, setCart, setIsLoginOpen }) => {
   const [products, setProducts] = useState([]);
   const [groupedProducts, setGroupedProducts] = useState({});
   const [activeCategory, setActiveCategory] = useState('');
+  const [isLoading, setIsLoading] = useState(false); // Estado para carregamento
   const containerRef = useRef(null);
   const categoryRefs = useRef({});
   const categoryBarRef = useRef(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
+      setIsLoading(true); // Inicia o carregamento
       try {
         const res = await api.get(`/products/${tenantId}/products`);
         const fetchedProducts = res.data;
@@ -31,6 +33,9 @@ const Menu = ({ cart, setCart, setIsLoginOpen }) => {
         setActiveCategory(Object.keys(grouped)[0] || '');
       } catch (error) {
         console.error('Erro ao carregar produtos:', error);
+        toast.error('Erro ao carregar o cardápio.');
+      } finally {
+        setIsLoading(false); // Termina o carregamento
       }
     };
 
@@ -91,7 +96,7 @@ const Menu = ({ cart, setCart, setIsLoginOpen }) => {
     <div ref={containerRef} className="w-full">
       {/* Barra de Categorias */}
       <div
-        className="sticky top-0 z-40 bg-white border-b border-gray-100 overflow-x-auto no-scrollbar w-full shadow-sm"
+        className="sticky top-0 z-40 bg-white border-b border-gray-100 overflow-x-auto no-scrollbar w-full shadow-sm md:max-w-md md:mx-auto"
         ref={categoryBarRef}
       >
         <div className="flex whitespace-nowrap px-4 py-2">
@@ -113,7 +118,9 @@ const Menu = ({ cart, setCart, setIsLoginOpen }) => {
       </div>
 
       {/* Seções de Produtos */}
-      {Object.entries(groupedProducts).length === 0 ? (
+      {isLoading ? (
+        <p className="text-center text-gray-500 mt-8 text-lg px-4">Carregando...</p>
+      ) : Object.entries(groupedProducts).length === 0 ? (
         <p className="text-center text-gray-500 mt-8 text-lg px-4">Nenhum produto disponível no momento.</p>
       ) : (
         Object.entries(groupedProducts).map(([category, items]) => (
