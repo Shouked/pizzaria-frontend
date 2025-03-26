@@ -9,9 +9,9 @@ const Register = ({ setIsRegisterOpen, setIsLoginOpen, setIsLoggedIn, setUser })
     name: '',
     email: '',
     phone: '',
-    password: '',
+    street: '',
     zip: '',
-    street: ''
+    password: ''
   });
 
   const handleChange = (e) => {
@@ -40,10 +40,9 @@ const Register = ({ setIsRegisterOpen, setIsLoginOpen, setIsLoggedIn, setUser })
         email: form.email,
         phone: form.phone,
         password: form.password,
-        tenantId,
         address: {
           zip: form.zip,
-          street: form.street,
+          street: form.street
         }
       };
 
@@ -94,21 +93,21 @@ const Register = ({ setIsRegisterOpen, setIsLoginOpen, setIsLoggedIn, setUser })
       />
 
       <input
+        name="street"
+        type="text"
+        placeholder="Rua e número"
+        value={form.street}
+        onChange={handleChange}
+        className="w-full border border-gray-300 p-2 rounded mb-2"
+      />
+
+      <input
         name="zip"
         type="text"
         placeholder="CEP"
         value={form.zip}
         onChange={handleChange}
         className="w-full border border-gray-300 p-2 rounded mb-2"
-      />
-
-      <input
-        name="street"
-        type="text"
-        placeholder="Rua e número"
-        value={form.street}
-        onChange={handleChange}
-        className="w-full border border-gray-300 p-2 rounded mb-4"
       />
 
       <input
