@@ -1,3 +1,4 @@
+// src/components/Register.js
 import React, { useState } from 'react';
 import api from '../services/api';
 import { useParams } from 'react-router-dom';
@@ -9,8 +10,8 @@ const Register = ({ setIsRegisterOpen, setIsLoginOpen, setIsLoggedIn, setUser })
     name: '',
     email: '',
     phone: '',
-    street: '',
-    zip: '',
+    cep: '',
+    address: '',
     password: ''
   });
 
@@ -40,20 +41,21 @@ const Register = ({ setIsRegisterOpen, setIsLoginOpen, setIsLoggedIn, setUser })
         email: form.email,
         phone: form.phone,
         password: form.password,
+        tenantId,
         address: {
-          zip: form.zip,
-          street: form.street
+          zip: form.cep,
+          street: form.address
         }
       };
 
       const res = await api.post(`/auth/${tenantId}/register`, payload);
-
       const { token, user } = res.data;
 
       localStorage.setItem('token', token);
       setUser(user);
       setIsLoggedIn(true);
       setIsRegisterOpen(false);
+      toast.success('Conta criada com sucesso!');
       window.location.href = `/${tenantId}`;
     } catch (error) {
       console.error('Erro no cadastro:', error);
@@ -93,19 +95,19 @@ const Register = ({ setIsRegisterOpen, setIsLoginOpen, setIsLoggedIn, setUser })
       />
 
       <input
-        name="street"
+        name="cep"
         type="text"
-        placeholder="Rua e número"
-        value={form.street}
+        placeholder="CEP"
+        value={form.cep}
         onChange={handleChange}
         className="w-full border border-gray-300 p-2 rounded mb-2"
       />
 
       <input
-        name="zip"
+        name="address"
         type="text"
-        placeholder="CEP"
-        value={form.zip}
+        placeholder="Rua e número"
+        value={form.address}
         onChange={handleChange}
         className="w-full border border-gray-300 p-2 rounded mb-2"
       />
