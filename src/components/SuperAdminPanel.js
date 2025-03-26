@@ -1,79 +1,98 @@
-// src/components/SuperAdminPanel.js
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from 'react';
+import api from '../services/api';
 import { toast } from 'react-toastify';
 
 const SuperAdminPanel = () => {
-  const [form, setForm] = useState({ tenantId: '', name: '', logoUrl: '' });
-  const [loading, setLoading] = useState(false);
+  const [tenants, setTenants] = useState([]);
+  const [form, setForm] = useState({ name: '', tenantId: '' });
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  useEffect(() => {
+    fetchTenants();
+  }, []);
+
+  const fetchTenants = async () => {
+    try {
+      const res = await api.get('/tenants');
+      setTenants(res.data);
+    } catch (err) {
+      toast.error('Erro ao carregar pizzarias.');
+    }
   };
 
-  const handleCreateTenant = async () => {
-    if (!form.tenantId || !form.name) {
-      toast.error('Preencha o ID e nome da pizzaria.');
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    let val = value;
+
+    if (name === 'tenantId') {
+      val = val.toLowerCase().replace(/[^a-z0-9-]/g, '').trim();
+    }
+
+    setForm({ ...form, [name]: val });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!form.name || !form.tenantId) {
+      toast.warning('Preencha todos os campos.');
       return;
     }
 
     try {
-      setLoading(true);
-      const token = localStorage.getItem('token');
-
-      const res = await axios.post(
-        'https://pizzaria-backend-e254.onrender.com/api/tenants',
-        form,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      toast.success('Pizzaria criada com sucesso!');
-      setForm({ tenantId: '', name: '', logoUrl: '' });
+      const res = await api.post('/tenants', form);
+      toast.success('Pizzaria cadastrada com sucesso!');
+      setForm({ name: '', tenantId: '' });
+      fetchTenants();
     } catch (err) {
-      console.error(err);
-      toast.error('Erro ao criar pizzaria.');
-    } finally {
-      setLoading(false);
+      toast.error('Erro ao cadastrar pizzaria.');
     }
   };
 
   return (
-    <div className="p-6 max-w-xl mx-auto bg-white rounded-lg shadow-md mt-6">
-      <h2 className="text-xl font-bold mb-4 text-[#e63946]">Criar Nova Pizzaria</h2>
+    <div className="max-w-2xl mx-auto p-6">
+      <h2 className="text-2xl font-bold text-[#e63946] mb-4">Cadastrar Nova Pizzaria</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Nome da Pizzaria</label>
+          <input
+            type="text"
+            name="name"
+            value={form.name}
+            onChange={handleChange}
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Identificador (tenantId)</label>
+          <input
+            type="text"
+            name="tenantId"
+            value={form.tenantId}
+            onChange={handleChange}
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+            required
+          />
+          <p className="text-xs text-gray-500 mt-1">Use apenas letras minúsculas, números e hífens. Ex: <strong>pizza-bia</strong></p>
+        </div>
+        <button
+          type="submit"
+          className="bg-[#e63946] text-white px-4 py-2 rounded hover:bg-red-600 transition"
+        >
+          Cadastrar
+        </button>
+      </form>
 
-      <input
-        name="tenantId"
-        placeholder="Identificador (ex: pizza-bia)"
-        value={form.tenantId}
-        onChange={handleChange}
-        className="w-full border border-gray-300 p-2 rounded mb-3"
-      />
-      <input
-        name="name"
-        placeholder="Nome da Pizzaria"
-        value={form.name}
-        onChange={handleChange}
-        className="w-full border border-gray-300 p-2 rounded mb-3"
-      />
-      <input
-        name="logoUrl"
-        placeholder="Logo (URL da imagem)"
-        value={form.logoUrl}
-        onChange={handleChange}
-        className="w-full border border-gray-300 p-2 rounded mb-4"
-      />
+      <hr className="my-8" />
 
-      <button
-        onClick={handleCreateTenant}
-        disabled={loading}
-        className="bg-[#e63946] text-white w-full py-2 rounded hover:bg-red-600 transition"
-      >
-        {loading ? 'Criando...' : 'Criar Pizzaria'}
-      </button>
+      <h3 className="text-xl font-semibold text-gray-700 mb-4">Pizzarias Cadastradas</h3>
+      <ul className="space-y-2">
+        {tenants.map((tenant) => (
+          <li key={tenant._id} className="border rounded p-3 shadow-sm bg-white">
+            <strong>{tenant.name}</strong> — <code className="text-sm text-gray-600">/{tenant.tenantId}</code>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };
