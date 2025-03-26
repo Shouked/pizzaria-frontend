@@ -1,6 +1,8 @@
+// src/components/Register.js
 import React, { useState } from 'react';
 import api from '../services/api';
 import { useParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const Register = ({ setIsRegisterOpen, setIsLoginOpen, setIsLoggedIn, setUser }) => {
   const { tenantId } = useParams();
@@ -29,7 +31,7 @@ const Register = ({ setIsRegisterOpen, setIsLoginOpen, setIsLoggedIn, setUser })
   const handleRegister = async () => {
     try {
       if (!tenantId) {
-        alert('TenantId não encontrado.');
+        toast.error('TenantId não encontrado.');
         return;
       }
 
@@ -38,18 +40,18 @@ const Register = ({ setIsRegisterOpen, setIsLoginOpen, setIsLoggedIn, setUser })
         tenantId
       };
 
-      const res = await api.post(`/auth/${tenantId}/register`, payload);
-
+      const res = await api.post(`/auth/${tenantId}/register`, payload); // tenantId na URL
       const { token, user } = res.data;
 
       localStorage.setItem('token', token);
       setUser(user);
       setIsLoggedIn(true);
       setIsRegisterOpen(false);
+      toast.success('Conta criada com sucesso!');
       window.location.href = `/${tenantId}`;
     } catch (error) {
       console.error('Erro no cadastro:', error);
-      alert('Erro ao criar conta. Verifique os dados.');
+      toast.error('Erro ao criar conta. Verifique os dados.');
     }
   };
 
