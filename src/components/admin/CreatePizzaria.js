@@ -7,25 +7,54 @@ const CreatePizzaria = ({ onSuccess }) => {
     tenantId: '',
     name: '',
     logoUrl: '',
+    phone: '',
+    address: {
+      cep: '',
+      street: '',
+      number: '',
+    },
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+
+    if (['cep', 'street', 'number'].includes(name)) {
+      setForm((prev) => ({
+        ...prev,
+        address: {
+          ...prev.address,
+          [name]: value,
+        },
+      }));
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!form.tenantId || !form.name) {
       toast.error('Preencha o ID e o nome da pizzaria.');
+      return;
+    }
+
+    if (form.tenantId.includes('-')) {
+      toast.error('O tenantId não pode conter hífen (-).');
       return;
     }
 
     try {
       await api.post('/tenants', form);
       toast.success('Pizzaria cadastrada com sucesso!');
-      setForm({ tenantId: '', name: '', logoUrl: '' });
-      if (onSuccess) onSuccess(); // Atualiza a lista, se existir
+      setForm({
+        tenantId: '',
+        name: '',
+        logoUrl: '',
+        phone: '',
+        address: { cep: '', street: '', number: '' },
+      });
+      if (onSuccess) onSuccess(); // Atualiza a lista se existir
     } catch (error) {
       console.error(error);
       toast.error(error.response?.data?.message || 'Erro ao cadastrar pizzaria.');
@@ -38,7 +67,7 @@ const CreatePizzaria = ({ onSuccess }) => {
 
       <input
         name="tenantId"
-        placeholder="ID único (ex: pizza-bia)"
+        placeholder="ID único (ex: pizzabia)"
         value={form.tenantId}
         onChange={handleChange}
         className="w-full border border-gray-300 p-2 rounded mb-2"
@@ -52,6 +81,38 @@ const CreatePizzaria = ({ onSuccess }) => {
         onChange={handleChange}
         className="w-full border border-gray-300 p-2 rounded mb-2"
         required
+      />
+
+      <input
+        name="phone"
+        placeholder="Telefone do dono"
+        value={form.phone}
+        onChange={handleChange}
+        className="w-full border border-gray-300 p-2 rounded mb-2"
+      />
+
+      <input
+        name="cep"
+        placeholder="CEP"
+        value={form.address.cep}
+        onChange={handleChange}
+        className="w-full border border-gray-300 p-2 rounded mb-2"
+      />
+
+      <input
+        name="street"
+        placeholder="Rua"
+        value={form.address.street}
+        onChange={handleChange}
+        className="w-full border border-gray-300 p-2 rounded mb-2"
+      />
+
+      <input
+        name="number"
+        placeholder="Número"
+        value={form.address.number}
+        onChange={handleChange}
+        className="w-full border border-gray-300 p-2 rounded mb-3"
       />
 
       <input
