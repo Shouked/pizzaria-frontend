@@ -19,10 +19,12 @@ const Login = ({ setIsLoginOpen, setIsLoggedIn, setUser, navigate, tenantId, set
       setIsLoggedIn(true);
       setIsLoginOpen(false);
       toast.success('Login realizado com sucesso!');
-      if (user.isAdmin) {
-        navigate(`/${tenantId}/admin`);
+      if (user.isSuperAdmin) {
+        navigate('/'); // Superadmins vão para a raiz
+      } else if (user.isAdmin) {
+        navigate(`/${tenantId}/admin`); // Admins normais vão para o dashboard do tenant
       } else {
-        navigate(`/${tenantId}/orders`);
+        navigate(`/${tenantId}/orders`); // Usuários comuns vão para pedidos
       }
     } catch (error) {
       console.error('Erro no login:', error.response?.data || error.message);
