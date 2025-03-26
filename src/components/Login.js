@@ -8,11 +8,17 @@ const Login = ({ setIsLoginOpen, setIsLoggedIn, setUser, navigate, tenantId, set
 
   const handleLogin = async () => {
     try {
-      if (!tenantId) {
+      let response;
+      // Se for um email de superadmin conhecido, usa a rota especial
+      if (email === 'superadmin@admin.com') {
+        response = await api.post('/auth/superadmin/login', { email, password });
+      } else if (!tenantId) {
         toast.error('TenantId não encontrado.');
         return;
+      } else {
+        response = await api.post(`/auth/${tenantId}/login`, { email, password });
       }
-      const response = await api.post(`/auth/${tenantId}/login`, { email, password });
+
       const { token, user } = response.data;
       localStorage.setItem('token', token);
       setUser(user);
@@ -22,7 +28,7 @@ const Login = ({ setIsLoginOpen, setIsLoggedIn, setUser, navigate, tenantId, set
       if (user.isSuperAdmin) {
         navigate('/'); // Superadmins vão para a raiz
       } else if (user.isAdmin) {
-        navigate(`/${tenantId}/admin`); // Admins normais vão para o dashboard do tenant
+        navigate(`/${tenantId}/admin`); // Admins normais vão para o dashboard
       } else {
         navigate(`/${tenantId}/orders`); // Usuários comuns vão para pedidos
       }
