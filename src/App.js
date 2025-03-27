@@ -54,14 +54,8 @@ function App() {
       setIsLoggedIn(false);
     }
 
-    if (user && user.tenantId && currentTenantId && user.tenantId !== currentTenantId) {
-      localStorage.removeItem('token');
-      setUser(null);
-      setIsLoggedIn(false);
-      setCart([]);
-    }
-
-    if (location.pathname === '/' && !user && !isLoginOpen) {
+    // Evita acesso à raiz sem login do super admin
+    if (location.pathname === '/' && (!user || !user.isSuperAdmin)) {
       setIsLoginOpen(true);
     }
   }, [location.pathname, user]);
@@ -91,6 +85,7 @@ function App() {
 
   const NavigationBar = () => {
     if (!currentTenantId || user?.isSuperAdmin) return null;
+
     const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
     return (
@@ -133,25 +128,12 @@ function App() {
   return (
     <ThemeProvider>
       <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
-        <header className="bg-white shadow-lg w-full z-40">
-          <div className="relative w-full h-40 sm:h-48 md:h-56">
-            <img src="/pizza.png" alt="Banner da Pizzaria" className="w-full h-full object-cover brightness-75" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-white text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight drop-shadow-lg">
-                Pizza da Bia
-              </span>
-            </div>
-          </div>
-        </header>
-
         <main className="flex-1 pb-20">
           <Routes>
             <Route path="/" element={
               user?.isSuperAdmin
                 ? <SuperAdminPanel />
-                : (user?.isAdmin
-                    ? <Admin user={user} />
-                    : <div className="flex justify-center items-center h-full" />)
+                : <div className="flex justify-center items-center h-full" />
             } />
             <Route path="/:tenantId" element={<Menu cart={cart} setCart={setCart} setIsLoginOpen={setIsLoginOpen} />} />
             <Route path="/:tenantId/order-summary" element={<OrderSummary user={user} setIsLoginOpen={setIsLoginOpen} cart={cart} setCart={setCart} />} />
@@ -205,6 +187,7 @@ function App() {
 
         <NavigationBar />
 
+        {/* Botão do WhatsApp visível apenas se não for super admin */}
         {!user?.isSuperAdmin && (
           <a href="https://wa.me/+5511940705013" target="_blank" rel="noopener noreferrer"
             className="fixed bottom-20 right-4 bg-green-500 text-white p-3 rounded-full shadow-xl hover:bg-green-600 transition-all duration-200 z-50">
