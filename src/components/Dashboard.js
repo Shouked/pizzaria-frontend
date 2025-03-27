@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
-import api from '../services/api';
 import { toast } from 'react-toastify';
-import { useLocation } from 'react-router-dom'; // Adicionado para pegar tenantId
+import { useLocation } from 'react-router-dom';
 
-const Dashboard = () => {
+const Dashboard = ({ user }) => { // Recebe user como prop
   const { primaryColor } = useTheme();
   const [tenants, setTenants] = useState([]);
   const [viewingTenant, setViewingTenant] = useState(null);
   const [editingTenant, setEditingTenant] = useState(null);
   const [editForm, setEditForm] = useState({});
-  const location = useLocation(); // Para pegar o tenantId da URL
+  const location = useLocation();
 
   const getTenantId = () => {
     const pathParts = location.pathname.split('/');
@@ -19,23 +18,19 @@ const Dashboard = () => {
 
   const currentTenantId = getTenantId();
 
-  const fetchTenants = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const res = await api.get(`/tenants/${currentTenantId}`, { // Alterado para tenant específico
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setTenants([res.data]); // Coloca como array com um único item
-    } catch (err) {
-      console.error('Erro ao carregar pizzaria:', err);
-      toast.error('Erro ao carregar pizzaria.');
-      // Não limpa o estado ou token aqui, apenas exibe o erro
-    }
-  };
-
   useEffect(() => {
-    fetchTenants();
-  }, []);
+    if (user && user.tenantId === currentTenantId) {
+      // Usa os dados do user temporariamente até corrigir o backend
+      setTenants([{
+        tenantId: user.tenantId,
+        name: user.tenantName || 'Pizzaria do Admin', // Ajustar conforme dados reais do backend
+        phone: user.phone || '',
+        cep: user.address?.cep || '',
+        street: user.address?.street || '',
+        number: user.address?.number || ''
+      }]);
+    }
+  }, [user, currentTenantId]);
 
   const startView = (tenant) => {
     setViewingTenant(tenant.tenantId);
@@ -51,22 +46,6 @@ const Dashboard = () => {
   const cancelEdit = () => {
     setEditingTenant(null);
     setEditForm({});
-  };
-
-  const saveEdit = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      await api.put(`/tenants/${editingTenant}`, editForm, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      toast.success('Pizzaria atualizada com sucesso!');
-      cancelEdit();
-      setViewingTenant(null);
-      fetchTenants();
-    } catch (err) {
-      console.error('Erro ao atualizar pizzaria:', err);
-      toast.error('Erro ao atualizar pizzaria.');
-    }
   };
 
   const handleChange = (e) => {
@@ -99,7 +78,6 @@ const Dashboard = () => {
                   <input name="street" value={editForm.street || ''} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Rua" />
                   <input name="number" value={editForm.number || ''} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Número" />
                   <div className="flex gap-2 mt-2">
-                    <button onClick={saveEdit} className="bg-green-500 text-white px-4 py-1 rounded">Salvar</button>
                     <button onClick={cancelEdit} className="bg-gray-300 text-black px-4 py-1 rounded">Cancelar</button>
                   </div>
                 </div>
