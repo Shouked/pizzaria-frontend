@@ -74,6 +74,7 @@ function App() {
       setUser(res.data);
       setIsLoggedIn(true);
     } catch (err) {
+      console.error('Erro ao carregar dados do usuário:', err);
       localStorage.removeItem('token');
       setIsLoggedIn(false);
       setUser(null);
