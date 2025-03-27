@@ -45,10 +45,12 @@ function App() {
 
   const currentTenantId = getTenantId();
 
-  // Limpeza inicial apenas no primeiro carregamento
+  // Inicialização apenas no primeiro carregamento
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (!token) {
+    if (token && !user) {
+      fetchUserData(token); // Restaura o usuário se houver token
+    } else if (!token) {
       setIsLoggedIn(false);
       setUser(null);
       setCart([]);
