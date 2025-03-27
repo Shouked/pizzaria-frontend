@@ -8,43 +8,39 @@ const CreatePizzaria = ({ onSuccess }) => {
     name: '',
     logoUrl: '',
     phone: '',
-    address: {
-      cep: '',
-      street: '',
-      number: '',
-    }
+    cep: '',
+    street: '',
+    number: '',
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (['cep', 'street', 'number'].includes(name)) {
-      setForm(prev => ({
-        ...prev,
-        address: { ...prev.address, [name]: value }
-      }));
-    } else {
-      setForm(prev => ({ ...prev, [name]: value }));
-    }
+    setForm(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!form.tenantId || !form.name) {
       toast.error('Preencha o ID e o nome da pizzaria.');
       return;
     }
 
     try {
-      await api.post('/tenants', form);
+      const payload = {
+        tenantId: form.tenantId,
+        name: form.name,
+        logoUrl: form.logoUrl,
+        address: {
+          cep: form.cep,
+          street: form.street,
+          number: form.number,
+        },
+        phone: form.phone,
+      };
+
+      await api.post('/tenants', payload);
       toast.success('Pizzaria cadastrada com sucesso!');
-      setForm({
-        tenantId: '',
-        name: '',
-        logoUrl: '',
-        phone: '',
-        address: { cep: '', street: '', number: '' }
-      });
+      setForm({ tenantId: '', name: '', logoUrl: '', phone: '', cep: '', street: '', number: '' });
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error(error);
@@ -58,7 +54,7 @@ const CreatePizzaria = ({ onSuccess }) => {
 
       <input
         name="tenantId"
-        placeholder="ID único (ex: pizzabia)"
+        placeholder="ID único (ex: pizza-bia)"
         value={form.tenantId}
         onChange={handleChange}
         className="w-full border border-gray-300 p-2 rounded mb-2"
@@ -75,8 +71,16 @@ const CreatePizzaria = ({ onSuccess }) => {
       />
 
       <input
+        name="logoUrl"
+        placeholder="URL do logo (opcional)"
+        value={form.logoUrl}
+        onChange={handleChange}
+        className="w-full border border-gray-300 p-2 rounded mb-2"
+      />
+
+      <input
         name="phone"
-        placeholder="Telefone da pizzaria (ex: 11988887777)"
+        placeholder="Telefone do dono"
         value={form.phone}
         onChange={handleChange}
         className="w-full border border-gray-300 p-2 rounded mb-2"
@@ -84,8 +88,8 @@ const CreatePizzaria = ({ onSuccess }) => {
 
       <input
         name="cep"
-        placeholder="CEP"
-        value={form.address.cep}
+        placeholder="CEP da pizzaria"
+        value={form.cep}
         onChange={handleChange}
         className="w-full border border-gray-300 p-2 rounded mb-2"
       />
@@ -93,7 +97,7 @@ const CreatePizzaria = ({ onSuccess }) => {
       <input
         name="street"
         placeholder="Rua"
-        value={form.address.street}
+        value={form.street}
         onChange={handleChange}
         className="w-full border border-gray-300 p-2 rounded mb-2"
       />
@@ -101,15 +105,7 @@ const CreatePizzaria = ({ onSuccess }) => {
       <input
         name="number"
         placeholder="Número"
-        value={form.address.number}
-        onChange={handleChange}
-        className="w-full border border-gray-300 p-2 rounded mb-3"
-      />
-
-      <input
-        name="logoUrl"
-        placeholder="URL do logo (opcional)"
-        value={form.logoUrl}
+        value={form.number}
         onChange={handleChange}
         className="w-full border border-gray-300 p-2 rounded mb-3"
       />
