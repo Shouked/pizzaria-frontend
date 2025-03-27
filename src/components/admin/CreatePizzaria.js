@@ -30,12 +30,12 @@ const CreatePizzaria = ({ onSuccess }) => {
         tenantId: form.tenantId,
         name: form.name,
         logoUrl: form.logoUrl,
+        phone: form.phone,
         address: {
           cep: form.cep,
           street: form.street,
           number: form.number,
-        },
-        phone: form.phone,
+        }
       };
 
       await api.post('/tenants', payload);
@@ -52,68 +52,15 @@ const CreatePizzaria = ({ onSuccess }) => {
     <form onSubmit={handleSubmit} className="bg-white shadow rounded p-4 mb-6">
       <h2 className="text-lg font-semibold mb-3">Cadastrar nova pizzaria</h2>
 
-      <input
-        name="tenantId"
-        placeholder="ID único (ex: pizza-bia)"
-        value={form.tenantId}
-        onChange={handleChange}
-        className="w-full border border-gray-300 p-2 rounded mb-2"
-        required
-      />
+      <input name="tenantId" placeholder="ID único (ex: pizzabia)" value={form.tenantId} onChange={handleChange} className="w-full border border-gray-300 p-2 rounded mb-2" required />
+      <input name="name" placeholder="Nome da pizzaria" value={form.name} onChange={handleChange} className="w-full border border-gray-300 p-2 rounded mb-2" required />
+      <input name="logoUrl" placeholder="URL do logo (opcional)" value={form.logoUrl} onChange={handleChange} className="w-full border border-gray-300 p-2 rounded mb-2" />
+      <input name="phone" placeholder="Telefone do dono" value={form.phone} onChange={handleChange} className="w-full border border-gray-300 p-2 rounded mb-2" />
+      <input name="cep" placeholder="CEP" value={form.cep} onChange={handleChange} className="w-full border border-gray-300 p-2 rounded mb-2" />
+      <input name="street" placeholder="Rua" value={form.street} onChange={handleChange} className="w-full border border-gray-300 p-2 rounded mb-2" />
+      <input name="number" placeholder="Número" value={form.number} onChange={handleChange} className="w-full border border-gray-300 p-2 rounded mb-3" />
 
-      <input
-        name="name"
-        placeholder="Nome da pizzaria"
-        value={form.name}
-        onChange={handleChange}
-        className="w-full border border-gray-300 p-2 rounded mb-2"
-        required
-      />
-
-      <input
-        name="logoUrl"
-        placeholder="URL do logo (opcional)"
-        value={form.logoUrl}
-        onChange={handleChange}
-        className="w-full border border-gray-300 p-2 rounded mb-2"
-      />
-
-      <input
-        name="phone"
-        placeholder="Telefone do dono"
-        value={form.phone}
-        onChange={handleChange}
-        className="w-full border border-gray-300 p-2 rounded mb-2"
-      />
-
-      <input
-        name="cep"
-        placeholder="CEP da pizzaria"
-        value={form.cep}
-        onChange={handleChange}
-        className="w-full border border-gray-300 p-2 rounded mb-2"
-      />
-
-      <input
-        name="street"
-        placeholder="Rua"
-        value={form.street}
-        onChange={handleChange}
-        className="w-full border border-gray-300 p-2 rounded mb-2"
-      />
-
-      <input
-        name="number"
-        placeholder="Número"
-        value={form.number}
-        onChange={handleChange}
-        className="w-full border border-gray-300 p-2 rounded mb-3"
-      />
-
-      <button
-        type="submit"
-        className="bg-[#e63946] text-white px-4 py-2 rounded hover:bg-red-700 w-full"
-      >
+      <button type="submit" className="bg-[#e63946] text-white px-4 py-2 rounded hover:bg-red-700 w-full">
         Criar Pizzaria
       </button>
     </form>
