@@ -64,7 +64,6 @@ function App() {
       setIsLoginOpen(true);
     }
 
-    // Log para depurar tenantId e user
     console.log('Current TenantId:', currentTenantId);
     console.log('User:', user);
   }, [location.pathname, user]);
@@ -154,7 +153,7 @@ function App() {
           <Routes>
             <Route path="/" element={
               user?.isSuperAdmin
-                ? <SuperAdminPanel />
+                ? <SuperAdminPanel handleLogout={handleLogout} />
                 : (user?.isAdmin
                     ? <Admin user={user} />
                     : <div className="flex justify-center items-center h-full" />)
