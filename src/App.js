@@ -45,12 +45,14 @@ function App() {
 
   const currentTenantId = getTenantId();
 
+  // Limpeza inicial apenas no primeiro carregamento
   useEffect(() => {
-    // Limpa o token apenas no carregamento inicial ou mudança de rota
-    localStorage.removeItem('token');
-    setIsLoggedIn(false);
-    setUser(null);
-    setCart([]);
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setIsLoggedIn(false);
+      setUser(null);
+      setCart([]);
+    }
 
     if (location.pathname === '/' && !user && !isLoginOpen) {
       setIsLoginOpen(true);
