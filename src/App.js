@@ -30,8 +30,8 @@ const ProtectedRoute = ({ user, children, setIsLoginOpen, tenantId }) => {
 };
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Sempre falso inicialmente
-  const [user, setUser] = useState(null); // Sempre null inicialmente
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [cart, setCart] = useState([]);
@@ -46,20 +46,19 @@ function App() {
   const currentTenantId = getTenantId();
 
   useEffect(() => {
-    // Limpa o token e o estado ao carregar o app
+    // Limpa o token apenas no carregamento inicial ou mudança de rota
     localStorage.removeItem('token');
     setIsLoggedIn(false);
     setUser(null);
     setCart([]);
 
-    // Abre o modal de login na raiz se não estiver logado
     if (location.pathname === '/' && !user && !isLoginOpen) {
       setIsLoginOpen(true);
     }
 
     console.log('Current TenantId:', currentTenantId);
     console.log('User:', user);
-  }, [location.pathname]); // Removido 'user' da dependência para evitar loop
+  }, [location.pathname]);
 
   const fetchUserData = async (token) => {
     try {
@@ -70,19 +69,25 @@ function App() {
       setIsLoggedIn(true);
     } catch (err) {
       console.error('Erro ao carregar dados do usuário:', err);
-      localStorage.removeItem('token');
-      setIsLoggedIn(false);
-      setUser(null);
+      toast.error('Erro ao verificar usuário. Tente novamente.');
     }
   };
 
   const handleLogout = () => {
+    console.log('Logout chamado');
     localStorage.removeItem('token');
     setIsLoggedIn(false);
     setUser(null);
     setCart([]);
     navigate('/');
   };
+
+  // Log quando o user mudar
+  useEffect(() => {
+    if (user === null && isLoggedIn) {
+      console.log('User virou null após login! Verifique o que chamou setUser(null)');
+    }
+  }, [user, isLoggedIn]);
 
   const NavigationBar = () => {
     if (!currentTenantId || user?.isSuperAdmin) {
@@ -165,7 +170,7 @@ function App() {
             } />
             <Route path="/:tenantId/admin" element={
               <ProtectedRoute user={user} setIsLoginOpen={setIsLoginOpen} tenantId={currentTenantId}>
-                <Dashboard />
+                <Dashboard user={user} />
               </ProtectedRoute>
             } />
           </Routes>
