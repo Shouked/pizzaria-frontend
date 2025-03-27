@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { toast } from 'react-toastify';
+import CreatePizzaria from './admin/CreatePizzaria'; // Importando CreatePizzaria
 
-const SuperAdminPanel = () => {
+const SuperAdminPanel = ({ handleLogout }) => {
   const [tenants, setTenants] = useState([]);
   const [editingTenant, setEditingTenant] = useState(null);
   const [editForm, setEditForm] = useState({});
@@ -73,7 +74,19 @@ const SuperAdminPanel = () => {
 
   return (
     <div className="max-w-3xl mx-auto p-6">
-      <h2 className="text-2xl font-bold text-[#e63946] mb-6">Pizzarias Cadastradas</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-[#e63946]">Pizzarias Cadastradas</h2>
+        <button
+          onClick={handleLogout}
+          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
+        >
+          Sair
+        </button>
+      </div>
+
+      {/* Adicionando o formulário de criação de pizzarias */}
+      <CreatePizzaria onSuccess={fetchTenants} />
+
       <ul className="space-y-4">
         {tenants.map((tenant) => (
           <li key={tenant._id} className="bg-white p-4 rounded shadow">
