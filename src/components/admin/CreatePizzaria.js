@@ -12,22 +12,18 @@ const CreatePizzaria = ({ onSuccess }) => {
       cep: '',
       street: '',
       number: '',
-    },
+    }
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     if (['cep', 'street', 'number'].includes(name)) {
-      setForm((prev) => ({
+      setForm(prev => ({
         ...prev,
-        address: {
-          ...prev.address,
-          [name]: value,
-        },
+        address: { ...prev.address, [name]: value }
       }));
     } else {
-      setForm((prev) => ({ ...prev, [name]: value }));
+      setForm(prev => ({ ...prev, [name]: value }));
     }
   };
 
@@ -39,11 +35,6 @@ const CreatePizzaria = ({ onSuccess }) => {
       return;
     }
 
-    if (form.tenantId.includes('-')) {
-      toast.error('O tenantId não pode conter hífen (-).');
-      return;
-    }
-
     try {
       await api.post('/tenants', form);
       toast.success('Pizzaria cadastrada com sucesso!');
@@ -52,9 +43,9 @@ const CreatePizzaria = ({ onSuccess }) => {
         name: '',
         logoUrl: '',
         phone: '',
-        address: { cep: '', street: '', number: '' },
+        address: { cep: '', street: '', number: '' }
       });
-      if (onSuccess) onSuccess(); // Atualiza a lista se existir
+      if (onSuccess) onSuccess();
     } catch (error) {
       console.error(error);
       toast.error(error.response?.data?.message || 'Erro ao cadastrar pizzaria.');
@@ -85,7 +76,7 @@ const CreatePizzaria = ({ onSuccess }) => {
 
       <input
         name="phone"
-        placeholder="Telefone do dono"
+        placeholder="Telefone da pizzaria (ex: 11988887777)"
         value={form.phone}
         onChange={handleChange}
         className="w-full border border-gray-300 p-2 rounded mb-2"
