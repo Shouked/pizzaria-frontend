@@ -30,8 +30,8 @@ const ProtectedRoute = ({ user, children, setIsLoginOpen, tenantId }) => {
 };
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
-  const [user, setUser] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Sempre falso inicialmente
+  const [user, setUser] = useState(null); // Sempre null inicialmente
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [cart, setCart] = useState([]);
@@ -46,27 +46,20 @@ function App() {
   const currentTenantId = getTenantId();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token && !user) fetchUserData(token);
-    else if (!token && user) {
-      setUser(null);
-      setIsLoggedIn(false);
-    }
+    // Limpa o token e o estado ao carregar o app
+    localStorage.removeItem('token');
+    setIsLoggedIn(false);
+    setUser(null);
+    setCart([]);
 
-    if (user && user.tenantId && currentTenantId && user.tenantId !== currentTenantId) {
-      localStorage.removeItem('token');
-      setUser(null);
-      setIsLoggedIn(false);
-      setCart([]);
-    }
-
+    // Abre o modal de login na raiz se não estiver logado
     if (location.pathname === '/' && !user && !isLoginOpen) {
       setIsLoginOpen(true);
     }
 
     console.log('Current TenantId:', currentTenantId);
     console.log('User:', user);
-  }, [location.pathname, user]);
+  }, [location.pathname]); // Removido 'user' da dependência para evitar loop
 
   const fetchUserData = async (token) => {
     try {
