@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
+import api from '../services/api';
 import { toast } from 'react-toastify';
 import { useLocation } from 'react-router-dom';
 
-const Dashboard = ({ user }) => { // Recebe user como prop
+const Dashboard = ({ user }) => {
   const { primaryColor } = useTheme();
   const [tenants, setTenants] = useState([]);
   const [viewingTenant, setViewingTenant] = useState(null);
@@ -18,17 +19,33 @@ const Dashboard = ({ user }) => { // Recebe user como prop
 
   const currentTenantId = getTenantId();
 
+  const fetchTenant = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await api.get('/tenants/me', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setTenants([res.data]);
+    } catch (err) {
+      console.error('Erro ao carregar pizzaria:', err);
+      toast.error('Erro ao carregar pizzaria.');
+      // Usa dados do user como fallback temporário
+      if (user && user.tenantId === currentTenantId) {
+        setTenants([{
+          tenantId: user.tenantId,
+          name: user.tenantName || 'Pizzaria do Admin',
+          phone: user.phone || '',
+          cep: user.address?.cep || '',
+          street: user.address?.street || '',
+          number: user.address?.number || ''
+        }]);
+      }
+    }
+  };
+
   useEffect(() => {
     if (user && user.tenantId === currentTenantId) {
-      // Usa os dados do user temporariamente até corrigir o backend
-      setTenants([{
-        tenantId: user.tenantId,
-        name: user.tenantName || 'Pizzaria do Admin', // Ajustar conforme dados reais do backend
-        phone: user.phone || '',
-        cep: user.address?.cep || '',
-        street: user.address?.street || '',
-        number: user.address?.number || ''
-      }]);
+      fetchTenant();
     }
   }, [user, currentTenantId]);
 
@@ -46,6 +63,22 @@ const Dashboard = ({ user }) => { // Recebe user como prop
   const cancelEdit = () => {
     setEditingTenant(null);
     setEditForm({});
+  };
+
+  const saveEdit = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await api.put(`/tenants/${editingTenant}`, editForm, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toast.success('Pizzaria atualizada com sucesso!');
+      cancelEdit();
+      setViewingTenant(null);
+      fetchTenant();
+    } catch (err) {
+      console.error('Erro ao atualizar pizzaria:', err);
+      toast.error('Erro ao atualizar pizzaria. Apenas superadmins podem editar.');
+    }
   };
 
   const handleChange = (e) => {
@@ -78,6 +111,7 @@ const Dashboard = ({ user }) => { // Recebe user como prop
                   <input name="street" value={editForm.street || ''} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Rua" />
                   <input name="number" value={editForm.number || ''} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Número" />
                   <div className="flex gap-2 mt-2">
+                    <button onClick={saveEdit} className="bg-green-500 text-white px-4 py-1 rounded">Salvar</button>
                     <button onClick={cancelEdit} className="bg-gray-300 text-black px-4 py-1 rounded">Cancelar</button>
                   </div>
                 </div>
