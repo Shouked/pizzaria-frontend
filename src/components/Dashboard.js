@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import api from '../services/api';
 import { toast } from 'react-toastify';
+import { useLocation } from 'react-router-dom'; // Adicionado para pegar tenantId
 
 const Dashboard = () => {
   const { primaryColor } = useTheme();
@@ -9,17 +10,26 @@ const Dashboard = () => {
   const [viewingTenant, setViewingTenant] = useState(null);
   const [editingTenant, setEditingTenant] = useState(null);
   const [editForm, setEditForm] = useState({});
+  const location = useLocation(); // Para pegar o tenantId da URL
+
+  const getTenantId = () => {
+    const pathParts = location.pathname.split('/');
+    return pathParts[1] || null;
+  };
+
+  const currentTenantId = getTenantId();
 
   const fetchTenants = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await api.get('/tenants', {
+      const res = await api.get(`/tenants/${currentTenantId}`, { // Alterado para tenant específico
         headers: { Authorization: `Bearer ${token}` },
       });
-      setTenants(res.data);
+      setTenants([res.data]); // Coloca como array com um único item
     } catch (err) {
-      console.error('Erro ao carregar pizzarias:', err);
-      toast.error('Erro ao carregar pizzarias.');
+      console.error('Erro ao carregar pizzaria:', err);
+      toast.error('Erro ao carregar pizzaria.');
+      // Não limpa o estado ou token aqui, apenas exibe o erro
     }
   };
 
@@ -73,7 +83,7 @@ const Dashboard = () => {
       <h2 className="text-xl font-semibold mb-3">Sua Pizzaria</h2>
 
       {tenants.length === 0 ? (
-        <p className="text-gray-500">Nenhuma pizzaria associada.</p>
+        <p className="text-gray-500">Carregando ou nenhuma pizzaria associada.</p>
       ) : (
         <ul className="space-y-4">
           {tenants.map((tenant) => (
