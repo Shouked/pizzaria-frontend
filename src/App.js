@@ -74,7 +74,6 @@ function App() {
       setUser(res.data);
       setIsLoggedIn(true);
     } catch (err) {
-      console.error('Erro ao carregar dados do usuário:', err);
       localStorage.removeItem('token');
       setIsLoggedIn(false);
       setUser(null);
@@ -147,7 +146,11 @@ function App() {
         <main className="flex-1 pb-20">
           <Routes>
             <Route path="/" element={
-              user?.isSuperAdmin ? <SuperAdminPanel /> : <div className="flex justify-center items-center h-full" />
+              user?.isSuperAdmin
+                ? <SuperAdminPanel />
+                : (user?.isAdmin
+                    ? <Admin user={user} />
+                    : <div className="flex justify-center items-center h-full" />)
             } />
             <Route path="/:tenantId" element={<Menu cart={cart} setCart={setCart} setIsLoginOpen={setIsLoginOpen} />} />
             <Route path="/:tenantId/order-summary" element={<OrderSummary user={user} setIsLoginOpen={setIsLoginOpen} cart={cart} setCart={setCart} />} />
@@ -201,12 +204,14 @@ function App() {
 
         <NavigationBar />
 
-        <a href="https://wa.me/+5511940705013" target="_blank" rel="noopener noreferrer"
-          className="fixed bottom-20 right-4 bg-green-500 text-white p-3 rounded-full shadow-xl hover:bg-green-600 transition-all duration-200 z-50">
-          <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 32 32">
-            <path d="M16 .1a15.9 15.9 0 0 0-13.6 24L0 32l8.3-2.2A16 16 0 1 0 16 .1zm8.7 23.1c-.4 1.1-2.2 2-3.1 2.1-.8.1-1.7.4-5-.9-4.2-1.6-7-5.9-7.2-6.2-.2-.3-1.7-2.3-1.7-4.4s1.1-3.1 1.5-3.6c.4-.4 1-.6 1.3-.6h.9c.3 0 .7 0 1 .8s1.2 2.7 1.3 2.9c.1.2.2.4 0 .7s-.3.4-.5.7-.5.5-.7.6c-.2.2-.4.4-.2.8.2.4 1 1.5 2.2 2.5 1.5 1.3 2.7 1.6 3.1 1.8.4.2.6.2.8 0s.9-1.1 1.1-1.5c.2-.4.4-.3.7-.2s1.9.9 2.2 1c.3.1.5.2.6.3.1.1.1 1.1-.3 2.2z" />
-          </svg>
-        </a>
+        {!user?.isSuperAdmin && (
+          <a href="https://wa.me/+5511940705013" target="_blank" rel="noopener noreferrer"
+            className="fixed bottom-20 right-4 bg-green-500 text-white p-3 rounded-full shadow-xl hover:bg-green-600 transition-all duration-200 z-50">
+            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 32 32">
+              <path d="M16 .1a15.9 15.9 0 0 0-13.6 24L0 32l8.3-2.2A16 16 0 1 0 16 .1zm8.7 23.1c-.4 1.1-2.2 2-3.1 2.1-.8.1-1.7.4-5-.9-4.2-1.6-7-5.9-7.2-6.2-.2-.3-1.7-2.3-1.7-4.4s1.1-3.1 1.5-3.6c.4-.4 1-.6 1.3-.6h.9c.3 0 .7 0 1 .8s1.2 2.7 1.3 2.9c.1.2.2.4 0 .7s-.3.4-.5.7-.5.5-.7.6c-.2.2-.4.4-.2.8.2.4 1 1.5 2.2 2.5 1.5 1.3 2.7 1.6 3.1 1.8.4.2.6.2.8 0s.9-1.1 1.1-1.5c.2-.4.4-.3.7-.2s1.9.9 2.2 1c.3.1.5.2.6.3.1.1.1 1.1-.3 2.2z" />
+            </svg>
+          </a>
+        )}
 
         <ToastContainer position="top-right" autoClose={3000} hideProgressBar closeOnClick pauseOnHover theme="light" />
       </div>
