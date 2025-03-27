@@ -29,15 +29,20 @@ const Dashboard = ({ user }) => {
     } catch (err) {
       console.error('Erro ao carregar pizzaria:', err);
       toast.error('Erro ao carregar pizzaria.');
-      // Usa dados do user como fallback temporário
+      // Fallback com dados do user
       if (user && user.tenantId === currentTenantId) {
         setTenants([{
           tenantId: user.tenantId,
           name: user.tenantName || 'Pizzaria do Admin',
           phone: user.phone || '',
-          cep: user.address?.cep || '',
-          street: user.address?.street || '',
-          number: user.address?.number || ''
+          address: {
+            cep: user.address?.cep || '',
+            street: user.address?.street || '',
+            number: user.address?.number || ''
+          },
+          logoUrl: '',
+          primaryColor: '',
+          secondaryColor: ''
         }]);
       }
     }
@@ -83,7 +88,15 @@ const Dashboard = ({ user }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setEditForm(prev => ({ ...prev, [name]: value }));
+    if (name.startsWith('address.')) {
+      const field = name.split('.')[1];
+      setEditForm(prev => ({
+        ...prev,
+        address: { ...prev.address, [field]: value }
+      }));
+    } else {
+      setEditForm(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   return (
@@ -107,9 +120,12 @@ const Dashboard = ({ user }) => {
                 <div className="space-y-2">
                   <input name="name" value={editForm.name || ''} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Nome" />
                   <input name="phone" value={editForm.phone || ''} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Telefone" />
-                  <input name="cep" value={editForm.cep || ''} onChange={handleChange} className="w-full border p-2 rounded" placeholder="CEP" />
-                  <input name="street" value={editForm.street || ''} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Rua" />
-                  <input name="number" value={editForm.number || ''} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Número" />
+                  <input name="address.cep" value={editForm.address?.cep || ''} onChange={handleChange} className="w-full border p-2 rounded" placeholder="CEP" />
+                  <input name="address.street" value={editForm.address?.street || ''} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Rua" />
+                  <input name="address.number" value={editForm.address?.number || ''} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Número" />
+                  <input name="logoUrl" value={editForm.logoUrl || ''} onChange={handleChange} className="w-full border p-2 rounded" placeholder="URL do Logo" />
+                  <input name="primaryColor" value={editForm.primaryColor || ''} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Cor Primária (ex: #e63946)" />
+                  <input name="secondaryColor" value={editForm.secondaryColor || ''} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Cor Secundária" />
                   <div className="flex gap-2 mt-2">
                     <button onClick={saveEdit} className="bg-green-500 text-white px-4 py-1 rounded">Salvar</button>
                     <button onClick={cancelEdit} className="bg-gray-300 text-black px-4 py-1 rounded">Cancelar</button>
@@ -120,8 +136,11 @@ const Dashboard = ({ user }) => {
                   <p><strong>Nome:</strong> {tenant.name}</p>
                   <p><strong>Tenant ID:</strong> {tenant.tenantId}</p>
                   <p><strong>Telefone:</strong> {tenant.phone || '-'}</p>
-                  <p><strong>CEP:</strong> {tenant.cep || '-'}</p>
-                  <p><strong>Endereço:</strong> {tenant.street || '-'}, {tenant.number || '-'}</p>
+                  <p><strong>CEP:</strong> {tenant.address?.cep || '-'}</p>
+                  <p><strong>Endereço:</strong> {tenant.address?.street || '-'}, {tenant.address?.number || '-'}</p>
+                  <p><strong>Logo URL:</strong> {tenant.logoUrl || '-'}</p>
+                  <p><strong>Cor Primária:</strong> {tenant.primaryColor || '-'}</p>
+                  <p><strong>Cor Secundária:</strong> {tenant.secondaryColor || '-'}</p>
                   <div className="flex gap-2 mt-2">
                     <button onClick={() => startEdit(tenant)} className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">Editar</button>
                     <button onClick={cancelEdit} className="bg-gray-300 text-black px-3 py-1 rounded text-sm">Fechar</button>
