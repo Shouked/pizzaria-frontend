@@ -1,8 +1,6 @@
-// Atualizado Dashboard.js com exibição e edição separadas
 import React, { useEffect, useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import api from '../services/api';
-import CreatePizzaria from './admin/CreatePizzaria';
 import { toast } from 'react-toastify';
 
 const Dashboard = () => {
@@ -69,15 +67,13 @@ const Dashboard = () => {
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold mb-6" style={{ color: primaryColor }}>
-        Painel do Super Admin
+        Painel do Admin
       </h1>
 
-      <CreatePizzaria onSuccess={fetchTenants} />
-
-      <h2 className="text-xl font-semibold mb-3">Pizzarias cadastradas</h2>
+      <h2 className="text-xl font-semibold mb-3">Sua Pizzaria</h2>
 
       {tenants.length === 0 ? (
-        <p className="text-gray-500">Nenhuma pizzaria cadastrada.</p>
+        <p className="text-gray-500">Nenhuma pizzaria associada.</p>
       ) : (
         <ul className="space-y-4">
           {tenants.map((tenant) => (
