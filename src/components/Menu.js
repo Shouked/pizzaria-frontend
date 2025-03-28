@@ -8,14 +8,14 @@ const Menu = ({ cart, setCart, setIsLoginOpen }) => {
   const [products, setProducts] = useState([]);
   const [groupedProducts, setGroupedProducts] = useState({});
   const [activeCategory, setActiveCategory] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // Estado para carregamento
+  const [isLoading, setIsLoading] = useState(false);
   const containerRef = useRef(null);
   const categoryRefs = useRef({});
   const categoryBarRef = useRef(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
-      setIsLoading(true); // Inicia o carregamento
+      setIsLoading(true);
       try {
         const res = await api.get(`/products/${tenantId}/products`);
         const fetchedProducts = res.data;
@@ -35,7 +35,7 @@ const Menu = ({ cart, setCart, setIsLoginOpen }) => {
         console.error('Erro ao carregar produtos:', error);
         toast.error('Erro ao carregar o cardápio.');
       } finally {
-        setIsLoading(false); // Termina o carregamento
+        setIsLoading(false);
       }
     };
 
@@ -46,7 +46,7 @@ const Menu = ({ cart, setCart, setIsLoginOpen }) => {
 
   const handleScroll = () => {
     const scrollY = window.scrollY;
-    const barOffset = 48; // Altura da barra de categorias
+    const barOffset = 48;
     for (const [category, ref] of Object.entries(categoryRefs.current)) {
       if (ref && ref.offsetTop - barOffset <= scrollY) {
         setActiveCategory(category);
@@ -74,7 +74,7 @@ const Menu = ({ cart, setCart, setIsLoginOpen }) => {
   const scrollToCategory = (category) => {
     const ref = categoryRefs.current[category];
     if (ref) {
-      window.scrollTo({ top: ref.offsetTop - 48, behavior: 'smooth' }); // Apenas a altura da barra
+      window.scrollTo({ top: ref.offsetTop - 48, behavior: 'smooth' });
     }
   };
 
@@ -138,7 +138,11 @@ const Menu = ({ cart, setCart, setIsLoginOpen }) => {
                 >
                   <h4 className="text-lg font-semibold text-gray-900 mb-2">{product.name}</h4>
                   <p className="text-sm text-gray-500 mb-3 flex-grow">{product.description}</p>
-                  <p className="text-lg font-bold text-[#e63946] mb-4">R$ {product.price.toFixed(2)}</p>
+                  {product.price && (
+                    <p className="text-lg font-bold text-[#e63946] mb-4">
+                      R$ {Number(product.price).toFixed(2)}
+                    </p>
+                  )}
                   <button
                     onClick={() => addToCart(product)}
                     className="mt-auto bg-[#e63946] text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all duration-200 text-sm font-medium"
