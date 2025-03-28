@@ -56,7 +56,7 @@ const Dashboard = ({ user }) => {
   const handleSave = async () => {
     try {
       const token = localStorage.getItem('token');
-      await api.put(`/tenants/${tenant.tenantId}`, form, {
+      await api.put(`/tenants/${tenant.tenantId}/me`, form, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Informações atualizadas com sucesso!');
