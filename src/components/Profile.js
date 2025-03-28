@@ -12,17 +12,32 @@ const Profile = ({ user, setUser, handleLogout }) => {
   }
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-bold text-[#e63946] mb-4">Meu Perfil</h2>
-      <div className="space-y-2 text-gray-800">
+    <div className="p-6 max-w-2xl mx-auto bg-white shadow-md rounded-lg">
+      <h2 className="text-2xl font-bold text-[#e63946] mb-4">Meu Perfil</h2>
+
+      <div className="space-y-3 text-gray-800">
         <p><strong>Nome:</strong> {user.name}</p>
         <p><strong>Email:</strong> {user.email}</p>
-        <p><strong>Admin:</strong> {user.isAdmin ? 'Sim' : 'Não'}</p>
-        <p><strong>Pizzaria:</strong> {user.tenantId}</p>
+        {user.isSuperAdmin && (
+          <p><strong>Tipo de Conta:</strong> Super Admin</p>
+        )}
+        {user.isAdmin && !user.isSuperAdmin && (
+          <>
+            <p><strong>Tipo de Conta:</strong> Administrador da pizzaria</p>
+            <p><strong>Pizzaria (tenantId):</strong> {user.tenantId}</p>
+          </>
+        )}
+        {!user.isAdmin && !user.isSuperAdmin && (
+          <>
+            <p><strong>Tipo de Conta:</strong> Usuário comum</p>
+            <p><strong>Pizzaria (tenantId):</strong> {user.tenantId}</p>
+          </>
+        )}
       </div>
+
       <button
         onClick={handleLogout}
-        className="mt-6 bg-[#e63946] text-white px-6 py-2 rounded hover:bg-red-600 transition"
+        className="mt-6 bg-[#e63946] text-white px-6 py-2 rounded hover:bg-red-600 transition w-full sm:w-auto"
       >
         Sair da conta
       </button>
