@@ -1,3 +1,4 @@
+// src/components/Register.js
 import React, { useState } from 'react';
 import api from '../services/api';
 import { toast } from 'react-toastify';
@@ -22,6 +23,7 @@ const Register = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!tenantId) {
       toast.error('TenantId não encontrado. Volte e tente novamente.');
       return;
@@ -30,12 +32,13 @@ const Register = ({
     setLoading(true);
 
     try {
-      const res = await api.post(`/auth/${tenantId}/register`, form);
-      toast.success('Cadastro realizado! Agora faça login.');
+      await api.post(`/auth/${tenantId}/register`, form);
+      toast.success('Cadastro realizado com sucesso! Agora faça login.');
+      setForm({ name: '', email: '', password: '' });
       setIsRegisterOpen(false);
       setIsLoginOpen(true);
     } catch (err) {
-      console.error(err);
+      console.error('Erro no registro:', err);
       toast.error(err.response?.data?.msg || 'Erro ao registrar.');
     } finally {
       setLoading(false);
