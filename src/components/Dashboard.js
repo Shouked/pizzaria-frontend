@@ -12,7 +12,7 @@ const Dashboard = ({ user }) => {
 
   const fetchMyTenant = async () => {
     try {
-      const res = await api.get('/tenants/me');
+      const res = await api.get(`/tenants/${user.tenantId}/me`);
       setTenant(res.data);
       setForm({
         name: res.data.name || '',
@@ -38,7 +38,7 @@ const Dashboard = ({ user }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (['cep', 'street', 'number'].includes(name)) {
-      setForm(prev => ({
+      setForm((prev) => ({
         ...prev,
         address: {
           ...prev.address,
@@ -46,13 +46,16 @@ const Dashboard = ({ user }) => {
         }
       }));
     } else {
-      setForm(prev => ({ ...prev, [name]: value }));
+      setForm((prev) => ({ ...prev, [name]: value }));
     }
   };
 
   const handleSave = async () => {
     try {
-      await api.put(`/tenants/${tenant.tenantId}/me`, form);
+      const token = localStorage.getItem('token');
+      await api.put(`/tenants/${tenant.tenantId}`, form, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       toast.success('Informações atualizadas com sucesso!');
       setEditMode(false);
       fetchMyTenant();
