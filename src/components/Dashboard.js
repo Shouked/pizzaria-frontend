@@ -12,7 +12,10 @@ const Dashboard = ({ user }) => {
 
   const fetchMyTenant = async () => {
     try {
-      const res = await api.get(`/tenants/${user.tenantId}/me`);
+      const token = localStorage.getItem('token');
+      const res = await api.get('/tenants/me', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setTenant(res.data);
       setForm({
         name: res.data.name || '',
@@ -38,7 +41,7 @@ const Dashboard = ({ user }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (['cep', 'street', 'number'].includes(name)) {
-      setForm((prev) => ({
+      setForm(prev => ({
         ...prev,
         address: {
           ...prev.address,
@@ -46,7 +49,7 @@ const Dashboard = ({ user }) => {
         }
       }));
     } else {
-      setForm((prev) => ({ ...prev, [name]: value }));
+      setForm(prev => ({ ...prev, [name]: value }));
     }
   };
 
