@@ -1,3 +1,4 @@
+// src/components/Login.js
 import React, { useState } from 'react';
 import api from '../services/api';
 import { toast } from 'react-toastify';
@@ -21,9 +22,8 @@ const Login = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const url = tenantId
-      ? `/${tenantId}/login`
-      : `/superadmin/login`;
+
+    const url = tenantId ? `/${tenantId}/login` : `/superadmin/login`;
 
     try {
       const res = await api.post(`/auth${url}`, form);
@@ -37,14 +37,14 @@ const Login = ({
 
       if (user.isSuperAdmin) {
         navigate('/');
-      } else if (user.isAdmin && tenantId) {
-        navigate(`/${tenantId}/admin`);
+      } else if (user.isAdmin) {
+        navigate(`/${user.tenantId}/admin`);
       } else {
-        navigate(`/${tenantId}`);
+        navigate(`/${user.tenantId}`);
       }
 
     } catch (err) {
-      console.error(err);
+      console.error('Erro no login:', err);
       toast.error(err.response?.data?.msg || 'Erro ao fazer login.');
     } finally {
       setLoading(false);
