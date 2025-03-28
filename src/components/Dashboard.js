@@ -3,104 +3,152 @@ import { useTheme } from '../context/ThemeContext';
 import api from '../services/api';
 import { toast } from 'react-toastify';
 
-const Dashboard = ({ user, handleLogout }) => {
+const Dashboard = ({ user }) => {
   const { primaryColor } = useTheme();
-  const [tenants, setTenants] = useState([]);
-  const [singleTenant, setSingleTenant] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [tenant, setTenant] = useState(null);
+  const [editMode, setEditMode] = useState(false);
+  const [form, setForm] = useState({});
 
-  const fetchData = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      toast.error('Token de autenticação não encontrado. Faça login novamente.');
-      handleLogout();
-      return;
-    }
-
+  const fetchMyTenant = async () => {
     try {
-      if (user?.isSuperAdmin) {
-        const res = await api.get('/tenants', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setTenants(Array.isArray(res.data) ? res.data : []);
-      } else if (user?.isAdmin) {
-        const res = await api.get('/tenants/me', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.data) {
-          throw new Error('Nenhum dado retornado para a pizzaria.');
+      const token = localStorage.getItem('token');
+      const res = await api.get('/tenants/me', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setTenant(res.data);
+      setForm({
+        name: res.data.name || '',
+        phone: res.data.phone || '',
+        address: {
+          cep: res.data.address?.cep || '',
+          street: res.data.address?.street || '',
+          number: res.data.address?.number || ''
         }
-        setSingleTenant(res.data);
-      }
+      });
     } catch (err) {
       console.error('Erro ao carregar pizzaria:', err);
-      if (err.response) {
-        // Erros específicos da API
-        if (err.response.status === 403) {
-          toast.error('Acesso negado. Verifique suas permissões.');
-        } else if (err.response.status === 404) {
-          toast.error('Pizzaria não encontrada.');
-        } else {
-          toast.error(`Erro ao carregar pizzaria: ${err.response.data?.message || 'Erro desconhecido'}`);
-        }
-      } else {
-        toast.error('Erro ao conectar com o servidor.');
-      }
-    } finally {
-      setLoading(false);
+      toast.error('Erro ao carregar informações da pizzaria.');
     }
   };
 
   useEffect(() => {
-    if (user) fetchData();
+    if (user?.isAdmin && !user?.isSuperAdmin) {
+      fetchMyTenant();
+    }
   }, [user]);
 
-  if (!user) {
-    return <p className="text-red-500">Usuário não autenticado.</p>;
-  }
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (['cep', 'street', 'number'].includes(name)) {
+      setForm(prev => ({
+        ...prev,
+        address: {
+          ...prev.address,
+          [name]: value
+        }
+      }));
+    } else {
+      setForm(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await api.put(`/tenants/${tenant.tenantId}`, form, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('Informações atualizadas com sucesso!');
+      setEditMode(false);
+      fetchMyTenant();
+    } catch (err) {
+      console.error(err);
+      toast.error('Erro ao salvar alterações.');
+    }
+  };
+
+  const handleCancel = () => {
+    setEditMode(false);
+    setForm({
+      name: tenant.name || '',
+      phone: tenant.phone || '',
+      address: {
+        cep: tenant.address?.cep || '',
+        street: tenant.address?.street || '',
+        number: tenant.address?.number || ''
+      }
+    });
+  };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-6 max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold mb-6" style={{ color: primaryColor }}>
-        Painel do {user.isSuperAdmin ? 'Super Admin' : 'Administrador'}
+        Painel do Administrador
       </h1>
 
-      <button
-        onClick={handleLogout}
-        className="bg-red-500 text-white px-4 py-2 rounded mb-4 hover:bg-red-600"
-      >
-        Sair
-      </button>
-
-      {loading ? (
-        <p className="text-gray-500">Carregando...</p>
-      ) : user.isSuperAdmin ? (
-        <div>
-          <p className="text-lg font-semibold mb-4">Pizzarias cadastradas:</p>
-          <ul className="space-y-4">
-            {tenants.map((tenant, index) => (
-              <li key={tenant._id || index} className="bg-white p-4 rounded shadow">
-                <p className="font-semibold">{tenant.name}</p>
-                <p className="text-sm text-gray-600">/{tenant.tenantId}</p>
-                <p className="text-sm text-gray-500">
-                  {tenant.phone || '-'} | {tenant.address?.street || '-'},{' '}
-                  {tenant.address?.number || '-'} - {tenant.address?.cep || '-'}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : singleTenant ? (
-        <div className="bg-white p-4 rounded shadow">
-          <p className="text-lg font-semibold mb-2">{singleTenant.name}</p>
-          <p className="text-sm text-gray-600">/{singleTenant.tenantId}</p>
-          <p className="text-sm text-gray-500">
-            {singleTenant.phone || '-'} | {singleTenant.address?.street || '-'},{' '}
-            {singleTenant.address?.number || '-'} - {singleTenant.address?.cep || '-'}
-          </p>
-        </div>
+      {!tenant ? (
+        <p className="text-gray-500">Carregando dados da pizzaria...</p>
       ) : (
-        <p className="text-gray-500">Nenhuma informação da pizzaria disponível.</p>
+        <div className="bg-white shadow p-4 rounded space-y-4">
+          {editMode ? (
+            <>
+              <input
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                className="w-full border p-2 rounded"
+                placeholder="Nome da pizzaria"
+              />
+              <input
+                name="phone"
+                value={form.phone}
+                onChange={handleChange}
+                className="w-full border p-2 rounded"
+                placeholder="Telefone"
+              />
+              <input
+                name="cep"
+                value={form.address.cep}
+                onChange={handleChange}
+                className="w-full border p-2 rounded"
+                placeholder="CEP"
+              />
+              <input
+                name="street"
+                value={form.address.street}
+                onChange={handleChange}
+                className="w-full border p-2 rounded"
+                placeholder="Rua"
+              />
+              <input
+                name="number"
+                value={form.address.number}
+                onChange={handleChange}
+                className="w-full border p-2 rounded"
+                placeholder="Número"
+              />
+              <div className="flex gap-2 mt-2">
+                <button onClick={handleSave} className="bg-green-500 text-white px-4 py-2 rounded">Salvar</button>
+                <button onClick={handleCancel} className="bg-gray-300 text-black px-4 py-2 rounded">Cancelar</button>
+              </div>
+            </>
+          ) : (
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="font-semibold">{tenant.name}</p>
+                <p className="text-sm text-gray-500">{tenant.tenantId}</p>
+                <p className="text-sm text-gray-600 mt-1">{tenant.phone || '-'}</p>
+                <p className="text-sm text-gray-600">{tenant.address?.cep || '-'} | {tenant.address?.street || '-'}, {tenant.address?.number || '-'}</p>
+              </div>
+              <button
+                onClick={() => setEditMode(true)}
+                className="bg-[#e63946] text-white px-3 py-1 rounded hover:bg-red-600 text-sm"
+              >
+                Editar
+              </button>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
