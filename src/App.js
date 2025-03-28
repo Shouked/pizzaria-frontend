@@ -45,12 +45,10 @@ function App() {
 
   const currentTenantId = getTenantId();
 
-  // Inicialização apenas no primeiro carregamento
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (token && !user) {
-      fetchUserData(token); // Restaura o usuário se houver token
-    } else if (!token) {
+    if (token && !user) fetchUserData(token);
+    else if (!token) {
       setIsLoggedIn(false);
       setUser(null);
       setCart([]);
@@ -59,9 +57,6 @@ function App() {
     if (location.pathname === '/' && !user && !isLoginOpen) {
       setIsLoginOpen(true);
     }
-
-    console.log('Current TenantId:', currentTenantId);
-    console.log('User:', user);
   }, [location.pathname]);
 
   const fetchUserData = async (token) => {
@@ -73,12 +68,13 @@ function App() {
       setIsLoggedIn(true);
     } catch (err) {
       console.error('Erro ao carregar dados do usuário:', err);
-      toast.error('Erro ao verificar usuário. Tente novamente.');
+      localStorage.removeItem('token');
+      setIsLoggedIn(false);
+      setUser(null);
     }
   };
 
   const handleLogout = () => {
-    console.log('Logout chamado');
     localStorage.removeItem('token');
     setIsLoggedIn(false);
     setUser(null);
@@ -86,18 +82,8 @@ function App() {
     navigate('/');
   };
 
-  // Log quando o user mudar
-  useEffect(() => {
-    if (user === null && isLoggedIn) {
-      console.log('User virou null após login! Verifique o que chamou setUser(null)');
-    }
-  }, [user, isLoggedIn]);
-
   const NavigationBar = () => {
-    if (!currentTenantId || user?.isSuperAdmin) {
-      console.log('NavigationBar não renderizada - TenantId:', currentTenantId, 'isSuperAdmin:', user?.isSuperAdmin);
-      return null;
-    }
+    if (!currentTenantId || user?.isSuperAdmin) return null;
     const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
     return (
@@ -156,9 +142,9 @@ function App() {
             <Route path="/" element={
               user?.isSuperAdmin
                 ? <SuperAdminPanel handleLogout={handleLogout} />
-                : (user?.isAdmin
-                    ? <Admin user={user} />
-                    : <div className="flex justify-center items-center h-full" />)
+                : user?.isAdmin
+                  ? <Dashboard user={user} />
+                  : <div className="flex justify-center items-center h-full" />
             } />
             <Route path="/:tenantId" element={<Menu cart={cart} setCart={setCart} setIsLoginOpen={setIsLoginOpen} />} />
             <Route path="/:tenantId/order-summary" element={<OrderSummary user={user} setIsLoginOpen={setIsLoginOpen} cart={cart} setCart={setCart} />} />
