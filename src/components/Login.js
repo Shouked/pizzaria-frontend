@@ -2,80 +2,97 @@ import React, { useState } from 'react';
 import api from '../services/api';
 import { toast } from 'react-toastify';
 
-const Login = ({ setIsLoginOpen, setIsLoggedIn, setUser, navigate, tenantId, setIsRegisterOpen }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+const Login = ({
+  tenantId,
+  setIsLoginOpen,
+  setIsLoggedIn,
+  setIsRegisterOpen,
+  setUser,
+  cart,
+  navigate
+}) => {
+  const [form, setForm] = useState({ email: '', password: '' });
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = async () => {
+  const handleChange = (e) => {
+    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    const url = tenantId
+      ? `/${tenantId}/login`
+      : `/superadmin/login`;
+
     try {
-      let response;
-      // Se for um email de superadmin conhecido, usa a rota especial
-      if (email === 'superadmin@admin.com') {
-        response = await api.post('/auth/superadmin/login', { email, password });
-      } else if (!tenantId) {
-        toast.error('TenantId não encontrado.');
-        return;
-      } else {
-        response = await api.post(`/auth/${tenantId}/login`, { email, password });
-      }
+      const res = await api.post(`/auth${url}`, form);
+      const { token, user } = res.data;
 
-      const { token, user } = response.data;
       localStorage.setItem('token', token);
       setUser(user);
       setIsLoggedIn(true);
       setIsLoginOpen(false);
       toast.success('Login realizado com sucesso!');
+
       if (user.isSuperAdmin) {
-        navigate('/'); // Superadmins vão para a raiz
-      } else if (user.isAdmin) {
-        navigate(`/${tenantId}/admin`); // Admins normais vão para o dashboard
+        navigate('/');
+      } else if (user.isAdmin && tenantId) {
+        navigate(`/${tenantId}/admin`);
       } else {
-        navigate(`/${tenantId}/orders`); // Usuários comuns vão para pedidos
+        navigate(`/${tenantId}`);
       }
-    } catch (error) {
-      console.error('Erro no login:', error.response?.data || error.message);
-      toast.error('Falha no login: ' + (error.response?.data?.msg || 'Verifique suas credenciais.'));
+
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.msg || 'Erro ao fazer login.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div>
-      <h2 className="text-lg font-semibold mb-4">Entrar</h2>
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="w-full border border-gray-300 p-2 rounded mb-2"
-      />
-      <input
-        type="password"
-        placeholder="Senha"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        className="w-full border border-gray-300 p-2 rounded mb-4"
-      />
-      <button
-        onClick={handleLogin}
-        className="bg-[#e63946] text-white px-4 py-2 rounded w-full hover:bg-red-600"
-      >
-        Entrar
-      </button>
-      <button
-        onClick={() => setIsLoginOpen(false)}
-        className="bg-gray-300 text-black px-4 py-2 rounded w-full mt-2 hover:bg-gray-400"
-      >
-        Cancelar
-      </button>
-      <button
-        onClick={() => {
-          setIsLoginOpen(false);
-          setIsRegisterOpen(true);
-        }}
-        className="text-sm text-[#e63946] hover:underline w-full text-center mt-2"
-      >
-        Criar Conta
-      </button>
+      <h2 className="text-2xl font-bold mb-4 text-[#e63946]">Login</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <input
+          name="email"
+          type="email"
+          placeholder="E-mail"
+          value={form.email}
+          onChange={handleChange}
+          className="w-full border border-gray-300 p-2 rounded"
+          required
+        />
+        <input
+          name="password"
+          type="password"
+          placeholder="Senha"
+          value={form.password}
+          onChange={handleChange}
+          className="w-full border border-gray-300 p-2 rounded"
+          required
+        />
+        <button
+          type="submit"
+          className="w-full bg-[#e63946] text-white py-2 rounded hover:bg-red-700"
+          disabled={loading}
+        >
+          {loading ? 'Entrando...' : 'Entrar'}
+        </button>
+      </form>
+      <p className="mt-4 text-sm text-center">
+        Ainda não tem uma conta?{' '}
+        <button
+          onClick={() => {
+            setIsLoginOpen(false);
+            setIsRegisterOpen(true);
+          }}
+          className="text-[#e63946] font-medium"
+        >
+          Cadastre-se
+        </button>
+      </p>
     </div>
   );
 };
