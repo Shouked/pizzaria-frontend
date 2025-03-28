@@ -7,14 +7,19 @@ const Dashboard = ({ user }) => {
   const { primaryColor } = useTheme();
   const [tenant, setTenant] = useState(null);
   const [editMode, setEditMode] = useState(false);
-  const [form, setForm] = useState({});
+  const [form, setForm] = useState({
+    name: '',
+    phone: '',
+    address: {
+      cep: '',
+      street: '',
+      number: ''
+    }
+  });
 
   const fetchMyTenant = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await api.get('/tenants/me', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get('/tenants/me');
       setTenant(res.data);
       setForm({
         name: res.data.name || '',
@@ -54,30 +59,29 @@ const Dashboard = ({ user }) => {
 
   const handleSave = async () => {
     try {
-      const token = localStorage.getItem('token');
-      await api.put(`/tenants/${tenant.tenantId}`, form, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.put(`/tenants/${tenant.tenantId}`, form);
       toast.success('Informações atualizadas com sucesso!');
       setEditMode(false);
       fetchMyTenant();
     } catch (err) {
-      console.error(err);
+      console.error('Erro ao salvar alterações:', err);
       toast.error('Erro ao salvar alterações.');
     }
   };
 
   const handleCancel = () => {
     setEditMode(false);
-    setForm({
-      name: tenant.name || '',
-      phone: tenant.phone || '',
-      address: {
-        cep: tenant.address?.cep || '',
-        street: tenant.address?.street || '',
-        number: tenant.address?.number || ''
-      }
-    });
+    if (tenant) {
+      setForm({
+        name: tenant.name || '',
+        phone: tenant.phone || '',
+        address: {
+          cep: tenant.address?.cep || '',
+          street: tenant.address?.street || '',
+          number: tenant.address?.number || ''
+        }
+      });
+    }
   };
 
   return (
@@ -138,7 +142,9 @@ const Dashboard = ({ user }) => {
                 <p className="font-semibold">{tenant.name}</p>
                 <p className="text-sm text-gray-500">{tenant.tenantId}</p>
                 <p className="text-sm text-gray-600 mt-1">{tenant.phone || '-'}</p>
-                <p className="text-sm text-gray-600">{tenant.address?.cep || '-'} | {tenant.address?.street || '-'}, {tenant.address?.number || '-'}</p>
+                <p className="text-sm text-gray-600">
+                  {tenant.address?.cep || '-'} | {tenant.address?.street || '-'}, {tenant.address?.number || '-'}
+                </p>
               </div>
               <button
                 onClick={() => setEditMode(true)}
