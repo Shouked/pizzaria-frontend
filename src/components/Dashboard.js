@@ -1,4 +1,6 @@
-// Dashboard.js - Verifica se rota /tenants/me está correta e token com tenantId está sendo enviado import React, { useEffect, useState } from 'react'; import { useTheme } from '../context/ThemeContext'; import api from '../services/api'; import { toast } from 'react-toastify';
+// Dashboard.js - Verifica se rota /tenants/me está correta e token com tenantId está sendo enviado 
+
+import React, { useEffect, useState } from 'react'; import { useTheme } from '../context/ThemeContext'; import api from '../services/api'; import { toast } from 'react-toastify';
 
 const Dashboard = ({ user }) => { const { primaryColor } = useTheme(); const [tenant, setTenant] = useState(null); const [editMode, setEditMode] = useState(false); const [form, setForm] = useState({});
 
