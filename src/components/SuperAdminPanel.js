@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+// src/components/SuperAdminPanel.js
+import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { toast } from 'react-toastify';
 import CreatePizzaria from './admin/CreatePizzaria';
@@ -6,20 +7,24 @@ import CreatePizzaria from './admin/CreatePizzaria';
 const SuperAdminPanel = ({ handleLogout }) => {
   const [tenants, setTenants] = useState([]);
   const [editingTenant, setEditingTenant] = useState(null);
-  const [editForm, setEditForm] = useState({
-    name: '',
-    phone: '',
-    address: { cep: '', street: '', number: '' }
-  });
-  const [loading, setLoading] = useState(false);
+  const [editForm, setEditForm] = useState({});
 
   const fetchTenants = async () => {
     try {
-      const res = await api.get('/tenants');
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Token não encontrado. Faça login novamente.');
+        return;
+      }
+
+      const res = await api.get('/tenants', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
       setTenants(res.data);
     } catch (err) {
-      console.error('Erro ao buscar tenants:', err);
-      toast.error('Erro ao carregar pizzarias.');
+      console.error('Erro ao buscar pizzarias:', err.response?.data || err.message);
+      toast.error(err.response?.data?.message || 'Erro ao carregar pizzarias.');
     }
   };
 
@@ -30,7 +35,7 @@ const SuperAdminPanel = ({ handleLogout }) => {
   const startEdit = (tenant) => {
     setEditingTenant(tenant.tenantId);
     setEditForm({
-      name: tenant.name || '',
+      name: tenant.name,
       phone: tenant.phone || '',
       address: {
         cep: tenant.address?.cep || '',
@@ -55,33 +60,23 @@ const SuperAdminPanel = ({ handleLogout }) => {
     }
   };
 
-  const cancelEdit = () => {
-    setEditingTenant(null);
-    setEditForm({
-      name: '',
-      phone: '',
-      address: { cep: '', street: '', number: '' }
-    });
-  };
-
   const saveEdit = async () => {
-    if (!editForm.name) {
-      toast.error('Nome da pizzaria é obrigatório');
-      return;
-    }
-
     try {
-      setLoading(true);
-      await api.put(`/tenants/${editingTenant}`, editForm);
-      toast.success('Pizzaria atualizada com sucesso!');
-      cancelEdit();
+      const token = localStorage.getItem('token');
+      await api.put(`/tenants/${editingTenant}`, editForm, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toast.success('Pizzaria atualizada!');
+      setEditingTenant(null);
       fetchTenants();
     } catch (err) {
-      console.error('Erro ao salvar tenant:', err);
-      toast.error('Erro ao salvar alterações.');
-    } finally {
-      setLoading(false);
+      toast.error(err.response?.data?.message || 'Erro ao salvar alterações.');
     }
+  };
+
+  const cancelEdit = () => {
+    setEditingTenant(null);
+    setEditForm({});
   };
 
   return (
@@ -98,23 +93,19 @@ const SuperAdminPanel = ({ handleLogout }) => {
 
       <CreatePizzaria onSuccess={fetchTenants} />
 
-      <ul className="space-y-4 mt-6">
+      <ul className="space-y-4">
         {tenants.map((tenant) => (
           <li key={tenant._id} className="bg-white p-4 rounded shadow">
             {editingTenant === tenant.tenantId ? (
               <div className="space-y-2">
                 <input name="name" value={editForm.name} onChange={handleEditChange} className="w-full border p-2 rounded" placeholder="Nome" />
                 <input name="phone" value={editForm.phone} onChange={handleEditChange} className="w-full border p-2 rounded" placeholder="Telefone" />
-                <input name="cep" value={editForm.address.cep} onChange={handleEditChange} className="w-full border p-2 rounded" placeholder="CEP" />
-                <input name="street" value={editForm.address.street} onChange={handleEditChange} className="w-full border p-2 rounded" placeholder="Rua" />
-                <input name="number" value={editForm.address.number} onChange={handleEditChange} className="w-full border p-2 rounded" placeholder="Número" />
+                <input name="cep" value={editForm.address?.cep} onChange={handleEditChange} className="w-full border p-2 rounded" placeholder="CEP" />
+                <input name="street" value={editForm.address?.street} onChange={handleEditChange} className="w-full border p-2 rounded" placeholder="Rua" />
+                <input name="number" value={editForm.address?.number} onChange={handleEditChange} className="w-full border p-2 rounded" placeholder="Número" />
                 <div className="flex gap-2 mt-2">
-                  <button onClick={saveEdit} className="bg-green-500 text-white px-4 py-1 rounded">
-                    {loading ? 'Salvando...' : 'Salvar'}
-                  </button>
-                  <button onClick={cancelEdit} className="bg-gray-300 text-black px-4 py-1 rounded">
-                    Cancelar
-                  </button>
+                  <button onClick={saveEdit} className="bg-green-500 text-white px-4 py-1 rounded">Salvar</button>
+                  <button onClick={cancelEdit} className="bg-gray-300 text-black px-4 py-1 rounded">Cancelar</button>
                 </div>
               </div>
             ) : (
@@ -126,12 +117,7 @@ const SuperAdminPanel = ({ handleLogout }) => {
                     {tenant.phone || '-'} | {tenant.address?.cep || '-'} | {tenant.address?.street || '-'}, {tenant.address?.number || '-'}
                   </p>
                 </div>
-                <button
-                  onClick={() => startEdit(tenant)}
-                  className="bg-[#e63946] text-white px-3 py-1 rounded hover:bg-red-700 text-sm"
-                >
-                  Consultar
-                </button>
+                <button onClick={() => startEdit(tenant)} className="bg-[#e63946] text-white px-3 py-1 rounded hover:bg-red-700 text-sm">Consultar</button>
               </div>
             )}
           </li>
