@@ -1,3 +1,4 @@
+// src/components/Login.js
 import React, { useState } from 'react';
 import api from '../services/api';
 import { toast } from 'react-toastify';
@@ -23,8 +24,8 @@ const Login = ({
     setLoading(true);
 
     const url = tenantId
-      ? `/auth/${tenantId}/login`   // login de admin
-      : `/auth/superadmin/login`;  // login de superadmin
+      ? `/auth/${tenantId}/login` // admin comum
+      : `/auth/superadmin/login`; // super admin
 
     try {
       const res = await api.post(url, form);
