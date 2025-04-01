@@ -12,12 +12,12 @@ const SuperAdminPanel = ({ handleLogout }) => {
     try {
       const token = localStorage.getItem('token');
       const res = await api.get('/tenants', {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` }
       });
       setTenants(res.data);
     } catch (err) {
       console.error('Erro ao carregar pizzarias:', err);
-      toast.error('Erro ao carregar pizzarias.');
+      toast.error(err.response?.data?.message || 'Erro ao carregar pizzarias.');
     }
   };
 
@@ -45,7 +45,7 @@ const SuperAdminPanel = ({ handleLogout }) => {
         ...prev,
         address: {
           ...prev.address,
-          [name]: value,
+          [name]: value
         }
       }));
     } else {
@@ -57,15 +57,15 @@ const SuperAdminPanel = ({ handleLogout }) => {
     try {
       const token = localStorage.getItem('token');
       await api.put(`/tenants/${editingTenant}`, editForm, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Pizzaria atualizada com sucesso!');
       setEditingTenant(null);
       setEditForm({});
       fetchTenants();
     } catch (err) {
-      toast.error('Erro ao salvar alterações.');
-      console.error('Erro ao atualizar pizzaria:', err);
+      console.error('Erro ao salvar alterações:', err);
+      toast.error(err.response?.data?.message || 'Erro ao salvar alterações.');
     }
   };
 
@@ -88,40 +88,36 @@ const SuperAdminPanel = ({ handleLogout }) => {
 
       <CreatePizzaria onSuccess={fetchTenants} />
 
-      {tenants.length === 0 ? (
-        <p className="text-gray-500 mt-6">Nenhuma pizzaria cadastrada.</p>
-      ) : (
-        <ul className="space-y-4">
-          {tenants.map((tenant) => (
-            <li key={tenant._id} className="bg-white p-4 rounded shadow">
-              {editingTenant === tenant.tenantId ? (
-                <div className="space-y-2">
-                  <input name="name" value={editForm.name} onChange={handleEditChange} className="w-full border p-2 rounded" placeholder="Nome" />
-                  <input name="phone" value={editForm.phone} onChange={handleEditChange} className="w-full border p-2 rounded" placeholder="Telefone" />
-                  <input name="cep" value={editForm.address?.cep} onChange={handleEditChange} className="w-full border p-2 rounded" placeholder="CEP" />
-                  <input name="street" value={editForm.address?.street} onChange={handleEditChange} className="w-full border p-2 rounded" placeholder="Rua" />
-                  <input name="number" value={editForm.address?.number} onChange={handleEditChange} className="w-full border p-2 rounded" placeholder="Número" />
-                  <div className="flex gap-2 mt-2">
-                    <button onClick={saveEdit} className="bg-green-500 text-white px-4 py-1 rounded">Salvar</button>
-                    <button onClick={cancelEdit} className="bg-gray-300 text-black px-4 py-1 rounded">Cancelar</button>
-                  </div>
+      <ul className="space-y-4">
+        {tenants.map((tenant) => (
+          <li key={tenant._id} className="bg-white p-4 rounded shadow">
+            {editingTenant === tenant.tenantId ? (
+              <div className="space-y-2">
+                <input name="name" value={editForm.name} onChange={handleEditChange} className="w-full border p-2 rounded" placeholder="Nome" />
+                <input name="phone" value={editForm.phone} onChange={handleEditChange} className="w-full border p-2 rounded" placeholder="Telefone" />
+                <input name="cep" value={editForm.address?.cep} onChange={handleEditChange} className="w-full border p-2 rounded" placeholder="CEP" />
+                <input name="street" value={editForm.address?.street} onChange={handleEditChange} className="w-full border p-2 rounded" placeholder="Rua" />
+                <input name="number" value={editForm.address?.number} onChange={handleEditChange} className="w-full border p-2 rounded" placeholder="Número" />
+                <div className="flex gap-2 mt-2">
+                  <button onClick={saveEdit} className="bg-green-500 text-white px-4 py-1 rounded">Salvar</button>
+                  <button onClick={cancelEdit} className="bg-gray-300 text-black px-4 py-1 rounded">Cancelar</button>
                 </div>
-              ) : (
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="font-bold">{tenant.name}</p>
-                    <p className="text-sm text-gray-500">/{tenant.tenantId}</p>
-                    <p className="text-sm text-gray-600">
-                      {tenant.phone || '-'} | {tenant.address?.cep || '-'} | {tenant.address?.street || '-'}, {tenant.address?.number || '-'}
-                    </p>
-                  </div>
-                  <button onClick={() => startEdit(tenant)} className="bg-[#e63946] text-white px-3 py-1 rounded hover:bg-red-700 text-sm">Consultar</button>
+              </div>
+            ) : (
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="font-bold">{tenant.name}</p>
+                  <p className="text-sm text-gray-500">/{tenant.tenantId}</p>
+                  <p className="text-sm text-gray-600">
+                    {tenant.phone || '-'} | {tenant.address?.cep || '-'} | {tenant.address?.street || '-'}, {tenant.address?.number || '-'}
+                  </p>
                 </div>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
+                <button onClick={() => startEdit(tenant)} className="bg-[#e63946] text-white px-3 py-1 rounded hover:bg-red-700 text-sm">Consultar</button>
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };
