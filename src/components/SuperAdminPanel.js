@@ -1,4 +1,3 @@
-// src/components/SuperAdminPanel.js
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { toast } from 'react-toastify';
@@ -12,19 +11,13 @@ const SuperAdminPanel = ({ handleLogout }) => {
   const fetchTenants = async () => {
     try {
       const token = localStorage.getItem('token');
-      if (!token) {
-        toast.error('Token não encontrado. Faça login novamente.');
-        return;
-      }
-
       const res = await api.get('/tenants', {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       setTenants(res.data);
     } catch (err) {
-      console.error('Erro ao buscar pizzarias:', err.response?.data || err.message);
-      toast.error(err.response?.data?.message || 'Erro ao carregar pizzarias.');
+      console.error('Erro ao carregar pizzarias:', err);
+      toast.error('Erro ao carregar pizzarias.');
     }
   };
 
@@ -48,7 +41,7 @@ const SuperAdminPanel = ({ handleLogout }) => {
   const handleEditChange = (e) => {
     const { name, value } = e.target;
     if (['cep', 'street', 'number'].includes(name)) {
-      setEditForm((prev) => ({
+      setEditForm(prev => ({
         ...prev,
         address: {
           ...prev.address,
@@ -56,7 +49,7 @@ const SuperAdminPanel = ({ handleLogout }) => {
         }
       }));
     } else {
-      setEditForm((prev) => ({ ...prev, [name]: value }));
+      setEditForm(prev => ({ ...prev, [name]: value }));
     }
   };
 
@@ -66,11 +59,13 @@ const SuperAdminPanel = ({ handleLogout }) => {
       await api.put(`/tenants/${editingTenant}`, editForm, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      toast.success('Pizzaria atualizada!');
+      toast.success('Pizzaria atualizada com sucesso!');
       setEditingTenant(null);
+      setEditForm({});
       fetchTenants();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Erro ao salvar alterações.');
+      toast.error('Erro ao salvar alterações.');
+      console.error('Erro ao atualizar pizzaria:', err);
     }
   };
 
@@ -93,36 +88,40 @@ const SuperAdminPanel = ({ handleLogout }) => {
 
       <CreatePizzaria onSuccess={fetchTenants} />
 
-      <ul className="space-y-4">
-        {tenants.map((tenant) => (
-          <li key={tenant._id} className="bg-white p-4 rounded shadow">
-            {editingTenant === tenant.tenantId ? (
-              <div className="space-y-2">
-                <input name="name" value={editForm.name} onChange={handleEditChange} className="w-full border p-2 rounded" placeholder="Nome" />
-                <input name="phone" value={editForm.phone} onChange={handleEditChange} className="w-full border p-2 rounded" placeholder="Telefone" />
-                <input name="cep" value={editForm.address?.cep} onChange={handleEditChange} className="w-full border p-2 rounded" placeholder="CEP" />
-                <input name="street" value={editForm.address?.street} onChange={handleEditChange} className="w-full border p-2 rounded" placeholder="Rua" />
-                <input name="number" value={editForm.address?.number} onChange={handleEditChange} className="w-full border p-2 rounded" placeholder="Número" />
-                <div className="flex gap-2 mt-2">
-                  <button onClick={saveEdit} className="bg-green-500 text-white px-4 py-1 rounded">Salvar</button>
-                  <button onClick={cancelEdit} className="bg-gray-300 text-black px-4 py-1 rounded">Cancelar</button>
+      {tenants.length === 0 ? (
+        <p className="text-gray-500 mt-6">Nenhuma pizzaria cadastrada.</p>
+      ) : (
+        <ul className="space-y-4">
+          {tenants.map((tenant) => (
+            <li key={tenant._id} className="bg-white p-4 rounded shadow">
+              {editingTenant === tenant.tenantId ? (
+                <div className="space-y-2">
+                  <input name="name" value={editForm.name} onChange={handleEditChange} className="w-full border p-2 rounded" placeholder="Nome" />
+                  <input name="phone" value={editForm.phone} onChange={handleEditChange} className="w-full border p-2 rounded" placeholder="Telefone" />
+                  <input name="cep" value={editForm.address?.cep} onChange={handleEditChange} className="w-full border p-2 rounded" placeholder="CEP" />
+                  <input name="street" value={editForm.address?.street} onChange={handleEditChange} className="w-full border p-2 rounded" placeholder="Rua" />
+                  <input name="number" value={editForm.address?.number} onChange={handleEditChange} className="w-full border p-2 rounded" placeholder="Número" />
+                  <div className="flex gap-2 mt-2">
+                    <button onClick={saveEdit} className="bg-green-500 text-white px-4 py-1 rounded">Salvar</button>
+                    <button onClick={cancelEdit} className="bg-gray-300 text-black px-4 py-1 rounded">Cancelar</button>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-bold">{tenant.name}</p>
-                  <p className="text-sm text-gray-500">/{tenant.tenantId}</p>
-                  <p className="text-sm text-gray-600">
-                    {tenant.phone || '-'} | {tenant.address?.cep || '-'} | {tenant.address?.street || '-'}, {tenant.address?.number || '-'}
-                  </p>
+              ) : (
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="font-bold">{tenant.name}</p>
+                    <p className="text-sm text-gray-500">/{tenant.tenantId}</p>
+                    <p className="text-sm text-gray-600">
+                      {tenant.phone || '-'} | {tenant.address?.cep || '-'} | {tenant.address?.street || '-'}, {tenant.address?.number || '-'}
+                    </p>
+                  </div>
+                  <button onClick={() => startEdit(tenant)} className="bg-[#e63946] text-white px-3 py-1 rounded hover:bg-red-700 text-sm">Consultar</button>
                 </div>
-                <button onClick={() => startEdit(tenant)} className="bg-[#e63946] text-white px-3 py-1 rounded hover:bg-red-700 text-sm">Consultar</button>
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };
