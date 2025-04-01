@@ -1,4 +1,3 @@
-// src/components/Register.js
 import React, { useState } from 'react';
 import api from '../services/api';
 import { toast } from 'react-toastify';
@@ -33,13 +32,12 @@ const Register = ({
 
     try {
       await api.post(`/auth/${tenantId}/register`, form);
-      toast.success('Cadastro realizado com sucesso! Agora faça login.');
-      setForm({ name: '', email: '', password: '' });
+      toast.success('Cadastro realizado! Agora faça login.');
       setIsRegisterOpen(false);
       setIsLoginOpen(true);
     } catch (err) {
-      console.error('Erro no registro:', err);
-      toast.error(err.response?.data?.msg || 'Erro ao registrar.');
+      console.error(err);
+      toast.error(err.response?.data?.message || 'Erro ao registrar.');
     } finally {
       setLoading(false);
     }
