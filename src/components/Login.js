@@ -12,6 +12,7 @@ const Login = () => {
 
     try {
       console.log('Tentando login com:', { email, password });
+      // Faz a requisição para /auth/login diretamente, sem tenantId
       const response = await api.post('/auth/login', { email, password });
       console.log('Resposta do login:', response.data);
 
