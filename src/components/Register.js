@@ -22,7 +22,6 @@ const Register = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!tenantId) {
       toast.error('TenantId não encontrado. Volte e tente novamente.');
       return;
@@ -31,7 +30,12 @@ const Register = ({
     setLoading(true);
 
     try {
-      await api.post(`/auth/${tenantId}/register`, form);
+      // incluímos o tenantId no corpo da requisição
+      const res = await api.post(`/auth/${tenantId}/register`, {
+        ...form,
+        tenantId
+      });
+
       toast.success('Cadastro realizado! Agora faça login.');
       setIsRegisterOpen(false);
       setIsLoginOpen(true);
