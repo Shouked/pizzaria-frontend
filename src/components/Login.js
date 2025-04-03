@@ -1,4 +1,5 @@
-// src/components/Login.js import React, { useState } from 'react'; import api from '../services/api'; import { toast } from 'react-toastify'; import { useNavigate, useParams } from 'react-router-dom';
+// src/components/Login.js 
+import React, { useState } from 'react'; import api from '../services/api'; import { toast } from 'react-toastify'; import { useNavigate, useParams } from 'react-router-dom';
 
 const Login = ({ setIsLoginOpen, setIsLoggedIn, setIsRegisterOpen, setUser, }) => { const [form, setForm] = useState({ email: '', password: '' }); const [loading, setLoading] = useState(false); const navigate = useNavigate(); const { tenantId } = useParams();
 
