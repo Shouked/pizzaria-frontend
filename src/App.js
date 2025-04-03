@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -14,18 +14,17 @@ import Dashboard from './components/Dashboard';
 import SuperAdminPanel from './components/SuperAdminPanel';
 
 import { ThemeProvider } from './context/ThemeContext';
-import pizzaBanner from './assets/pizza.png';
+
+const pizzaBanner = '/pizza.png';
 
 const ProtectedRoute = ({ user, children, setIsLoginOpen }) => {
   const location = useLocation();
   const protectedPaths = ['/orders', '/profile'];
   const requiresAuth = protectedPaths.some((path) => location.pathname.includes(path));
-
   if (!user && requiresAuth) {
     setIsLoginOpen(true);
     return <div className="p-4 text-center text-gray-500">Carregando...</div>;
   }
-
   return children;
 };
 
@@ -78,10 +77,9 @@ function App() {
     navigate(`/${currentTenantId}`);
   };
 
-const NavigationBar = () => {
+  const NavigationBar = () => {
     if (!currentTenantId || user?.isSuperAdmin) return null;
     const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
-
     return (
       <nav className="bg-white p-3 shadow-lg fixed bottom-0 left-0 w-full z-50 rounded-t-xl border-t border-gray-100">
         <div className="container mx-auto flex justify-around max-w-md">
